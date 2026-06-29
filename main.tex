@@ -68,10 +68,16 @@
 \email{anonymous@example.com}
 \raggedbottom
 \begin{document}
-\maketitle
+
+
+
+
 \begin{abstract}
 Genetic and drug perturbation models are increasingly used to predict cellular responses to interventions, but most are learned from dissociated single-cell assays and therefore miss how perturbation effects propagate through intact tissue. We formulate spatial perturbation prediction as a two-stage problem: first identifying direct-effect cells and estimating their cell-intrinsic transcriptional changes from observed perturbation data or a single-cell perturbation model such as CPA, and then predicting how these direct effects reshape neighboring cells in the tissue graph. \methodname{} addresses the second stage by predicting a perturbation-induced response field from an unperturbed tissue graph and a direct-effect seed. Because cell-resolved supervision for spatial propagation is scarce, we construct an audited Pre-Post Perturbation (PPP) benchmark from matched Spatial Perturb-seq control--perturbation pairs. \methodname{} is a perturbation-aware graph neural network that decomposes each cell's response into niche impact and direct-effect-to-neighbor propagation impact. A masked niche branch estimates the microenvironment-explainable component, a propagation branch routes direct-effect seeds through the local tissue graph, an ST-pretrained niche encoder provides microenvironment priors from large-scale spatial transcriptomics, and a distance-aware refinement module jointly refines the final response field. We validate \methodname{} on cell-resolved Spatial Perturb-seq, synthetic ligand--receptor propagation, and real Perturb-map benchmarks.Across these settings, \methodname{} outperforms statistical, retrieval, diffusion, fixed-communication, linear, and generic graph baselines, achieving 0.684/0.457 neighbor/ring Pearson on block-held-out Spatial Perturb-seq, 0.596/0.451 in grouped guide-out validation, and up to 0.853 spot-level program agreement in Perturb-map. Ablations confirm the importance of direct-effect seeds, edge features, and niche--propagation decomposition. A de novo IFN-$\gamma$ case study further illustrates how \methodname{} can combine an unperturbed tissue section with an external direct-effect seed to generate spatial response-field hypotheses.
 \end{abstract}
+
+\maketitle
+
 % Predicting how genetic perturbations reshape transcriptional states within native tissue is central to mapping cell-fate decisions in development, decoding tissue dysregulation in disease, and guiding cell-type- and niche-specific target prioritization~\citep{dixit2016perturbseq,norman2019combinatorial,zheng2024invivo,finan2017druggable,king2019genetic}. 
 % However, most perturbation data come from dissociated tissue, removing the cell--cell signaling and niche architecture that govern perturbation responses in vivo~\citep{adamson2016crispr,datlinger2017cropsseq,replogle2022mapping,frangieh2021multimodal}. 
 % Spatial functional genomics, including Perturb-map, Perturb-FISH, and Spatial Perturb-Seq, begins to close this gap by placing CRISPR perturbations within intact tissue and reading out molecular state in situ~\citep{dhainaut2022spatialcrispr,binan2025perturbfish,shen2026spatialperturbseq}. 
@@ -253,14 +259,14 @@ The visualization summarizes receiver-side perturbation prediction under the blo
 (c) Spot/lesion-level external validation on Perturb-map.}
 \label{tab:main_results}
 \vspace{2pt}
-\begin{minipage}[t]{0.585\linewidth}
+\begin{minipage}[t]{0.56\linewidth}
 \centering
-\footnotesize
+\scriptsize
 \setlength{\tabcolsep}{3.0pt}
 \renewcommand{\arraystretch}{1.02}
 \textbf{(a) Exact cell-resolved Spatial Perturb-Seq benchmark}
 \vspace{2pt}
-\resizebox{\linewidth}{!}{%
+\resizebox{0.96\linewidth}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 \textbf{Gene} &
@@ -297,11 +303,11 @@ The visualization summarizes receiver-side perturbation prediction under the blo
 }
 \end{minipage}
 \hfill
-\begin{minipage}[t]{0.392\linewidth}
+\begin{minipage}[t]{0.42\linewidth}
 \centering
 \footnotesize
 \setlength{\tabcolsep}{3.0pt}
-\renewcommand{\arraystretch}{1.17}
+\renewcommand{\arraystretch}{1.1}
 \textbf{(b) synthetic LR-propagation validation}
 \vspace{2pt}
 \resizebox{\linewidth}{!}{%
@@ -341,12 +347,16 @@ IFN response            & 0.628 & -- & -- \\
 \bottomrule
 \end{tabular}
 }
-\vspace{2pt}
+\vspace{3pt}
 \parbox{\linewidth}{\scriptsize
-For panel (c), spot-level Pearson values compare predicted and observed program scores after aggregation to Perturb-map spots.}
+Panel (b) reports receiver- and ring-level correlations for controlled LR-propagation tests, including held-out perturbation, interface, strength, and host-patch settings. Panel (c) reports spot-level Pearson and lesion-level Spearman agreement after aggregating predicted response fields to Perturb-map spots.}
 \end{minipage}
 \vspace{-2pt}
 \end{table*}
+
+
+
+
 \subsection{Validation: Neighbor Responses Are Recovered Across Three Perturbation Datasets}
 \label{sec:validation_main_benchmark}
 We validate \methodname{} in three regimes: exact cell-resolved Spatial Perturb-Seq, controlled synthetic LR propagation, and spot/lesion-level Perturb-map validation. These settings test matched neighbor-cell prediction, learnability under known propagation rules, and cross-assay agreement under coarser spatial perturbation supervision.
