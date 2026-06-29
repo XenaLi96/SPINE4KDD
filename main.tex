@@ -2167,6 +2167,114 @@ The reference-ST encoder is pretrained from unperturbed spatial transcriptomics 
 \paragraph{Interpretation of the IFN-$\gamma$ case study.}
 The IFN-$\gamma$ analysis should be read as a hypothesis-generating deployment demonstration rather than a matched experimental validation. It shows that a perturbation-identity-derived direct-effect profile can produce spatially heterogeneous response fields, recover canonical IFN/MHC-I-like genes, suppress selected structural or vascular-like programs, and generate local response gradients. These outputs illustrate the intended deployment interface, but their biological claims require direct experimental validation.
 
+\subsection{Retrospective response-field prioritization audit}
+\label{app:selector_audit}
+
+Beyond predicting spatial response fields, we asked whether frozen response-field outputs can support a downstream biological prioritization task: among perturbations that preserve a specified target program in a spatial ring, select an alternative with lower collateral burden. We use this appendix only as a retrospective audit of response-field utility. Candidate actions and target specifications were fixed before held-out evaluation, and observed fields were used only for evaluation. Because the audit was assembled from frozen response-field caches compatible with the \methodname{} interface, we do not treat it as a second main method or as prospective validation.
+
+The audit scores each candidate by target utility and collateral burden. Target utility measures whether the desired program response is retained in the requested spatial ring. Burden summarizes responses outside the requested target, including far-field, off-program, and harmful-program components. Fig.~\ref{fig:app_selector_prioritization} summarizes the audit design and main diagnostic panels. Across 5,286 candidate perturbation actions and 36 target specifications, a clean weighted-head operating point reached a target-qualified rate (TQR) of 0.639 and burden reduction of 0.354. An off-program-sensitive operating point reached TQR 0.667 and burden reduction 0.362, while a rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. These values remain below the observed-field oracle burden reduction of 0.672, as expected for a predicted-field selector.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{selector_prioritization_appendix.pdf}
+\caption{\textbf{Retrospective response-field prioritization audit.}
+(a) Audit schematic: frozen response fields are decomposed into target utility and collateral burden, then used to select lower-burden target-retaining alternatives.
+(b) Three pre-specified biological cases retain most target utility while reducing burden.
+(c) TGF-$\beta$/stroma near-down burden decomposition; the selected alternative preserves target score while lowering weighted, far-field, off-program, and harmful burden.
+(d) Selector operating points compared with the observed-field oracle.
+(e) Perturb-FISH provides module-level external support under a different action pool and readout panel.
+(f) Predicted target utility stratifies observed target qualification, but calibration remains incomplete, especially under strict guide holdout.}
+\label{fig:app_selector_prioritization}
+\end{figure*}
+
+Three pre-specified biological cases give the most interpretable view of the audit (Table~\ref{tab:app_selector_cases}). The selected alternatives retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. For TGF-$\beta$/stroma near-down, the selector replaced \texttt{sgrna\_rraga} with \texttt{sgrna\_oligo2}, preserving target score from 5.074 to 4.968 while reducing weighted burden from 1.188 to 0.597. The same case reduced far-field burden from 1.213 to 0.604, off-program burden from 1.228 to 0.615, and harmful burden from 1.457 to 0.778 (Table~\ref{tab:app_selector_burden_decomposition}). Vascular-stress near-down and myeloid-activation far-up show the same target-retaining, lower-burden pattern.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Pre-specified response-field prioritization cases. Target retention and burden reduction are computed relative to the target-only guide for the same target specification.}
+\label{tab:app_selector_cases}
+\begin{tabular}{lllrr}
+\toprule
+Biological target & Target-only guide & Selector guide & Retention & Burden red. \\
+\midrule
+TGF-$\beta$/stroma near-down & \texttt{sgrna\_rraga} & \texttt{sgrna\_oligo2} & 97.9\% & 49.7\% \\
+Vascular stress near-down & \texttt{sgrna\_rraga} & \texttt{sgrna\_clu} & 99.8\% & 24.4\% \\
+Myeloid activation far-up & \texttt{sgrna\_Cfap410} & \texttt{sgrna\_stk39} & 89.3\% & 24.4\% \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Burden decomposition for the three response-field prioritization cases. Scores are observed held-out field summaries. Lower burden is better.}
+\label{tab:app_selector_burden_decomposition}
+\begin{tabular}{llrrrrr}
+\toprule
+Target & Role & Target score & Weighted burden & Far-field & Off-program & Harmful \\
+\midrule
+TGF-$\beta$/stroma near-down & target-only & 5.074 & 1.188 & 1.213 & 1.228 & 1.457 \\
+TGF-$\beta$/stroma near-down & selector & 4.968 & 0.597 & 0.604 & 0.615 & 0.778 \\
+Vascular stress near-down & target-only & 2.734 & 1.278 & 1.213 & 1.347 & 1.655 \\
+Vascular stress near-down & selector & 2.729 & 0.965 & 0.892 & 1.024 & 1.380 \\
+Myeloid activation far-up & target-only & 1.578 & 0.717 & 0.918 & 0.742 & 0.811 \\
+Myeloid activation far-up & selector & 1.409 & 0.542 & 0.651 & 0.550 & 0.657 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Selector operating points used only as a retrospective appendix audit. All rows use the same Spatial Perturb-seq target-specification family; operating points differ in burden definition or aggregation.}
+\label{tab:app_selector_operating_points}
+\begin{tabular}{lrrrr}
+\toprule
+Operating point & Candidate actions & Specs & TQR & Burden reduction \\
+\midrule
+Clean weighted-all head & 5,286 & 36 & 0.639 & 0.354 \\
+Off-program sensitivity & 5,286 & 36 & 0.667 & 0.362 \\
+Rank-consensus operating point & 5,286 & 36 & 0.620 & 0.418 \\
+Observed-field oracle & 5,286 & 36 & 1.000 & 0.672 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Perturb-FISH provides external support for the direction of these response-field prioritization cases, but we interpret it as module-level support rather than full selector replication. The action pool and readout panel differ from Spatial Perturb-seq, so the external assay tests whether the same module-level target and burden directions are plausible rather than whether the identical guide-level selector transfers unchanged. On 39 reliable Perturb-FISH specifications, the full predicted-utility/predicted-burden selector reached TQR 0.718, burden reduction 0.151, observed-utility/predicted-burden reduction 0.207, and pairwise safety 0.851 (Table~\ref{tab:app_selector_perturb_fish}).
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Perturb-FISH module-level external support for the response-field prioritization audit. The external assay has a different action pool and readout panel, so these rows support module-level direction rather than full selector replication.}
+\label{tab:app_selector_perturb_fish}
+\begin{tabular}{lrrrrr}
+\toprule
+Subset & Specs & Full TQR & Full burden red. & Obs-U/pred-S red. & Pairwise safety \\
+\midrule
+Reliable specifications & 39 & 0.718 & 0.151 & 0.207 & 0.851 \\
+All specifications & 64 & 0.641 & 0.137 & 0.218 & 0.851 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Finally, the audit has a calibration limitation. Predicted utility deciles do stratify observed target qualification, but absolute reliability is incomplete: the main block split rises from TQR 0.043 in the bottom predicted-utility decile to 0.575 in the top decile, while strict guide holdout rises from 0.053 to 0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report the selector as a response-field prioritization audit and not as a calibrated controller for prospective intervention design.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Target-utility calibration limitation. Target-qualified rate (TQR) increases from the lowest to highest predicted-utility decile, but absolute calibration remains incomplete, especially under strict guide holdout.}
+\label{tab:app_selector_calibration}
+\begin{tabular}{lrrr}
+\toprule
+Split & Bottom-decile TQR & Top-decile TQR & Gap \\
+\midrule
+Main block & 0.043 & 0.575 & 0.532 \\
+Strict guide & 0.053 & 0.461 & 0.408 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Whole-block visualization wrapper}
 \label{app:whole_block_wrapper}
 
