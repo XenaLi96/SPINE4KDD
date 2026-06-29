@@ -140,13 +140,18 @@ Spatial Perturb-seq, controlled synthetic LR propagation, and Perturb-map.
 \subsection{Pre--Post Perturbation Pairing (PPP) Construction}
 For each guide-positive anchor $a$, we form a 64-cell post-perturbation patch $P(a)=\{a\}\cup\mathcal{N}_{63}(a)$. Because the same cells are not observed before and after perturbation, we approximate the pre-perturbation state by matching the full post-perturbation patch, rather than only the guide-positive cell, to non-perturbed or control-like patches. We call this construction \textbf{Pre--Post Perturbation Pairing} (PPP). Candidate controls are ranked by spatial proximity, center-cell expression similarity, patch-level expression similarity, and cell-type composition; the top $K=3$ matches are softly aligned and aggregated into a consensus post-minus-matched-pre response target. \textbf{PPP target audit.}
 PPP is a perturbation-consistent pseudo-target rather than directly observed causal ground truth. We therefore partition post anchors and candidate controls before matching, perform matching only within the same split, and ensure that no post anchor, matched-control anchor, or 64-cell control patch is shared across train/test partitions. Candidate pre-states use only non-perturbed or control-like cells, and model predictions are never used to construct targets. PPP responses show multi-control stability, recover expected gene-direction trends, and align better with own-guide signatures than with wrong-guide or target-shuffled nulls (Figure~\ref{fig:data_pair}). Details are provided in the supplementary material.
-\begin{figure}[t]
+
+
+\begin{figure*}[t]
 \centering
 \includegraphics[width=0.9\linewidth]{pair_2.png}
 \caption{\textbf{Pre-Post Perturbation Pairing(PPP) construction and validation.}
 (a) Each post-perturbation 64-cell patch is matched to K=3 control patches, softly aligned, and aggregated into a consensus post–pre response target. (b) Example matched pre/post patches. (c–e) Stability and null audits show that PPP targets are consistent across matched controls and align more strongly with their own guide signatures than with wrong-guide or shuffled nulls. Full pseudocode and exact audit tables are provided in the supplementary material.}
 \label{fig:data_pair}
-\end{figure}
+\end{figure*}
+
+
+
 \subsection{Mining communication-rich ST micro-environments for propagation priors}
 \label{sec:st_microenvironment_mining}
 To enrich propagation priors, we mine response-like microenvironments from unperturbed mouse-brain reference ST. These regions provide program-enriched tissue neighborhoods for learning niche structure, cell--cell coupling, and communication-aware context. Specifically, we use two HD sections and three Xenium mouse-brain studies, mining seven response-like templates spanning interferon/inflammatory, microglial, astrocytic, myelin-lineage, neuronal, splicing, and mitochondrial/OXPHOS programs. Across 392{,}962 cells, this yields 1{,}619 positive reference anchors and 9{,}316 anchor--normal local pairs. These pairs pretrain the frozen organ-specific microenvironment encoder with gene-program, neighborhood, patch-composition, and communication-plausibility objectives, while signed response supervision remains defined by Spatial Perturb-seq (PPP) pairs. Detailed statistics are provided in the supplementary material.
@@ -225,13 +230,19 @@ Training proceeds in four stages: reference-ST niche pretraining, niche-module t
 We evaluate \methodname{} in three complementary settings: the mouse-brain Spatial Perturb-Seq benchmark in \Cref{sec:data_construction}, a controlled synthetic LR-propagation benchmark, and external Perturb-map validation. Together, they test cell-resolved neighbor prediction, recovery under known propagation rules, and agreement with coarser spatial CRISPR readouts. \textbf{Task and split.}
 The primary Spatial Perturb-Seq task uses a 64-cell graph, direct-effect region, and direct-effect seed to predict the matched-control response field over direct-effect and neighbor cells; measured runs use observed seeds, while de novo runs use a single-cell predictor. We use two development slides and one held-out test slide, with no post anchor, matched-control patch, or 64-cell patch shared across partitions. The final split contains 2{,}179/2{,}179/928 train/validation/test patches, each with 512 genes, six cell types, and 23 edge features. \textbf{Metrics, baselines, and compute.}
 We report Neighbor Pearson, centered/high-confidence variants, ring Pearson, Neighbor MAE, sender-center Pearson, plus synthetic LR and Perturb-map agreement. Baselines include statistical/retrieval, direct-effect/radial, supervised patch, and graph models; shortcut and input-ablation controls are reported separately. Unless noted, runs use 64-cell patches on one RTX A6000 via \texttt{--device cuda}; the organ/niche prior used an H100 GPU. Details are provided in the supplementary material.
-\begin{figure}[t]
+
+
+
+\begin{figure*}[t]
 \centering
 \includegraphics[width=0.90\linewidth]{main_exp.png}
 \caption{\textbf{Main real-data evaluation on the Spatial Perturb-Seq mouse-brain benchmark.}
 The visualization summarizes receiver-side perturbation prediction under the block-holdout matched-control setting, complementing the gene-centric quantitative analysis in \Cref{tab:main_results}. A full-resolution version with additional spatial and local-neighborhood panels is provided in the supplementary material.}
 \label{fig:main_exp}
-\end{figure}
+\end{figure*}
+
+
+
 % If not already defined:
 % \newcommand{\pmv}[2]{#1\,{\scriptsize$\pm$}\,#2}
 \begin{table*}[t]
@@ -380,7 +391,9 @@ Bootstrap, top-$k$, and null-control analyses are reported in
 \Cref{tab:perturbmap_external,tab:perturbmap_topk,tab:perturbmap_null_ci}.
 \textbf{Strict grouped guide-out validation confirms perturbation-level generalization.}
 In a strict grouped guide-out split, we jointly held out \textit{fasn}, \textit{stk39}, and \textit{trem2} from training and validation. On 992 unseen-guide graphs, \methodname{} achieved neighbor/ring Pearson $0.596/0.451$ with observed sender-side direct-effect seeds, outperforming elastic-net patch-summary regression $(0.334/0.142)$ and a Generic Graph Transformer without CCC priors $(0.497/0.395)$. Performance remained stable across all three held-out guides, showing that the result is not driven by one favorable perturbation and that the learned propagation module transfers to unseen guide identities. Full values are in \Cref{tab:strict_grouped_guide_out}.
-\begin{table}[t]
+
+
+\begin{table*}[t]
 \centering
 \begin{minipage}[t]{0.49\linewidth}
 \centering
@@ -459,14 +472,18 @@ No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
 \end{tabular}%
 }
 \end{minipage}
-\end{table}
+\end{table*}
+
+
+
+
 \subsection{Ablations: Model Components and Direct-Effect Controls Add Complementary Evidence}
 \label{sec:ablations}
 \noindent\textbf{Input controls show that direct-effect seeds improve propagation beyond niche-only prediction.}
 \Cref{tab:seed_shortcut_controls} evaluates direct-effect controls on both the controlled synthetic LR benchmark and the real Spatial Perturb-Seq benchmark. In the synthetic setting, the niche module alone is near zero, shuffled direct effects remain weak, and measured or predicted direct effects recover strong neighbor/ring performance ($0.619/0.815$ and $0.611/0.803$). In Spatial Perturb-Seq, measured direct effects provide the strongest real-data propagation signal, reaching $0.684/0.457$ and improving ring Pearson by $+0.052$ over the shuffled-seed control.
 \noindent\textbf{Component ablations identify the structural sources of the gain.}
 Removing niche-impact residualization causes the largest collapse, dropping neighbor/ring Pearson to $0.165/0.153$; this reflects both loss of niche-impact subtraction and the restricted direct-effect-to-neighbor routing of the propagation branch. Removing edge attributes weakens performance to $0.606/0.418$, and removing direct-effect input gives $0.614/0.441$, showing that spatial/communication features and perturbation-specific input provide complementary gains. Additional ablations are provided in the supplementary material.
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \includegraphics[width=\linewidth]{novo.png}
 \caption{
@@ -475,7 +492,7 @@ Left: whole-tissue maps for representative IFN/MHC-I-associated and structural g
 Middle: six high-response regions with patch-averaged deltas overlaid on the spatial graph.
 Right: local 64-cell neighborhoods, where highlighted target cells show the strongest response and nearby neighbors show structured propagation.}
 \label{fig:ifng_response_field}
-\end{figure}
+\end{figure*}
 \subsection{De novo IFN-\texorpdfstring{$\gamma$}{gamma} mouse-brain response-field case study}
 \label{sec:ifng_case_study}
 We use the trained propagation model as a de novo perturbation-query engine on an intact mouse-brain spatial graph. This setting has no paired IFN-$\gamma$ spatial perturbation labels. To construct the direct-effect seed, we train/fine-tune CPA on PerturbSapiens cytokine data, using treatment status (PBS/control versus IFN-$\gamma$), cell type, and tissue/broad class as covariates. For each Sample2/pre4 spatial cell, CPA predicts the IFN-$\gamma$ state and the matched control state; their difference gives a per-cell direct delta, which is then fed to the \methodname{} propagation module. This is a hypothesis-generation demonstration, not matched validation.
