@@ -31,9 +31,11 @@
 \usepackage{tabularx}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{xr}
 \usepackage[capitalize]{cleveref}
 \setcitestyle{numbers,square,comma,sort&compress}
 \graphicspath{{./}{appendix_image/}}
+\externaldocument{main}
 
 \crefname{section}{Sec.}{Secs.}
 \Crefname{section}{Section}{Sections}
@@ -122,56 +124,60 @@ where $\mu_{t,a}$ and $\sigma_{t,a}$ are computed over candidate controls for an
 \]
 with raw channels
 \[
-d_{\mathrm{sp}}=\|s_a-s_u\|_2,\quad
-d_{\mathrm{ctr}}=\|z_a-z_u\|_2^2,\quad
-d_{\mathrm{patch}}=\|\bar z_{P(a)}-\bar z_{P(u)}\|_2^2,\quad
-d_{\mathrm{ctype}}=\|\pi_{P(a)}-\pi_{P(u)}\|_2^2 .
+\begin{aligned}
+d_{\mathrm{sp}}
+&=\|s_a-s_u\|_2,\\
+d_{\mathrm{ctr}}
+&=\|z_a-z_u\|_2^2,\\
+d_{\mathrm{patch}}
+&=\|\bar z_{P(a)}-\bar z_{P(u)}\|_2^2,\\
+d_{\mathrm{ctype}}
+&=\|\pi_{P(a)}-\pi_{P(u)}\|_2^2 .
+\end{aligned}
 \]
 Here $s_i$ is the absolute spatial coordinate, $z_i$ is the PCA expression embedding, $\bar z_{P(\cdot)}$ is the patch-mean PCA embedding, and $\pi_{P(\cdot)}$ is the patch cell-type composition vector. For each perturbed patch, we keep the top $K=3$ lowest-scoring control patches.
 
 Within each matched control--post pair, the control cells are projected into the post-patch coordinate frame before response aggregation. Let $i\in P(a)$ index cells in the post patch and $j\in P(u_k)$ index cells in the $k$-th matched control patch. We define a transport matrix from each post-patch cell to cells in the matched control patch:
 \[
-T^{(k)}_{ij}
-=
-\frac{
-\exp\left(
--\frac{\|p_i-p^{(k)}_j\|_2^2}{\tau_p}
--\frac{\|z_i-z^{(k)}_j\|_2^2}{\tau_z}
--\lambda_c\,\mathbf{1}[c_i\neq c^{(k)}_j]
-\right)
-}{
-\sum_{j'\in P(u_k)}
-\exp\left(
--\frac{\|p_i-p^{(k)}_{j'}\|_2^2}{\tau_p}
--\frac{\|z_i-z^{(k)}_{j'}\|_2^2}{\tau_z}
--\lambda_c\,\mathbf{1}[c_i\neq c^{(k)}_{j'}]
-\right)
-}.
+\begin{aligned}
+D_{ij}^{(k)}
+&=
+\frac{\|p_i-p_j^{(k)}\|_2^2}{\tau_p}
++
+\frac{\|z_i-z_j^{(k)}\|_2^2}{\tau_z}
++
+\lambda_c\,\mathbf{1}[c_i\neq c_j^{(k)}],\\
+T_{ij}^{(k)}
+&=
+\frac{\exp(-D_{ij}^{(k)})}
+{\sum_{j'\in P(u_k)}\exp(-D_{ij'}^{(k)})}.
+\end{aligned}
 \]
 Here $p_i$ denotes the patch-relative coordinate, $c_i$ denotes the coarse cell type, and the superscript $(k)$ denotes quantities from the $k$-th matched control patch. The matched pre-state for post cell $i$ under control patch $k$ is
 \[
+\begin{aligned}
 \widetilde{x}^{\mathrm{pre},(k)}_i
-=
-\sum_{j\in P(u_k)}T^{(k)}_{ij}x^{\mathrm{pre},(k)}_j,
-\qquad
+&=
+\sum_{j\in P(u_k)}T^{(k)}_{ij}x^{\mathrm{pre},(k)}_j,\\
 \delta_i^{(k)}
-=
+&=
 x_i^{\mathrm{post}}-\widetilde{x}^{\mathrm{pre},(k)}_i .
+\end{aligned}
 \]
-Thus every matched-control response is first expressed on the shared 64-cell post-patch coordinate frame. The final PPP response target is the score-weighted consensus over the $K$ aligned control patches:
+Thus every matched-control response is first expressed on the shared 64-cell post-patch coordinate frame. Writing $s_k=\mathrm{score}(a,u_k)$, the final PPP response target is the score-weighted consensus over the $K$ aligned control patches:
 \[
+\begin{aligned}
 \omega_k
-=
+&=
 \frac{
-\exp\left[-\gamma\left(\mathrm{score}(a,u_k)-\min_{\ell}\mathrm{score}(a,u_\ell)\right)\right]
+\exp[-\gamma(s_k-\min_{\ell}s_\ell)]
 }{
-\sum_{r=1}^{K}
-\exp\left[-\gamma\left(\mathrm{score}(a,u_r)-\min_{\ell}\mathrm{score}(a,u_\ell)\right)\right]
-},
-\qquad
+\sum_{r=1}^{K}\exp[-\gamma(s_r-\min_{\ell}s_\ell)]
+},\\
 \Delta_i^{\mathrm{PPP}}
-=
+&=
 \sum_{k=1}^{K}\omega_k\delta_i^{(k)} .
+\end{aligned}
 \]
 This construction yields a matched pre-perturbation state and a consensus perturbation-induced response for each cell in the original post-perturbation patch, so the supervised target is indexed by the same cell set as the model input.
 
@@ -259,31 +265,41 @@ E_R=\{(i,j):\|s_i-s_j\|_2\le r,\ i\neq j\},
 \]
 where $r$ is a spatial interaction radius. A candidate communication program may correspond to a ligand--receptor pair, a ligand--target module, or a learned gene program. For a candidate gene pair or communication program $(p,q)$, the local communication score is
 \[
+\begin{aligned}
 C_R(p,q)
-=
+&=
 \frac{1}{|E_R|}
-\sum_{(i,j)\in E_R}
-\tilde x_{ip}\tilde x_{jq}
-\exp\left(
+\sum_{(i,j)\in E_R}\tilde x_{ip}\tilde x_{jq}\\
+&\quad \times
+\exp\!\left(
 -\frac{\|s_i-s_j\|_2^2}{2\sigma_d^2}
 \right),
+\end{aligned}
 \]
 where $\tilde x_{ip}$ and $\tilde x_{jq}$ are normalized expression values for the signal-side and response-side genes. This score favors regions where a signal-side program and a response-side program are jointly active in spatially adjacent cells.
 
 Each region is summarized by its strongest communication programs and local tissue context:
 \[
-h_R=[\bar z_R,\pi_R,\mathrm{TopK}\{C_R(p,q)\},\rho_R],
+\begin{aligned}
+h_R
+&=
+[\bar z_R,\pi_R,\mathrm{TopK}\{C_R(p,q)\},\rho_R],
+\end{aligned}
 \]
 where $\bar z_R$ is the mean expression embedding, $\pi_R$ is the cell-type composition, and $\rho_R$ summarizes local spatial density and neighborhood geometry. Regions are selected as high-communication microenvironments if their communication scores exceed a reference-ST quantile threshold and both signal-side and response-side populations are sufficiently represented:
 \[
+\begin{aligned}
 \mathcal R_{\mathrm{high}}
-=
+&=
 \left\{
 R\in\mathcal B:
 \max_{(p,q)}C_R(p,q)\ge Q_{1-\eta},
+\right.\\
+&\qquad\left.
 \ n_{\mathrm{signal}}(R)\ge n_{\min},
 \ n_{\mathrm{response}}(R)\ge n_{\min}
 \right\}.
+\end{aligned}
 \]
 We also retain low-communication regions as background controls. Together, these regions form a reference library of communication-rich and communication-poor tissue contexts.
 
@@ -291,14 +307,17 @@ The mined regions are used to pretrain the reference microenvironment encoder. T
 
 The corresponding reference communication prior is
 \[
+\begin{aligned}
 A_{\mathrm{CCC}}(i,j)
-=
+&=
 \sum_{(p,q)\in\mathcal G}
 \beta_{pq}
-\tilde x_{ip}\tilde x_{jq}
-\exp\left(
+\tilde x_{ip}\tilde x_{jq}\\
+&\quad \times
+\exp\!\left(
 -\frac{\|s_i-s_j\|_2^2}{2\sigma_d^2}
 \right),
+\end{aligned}
 \]
 where $\mathcal G$ is the set of communication programs and $\beta_{pq}$ is a program weight learned from the mined regions. This prior acts as a gate for plausible communication paths. It does not define the perturbation target; effective propagated responses are still learned from true spatial perturbation supervision.
 
@@ -448,100 +467,124 @@ Each local perturbation sample is a graph $P=(V,E)$ with $m=64$ cells. Cell $i$ 
 \paragraph{Niche-impact residualization.}
 The response decomposition is
 \[
-\Delta_i=I_i^{\mathrm{niche}}+I_i^{\mathrm{prop}} .
+\begin{aligned}
+\Delta_i
+&=
+I_i^{\mathrm{niche}}+I_i^{\mathrm{prop}} .
+\end{aligned}
 \]
 The niche module removes perturbation information:
 \[
+\begin{aligned}
 \widehat I_i^{\mathrm{niche}}
-=
+&=
 f_{\mathrm{niche}}(x,c,p,e;\ a=0,d=0).
+\end{aligned}
 \]
 The propagation target is
 \[
+\begin{aligned}
 I_i^{\mathrm{prop},\star}
-=
+&=
 \Delta_i-\widehat I_i^{\mathrm{niche}} .
+\end{aligned}
 \]
 Thus, matched-control variation, local tissue composition, and geometry are absorbed by $\widehat I_i^{\mathrm{niche}}$, while directed propagation learns perturbation-conditioned propagation impact.
 
 \paragraph{Direct-effect and neighbor initialization.}
 Each cell embedding is
 \[
-h_i=\phi_x(x_i)+\phi_c(c_i)+\phi_p(p_i)+\phi_g(g_i).
+\begin{aligned}
+h_i
+&=
+\phi_x(x_i)+\phi_c(c_i)+\phi_p(p_i)+\phi_g(g_i).
+\end{aligned}
 \]
 Neighbor and direct-effect states are initialized separately:
 \[
-n_i^0=\phi_N(h_i),
-\qquad
-u_i^0=a_i\phi_D([h_i,d_i,g_i]).
+\begin{aligned}
+n_i^0
+&=\phi_N(h_i),\\
+u_i^0
+&=a_i\phi_D([h_i,d_i,g_i]).
+\end{aligned}
 \]
 This construction prevents neighbor cells from directly seeing the perturbation input.
 
 \paragraph{Directed direct-effect-to-neighbor propagation.}
 For propagation layer $\ell$, a direct-effect-to-neighbor message from direct-effect cell $i$ to neighbor cell $j$ is
 \[
+\begin{aligned}
 g_{ij}^{\ell}
-=
+&=
 \sigma\!\left(
 \phi_a([u_i^\ell,n_j^\ell,e_{ij}])
 +
 w_{\mathrm{comm}}q_{ij}
 \right),
+\end{aligned}
 \]
 \[
+\begin{aligned}
 \mu_{ij}^{\ell}
-=
+&=
 g_{ij}^{\ell}
 \phi_\mu([u_i^\ell,n_j^\ell,e_{ij}]).
+\end{aligned}
 \]
 Neighbor messages are aggregated over direct-effect cells:
 \[
+\begin{aligned}
 \bar\mu_j^\ell
-=
-\sum_{i:a_i=1}\mu_{ij}^{\ell},
-\qquad
+&=
+\sum_{i:a_i=1}\mu_{ij}^{\ell},\\
 n_j^{\ell+1}
-=
+&=
 \phi_u([n_j^\ell,\bar\mu_j^\ell]).
+\end{aligned}
 \]
 After $L$ layers, the base propagation module predicts
 \[
+\begin{aligned}
 \widehat I_i^{\mathrm{prop},\mathrm{base}}
-=
+&=
 a_i\psi_{\mathrm{direct}}(u_i^L)
-+
+\\
+&\quad +
 (1-a_i)\psi_{\mathrm{neighbor}}(n_i^L).
+\end{aligned}
 \]
 
 \paragraph{Reference-ST niche encoder.}
 The reference encoder is pretrained on unperturbed ST regions and then frozen. It returns cell-level niche embeddings, a patch-level niche token, and edge-plausibility estimates:
 \[
-\{z_i^{\mathrm{ref}}\},\ n_P^{\mathrm{ref}},\ b_{ij}^{\mathrm{ref}},\ u_{ij}^{\mathrm{ref}}
-=
-f_{\mathrm{ref}}(x,c,p,e).
+\begin{aligned}
+&\{z_i^{\mathrm{ref}}\},\ n_P^{\mathrm{ref}},\\
+&\qquad b_{ij}^{\mathrm{ref}},\ u_{ij}^{\mathrm{ref}}
+ = f_{\mathrm{ref}}(x,c,p,e).
+\end{aligned}
 \]
 The neighbor-side niche summary is
 \[
-o_P=
-\left[
-n_P^{\mathrm{ref}},
-\frac{1}{|V_N|}
-\sum_{j\in V_N}z_j^{\mathrm{ref}}
-\right],
+\begin{aligned}
+o_P
+&=
+\begin{bmatrix}
+n_P^{\mathrm{ref}}\\
+|V_N|^{-1}\sum_{j\in V_N}z_j^{\mathrm{ref}}
+\end{bmatrix},
+\end{aligned}
 \]
 where $V_N$ is the neighbor set. The frozen reference context is injected through zero-initialized adapters:
 \[
+\begin{aligned}
 u_i^0
-\leftarrow
-u_i^0
-+
-a_i\lambda_D\phi_D^{\mathrm{ref}}(o_P),
-\qquad
+&\leftarrow
+u_i^0+a_i\lambda_D\phi_D^{\mathrm{ref}}(o_P),\\
 n_i^0
-\leftarrow
-n_i^0
-+
-(1-a_i)\lambda_N\phi_N^{\mathrm{ref}}(o_P).
+&\leftarrow
+n_i^0+(1-a_i)\lambda_N\phi_N^{\mathrm{ref}}(o_P).
+\end{aligned}
 \]
 Because $\lambda_D$ and $\lambda_N$ are initialized at zero, the reference-ST module begins as the base propagation model and learns only microenvironment corrections.
 
@@ -558,23 +601,25 @@ The ST-conditioned module first predicts $\widehat I_i^{\mathrm{prop},(1)}$. Nei
 \]
 The top 5\% neighbor cells by $\kappa_j$ are selected as feedback cells $F$. Neighbors are partitioned by direct-effect-relative distance into three rings: nearest eight neighbors, next 24 neighbors, and remaining neighbors. For each ring $b$, the model constructs a response token:
 \[
+\begin{aligned}
 t_b
-=
-\phi_b
-\left(
-\left[
-\mathrm{mean}_{j\in F\cap B_b}\widehat I_j^{\mathrm{prop},(1)},
+&=
+\phi_b\!\left(
+\begin{bmatrix}
+\mathrm{mean}_{j\in F\cap B_b}\widehat I_j^{\mathrm{prop},(1)}\\
 \mathrm{std}_{j\in F\cap B_b}\widehat I_j^{\mathrm{prop},(1)}
-\right]
+\end{bmatrix}
 \right).
+\end{aligned}
 \]
 The direct-effect cells receive the average ring token, and each neighbor receives the token for its ring. A second directed propagation pass produces $\widehat I_i^{\mathrm{prop},(2)}$.
 
 \paragraph{Restricted ring-aware correction.}
 The final ST-conditioned propagation impact is
 \[
+\begin{aligned}
 \widehat I_i^{\mathrm{prop},\mathrm{st}}
-=
+&=
 \widehat I_i^{\mathrm{prop},(1)}
 +
 \lambda_i
@@ -582,19 +627,23 @@ The final ST-conditioned propagation impact is
 \left(
 \widehat I_i^{\mathrm{prop},(2)}-\widehat I_i^{\mathrm{prop},(1)}
 \right),
+\end{aligned}
 \]
 where $V_D$ is the direct-effect set, $F$ is the feedback-neighbor set, and neighbor-side $\lambda_i$ is ring-specific. This restriction lets high-response regions feed back into the model without allowing the second pass to uniformly rewrite all neighbor cells.
 
 \paragraph{Final response prediction.}
 The final prediction is
 \[
+\begin{aligned}
 \widehat\Delta_i
-=
+&=
 \widehat I_i^{\mathrm{niche}}
 +
 (1-\alpha)\widehat I_i^{\mathrm{prop},\mathrm{base}}
-+
+\\
+&\quad +
 \alpha\widehat I_i^{\mathrm{prop},\mathrm{st}},
+\end{aligned}
 \]
 with $\alpha=0.65$ selected on validation data. This is a propagation-delta blend. The reconstructed post-state expression is
 \[
@@ -606,30 +655,36 @@ x_i+\widehat\Delta_i.
 \paragraph{Reference-ST pretraining objective.}
 The reference microenvironment encoder is trained without perturbation labels:
 \[
+\begin{aligned}
 \mathcal L_{\mathrm{ref}}
-=
+&=
 2.0\mathcal L_{\mathrm{masked\text{-}program}}
 +
 1.0\mathcal L_{\mathrm{neighborhood}}
-+
+\\
+&\quad +
 0.25\mathcal L_{\mathrm{patch\text{-}hist}}
 +
 0.25\mathcal L_{\mathrm{edge}}.
+\end{aligned}
 \]
 The terms supervise masked gene-program reconstruction, neighborhood-conditioned program prediction, patch cell-type composition, and pseudo edge-plausibility prediction. These objectives teach local niche structure and communication plausibility, but not perturbation response.
 
 \paragraph{Propagation-impact objective.}
 After niche-impact residualization, the propagation module is trained with neighbor-focused supervision:
 \[
+\begin{aligned}
 \mathcal L_{\mathrm{prop}}
-=
+&=
 1.0\mathcal L_{\mathrm{neighbor}}
 +
 0.3\mathcal L_{\mathrm{ring}}
-+
+\\
+&\quad +
 0.3\mathcal L_{\mathrm{post}}
 +
 0.1\mathcal L_{\mathrm{rank}}.
+\end{aligned}
 \]
 $\mathcal L_{\mathrm{neighbor}}$ is a Huber loss on high-confidence neighbor-cell propagation impacts. $\mathcal L_{\mathrm{ring}}$ supervises ring-aggregated response after adding the niche-impact baseline. $\mathcal L_{\mathrm{post}}$ supervises reconstructed post-state expression $x_i+\widehat I_i^{\mathrm{niche}}+\widehat I_i^{\mathrm{prop}}$. $\mathcal L_{\mathrm{rank}}$ is a pairwise ranking loss over per-patch gene-response magnitudes. The direct-effect-cell loss weight is set to zero in the strongest propagation setting so that the easier direct-effect signal does not dominate neighbor propagation.
 
@@ -1564,7 +1619,13 @@ Single-cell response model & CPA trained/fine-tuned on cytokine perturbation res
 Covariates & Treatment status, cell type, and tissue/broad class \\
 Treatment contrast & IFN-$\gamma$ state minus PBS/control state \\
 Spatial target cells & Sample2/pre4 mouse-brain spatial cells \\
-Direct-effect seed & Per-cell delta $d_i^{\mathrm{IFN}\gamma}=\widehat{x}_{i}^{\mathrm{IFN}\gamma}-\widehat{x}_{i}^{\mathrm{PBS}}$ \\
+Direct-effect seed &
+\makecell[l]{Per-cell delta\\
+\(\begin{aligned}
+d_i^{\mathrm{IFN}\gamma}
+&=\widehat{x}_{i}^{\mathrm{IFN}\gamma}\\
+&\quad-\widehat{x}_{i}^{\mathrm{PBS}}
+\end{aligned}\)} \\
 Use in \methodname{} & Direct-effect input for spatial propagation; no paired IFN-$\gamma$ spatial labels are used \\
 \bottomrule
 \end{tabularx}
