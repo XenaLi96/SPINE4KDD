@@ -85,6 +85,20 @@ Genetic and drug perturbation models are increasingly used to predict cellular r
 % Spatial functional genomics, including Perturb-map, Perturb-FISH, and Spatial Perturb-Seq, begins to close this gap by placing CRISPR perturbations within intact tissue and reading out molecular state in situ~\citep{dhainaut2022spatialcrispr,binan2025perturbfish,shen2026spatialperturbseq}. 
 % These measurements shift the modeling problem from predicting isolated cell-intrinsic responses to predicting how perturbation effects propagate through spatially organized tissue. 
 % Without models that infer sender-to-receiver responses under local communication and geometry, spatial Perturb-Seq remains difficult to translate into predictive target prioritization.
+
+
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{model.png}
+\caption{\textbf{Overview of \methodname.}
+\methodname{} predicts spatial perturbation response fields from an unperturbed cell-resolved tissue graph and a direct-effect seed. Inputs include matched-control expression, cell-state and spatial features, direct-effect indicators, and edge features encoding distance, cell-state pairs, and communication compatibility. The model decomposes responses into niche and propagation components: a masked niche branch estimates context-driven effects, while a directed propagation branch routes direct-effect signals to neighbors. A frozen reference-ST encoder and distance-aware refinement module add microenvironment priors and radial response correction. The output is a signed cell-by-gene response delta used to reconstruct the predicted post-perturbation expression field.}
+\label{fig:main_framework}
+\end{figure*}
+
+
+
 \section{Introduction}
 Predicting genetic-perturbation responses in native tissue is central to mapping development and prioritizing niche-specific therapeutic targets~\citep{dixit2016perturbseq,norman2019combinatorial,zheng2024invivo,finan2017druggable,king2019genetic}. Most data come from dissociated Perturb-seq and pooled CRISPR assays, which support cell-intrinsic modeling but remove the cell--cell communication and niche architecture that shape many in vivo effects~\citep{adamson2016crispr,datlinger2017cropsseq,replogle2022mapping,frangieh2021multimodal}. Spatial functional genomics assays, including Perturb-map, Perturb-FISH, and Spatial Perturb-Seq, restore this tissue layer by placing perturbations in intact tissue and reading out molecular state in situ~\citep{dhainaut2022spatialcrispr,binan2025perturbfish,shen2026spatialperturbseq}. They shift the target from isolated cell responses to spatial response fields, but remain too costly to cover perturbation--context combinations exhaustively.
 Existing methods cover only fragments of this problem. Single-cell perturbation-response models use latent translation, optimal transport, gene-relation graphs, disentangled representations, or foundation models~\citep{lotfollahi2019scgen,bunne2023cellot,roohani2023gears,piran2024biolord,theodoris2023geneformer,cui2024scgpt,hao2024scfoundation}, but lack a tissue graph for propagation. Spatial transcriptomics and communication methods preserve geometry, niches, and plausible cell--cell routes~\citep{stahl2016spatial,vickovic2019hdst,rodriques2019slideseq,stickels2021slideseqv2,cang2023commot,dries2021giotto,phan2023stlearn,tiling2024nicheformer}, but do not predict which perturbation activates which route or the signed magnitude of neighbor responses. The missing interface maps direct effects onto neighbors in an intact tissue graph.
@@ -102,6 +116,19 @@ Across three validation settings, \methodname{} shows consistent performance. On
     \item \textbf{A de novo tissue perturbation inference interface.} 
     \methodname{} combines a new ST tissue block with an external direct-effect seed to predict unmeasured spatial response fields, illustrated with an IFN-$\gamma$ mouse-brain case study.
 \end{itemize}
+
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\linewidth]{pair_2.png}
+\caption{\textbf{Pre-Post Perturbation Pairing(PPP) construction and validation.}
+(a) Each post-perturbation 64-cell patch is matched to K=3 control patches, softly aligned, and aggregated into a consensus post–pre response target. (b) Example matched pre/post patches. (c–e) Stability and null audits show that PPP targets are consistent across matched controls and align more strongly with their own guide signatures than with wrong-guide or shuffled nulls. Full pseudocode and exact audit tables are provided in the supplementary material.}
+\label{fig:data_pair}
+\end{figure*}
+
+
+
 \section{Related Work}
 % \textbf{Spatial transcriptomics and spatial functional genomics.}
 % Spatial transcriptomics enables gene-expression profiling with tissue coordinates, and recent high-resolution platforms and atlas-informed mapping methods improve cell-state interpretation in situ \citep{Stahl2016,Rodriques2019,Rao2021,Kleshchevnikov2022}. Spatial functional genomics further couples perturbations with intact-tissue readouts, making it possible to observe local and distal perturbation effects within native microenvironments \citep{Shen2026}. \methodname{} addresses the complementary prediction problem: given measured or predicted direct effects in sender cells, it predicts how responses propagate to spatial receivers.
@@ -139,17 +166,6 @@ cell-resolved direct-effect-to-neighbor response fields and validates them acros
 Spatial Perturb-seq, controlled synthetic LR propagation, and Perturb-map.
 
 
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.98\linewidth]{model.png}
-\caption{\textbf{Overview of \methodname.}
-\methodname{} predicts spatial perturbation response fields from an unperturbed cell-resolved tissue graph and a direct-effect seed. Inputs include matched-control expression, cell-state and spatial features, direct-effect indicators, and edge features encoding distance, cell-state pairs, and communication compatibility. The model decomposes responses into niche and propagation components: a masked niche branch estimates context-driven effects, while a directed propagation branch routes direct-effect signals to neighbors. A frozen reference-ST encoder and distance-aware refinement module add microenvironment priors and radial response correction. The output is a signed cell-by-gene response delta used to reconstruct the predicted post-perturbation expression field.}
-\label{fig:main_framework}
-\end{figure*}
-
-
-
 \section{Data Preparation}
 \label{sec:data_construction}
 \subsection{Pre--Post Perturbation Pairing (PPP) Construction}
@@ -157,13 +173,7 @@ For each guide-positive anchor $a$, we form a 64-cell post-perturbation patch $P
 PPP is a perturbation-consistent pseudo-target rather than directly observed causal ground truth. We therefore partition post anchors and candidate controls before matching, perform matching only within the same split, and ensure that no post anchor, matched-control anchor, or 64-cell control patch is shared across train/test partitions. Candidate pre-states use only non-perturbed or control-like cells, and model predictions are never used to construct targets. PPP responses show multi-control stability, recover expected gene-direction trends, and align better with own-guide signatures than with wrong-guide or target-shuffled nulls (Figure~\ref{fig:data_pair}). Details are provided in the supplementary material.
 
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.9\linewidth]{pair_2.png}
-\caption{\textbf{Pre-Post Perturbation Pairing(PPP) construction and validation.}
-(a) Each post-perturbation 64-cell patch is matched to K=3 control patches, softly aligned, and aggregated into a consensus post–pre response target. (b) Example matched pre/post patches. (c–e) Stability and null audits show that PPP targets are consistent across matched controls and align more strongly with their own guide signatures than with wrong-guide or shuffled nulls. Full pseudocode and exact audit tables are provided in the supplementary material.}
-\label{fig:data_pair}
-\end{figure*}
+
 
 
 
