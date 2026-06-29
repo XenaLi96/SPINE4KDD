@@ -443,6 +443,7 @@ $0.6851 \pm 0.0044$/$0.4604 \pm 0.0203$, with narrow per-guide ranges
 ($0.6767$--$0.6952$ and $0.4276$--$0.4956$). This is a stability audit of frozen
 held-out predictions, not leave-one-guide-out retraining. Full guide-stratified
 and aggregate gene-space metrics are reported in the appendix.
+
 \textbf{Controlled synthetic LR-propagation validation.}
 We next evaluate a synthetic benchmark combining external mouse in vivo
 Perturb-seq direct-effect profiles from Jin \textit{et al.}, unperturbed
@@ -455,6 +456,8 @@ held-out neighbor response fields with $0.619/0.815$. Performance remains strong
 under held-out interface geometry, strength, and host-patch splits, and remains
 non-trivial under held-out perturbations ($0.274/0.550$). Full analyses are in
 \Cref{fig:synthetic_lr_summary,tab:synthetic_lr_main_models,tab:synthetic_lr_cross_split,tab:synthetic_lr_factor_breakdown,tab:synthetic_lr_mismatch_null}.
+
+
 \textbf{Spot/lesion-level Perturb-map validation.}
 Finally, we evaluate \methodname{} on Perturb-map / GSE193460, where perturbation
 readouts are spot- or lesion-level rather than matched cell-resolved receiver
@@ -467,6 +470,8 @@ TGF$\beta$--stroma program ($r=0.808$), and an IFN-response program
 correlations up to $0.929$ for \textit{Jak2} and $0.750$ for TGF$\beta$--stroma.
 Bootstrap, top-$k$, and null-control analyses are reported in
 \Cref{tab:perturbmap_external,tab:perturbmap_topk,tab:perturbmap_null_ci}.
+
+
 \textbf{Strict grouped guide-out validation confirms perturbation-level generalization.}
 In a strict grouped guide-out split, we jointly held out \textit{fasn}, \textit{stk39}, and \textit{trem2} from training and validation. On 992 unseen-guide graphs, \methodname{} achieved neighbor/ring Pearson $0.596/0.451$ with observed sender-side direct-effect seeds, outperforming elastic-net patch-summary regression $(0.334/0.142)$ and a Generic Graph Transformer without CCC priors $(0.497/0.395)$. Performance remained stable across all three held-out guides, showing that the result is not driven by one favorable perturbation and that the learned propagation module transfers to unseen guide identities. Full values are in \Cref{tab:strict_grouped_guide_out}.
 
