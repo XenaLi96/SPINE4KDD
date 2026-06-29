@@ -138,7 +138,8 @@ Spatial Perturb-seq, controlled synthetic LR propagation, and Perturb-map.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{model.png}
-\caption{Overview of \methodname.}
+\caption{\textbf{Overview of \methodname.}
+\methodname{} predicts spatial perturbation response fields from an unperturbed cell-resolved tissue graph and a direct-effect seed. The input graph contains matched-control expression, cell-state labels, relative coordinates, local geometry, direct-effect indicators, and edge features that encode spatial distance, cell-state-pair identity, and communication-compatibility scores. The model separates the response into two terms. A masked niche branch removes perturbation inputs and estimates the component explained by local tissue context, while a directed propagation branch injects perturbation information only through direct-effect cells and routes gated messages to neighboring cells. A frozen reference-ST niche encoder supplies perturbation-label-free microenvironment priors, and a distance-aware refinement module summarizes high-response neighbors across radial rings before a second propagation pass. The final output is a signed cell-by-gene response delta, which is added to the matched-control state to reconstruct the predicted post-perturbation expression field.}
 \label{fig:main_framework}
 \end{figure*}
 \section{Data Preparation}
@@ -167,6 +168,9 @@ To enrich propagation priors, we mine response-like microenvironments from unper
 \label{sec:method_overview}
 \paragraph{Task and graph interface.}
 Given an unperturbed cell-resolved ST slide, a perturbation, and a set of direct-effect cells, \methodname{} predicts a signed response $\widehat\Delta_i$ for every cell in the local tissue graph. The cell-intrinsic response of direct-effect cells is provided as a direct-effect seed $d_i$, estimated from observed direct-effect-cell responses in measured Spatial Perturb-seq benchmarks or supplied by a trained single-cell perturbation model such as CPA in de novo inference. We instantiate this interface on local 64-cell directed graphs $P=(V,E)$. Each cell $i$ has matched-control expression $x_i\in\mathbb{R}^G$, cell state $c_i$, relative coordinate $p_i$, local geometry $g_i$, direct-effect indicator $a_i$, and direct-effect seed $d_i$ when $a_i=1$; neighbor cells have $a_i=0$ and $d_i=0$. Each directed edge $(i,j)$ carries spatial, cell-state-pair, and interaction-compatibility features $e_{ij}$, which act as soft routing information rather than causal communication labels.
+This interface deliberately separates two sources of uncertainty. The first is the cell-intrinsic direct effect of a perturbation, which can be measured in a spatial perturbation assay or predicted by an external single-cell perturbation model. The second is the propagation of that direct effect through local tissue context. \methodname{} focuses on the second problem. In benchmark experiments, the direct-effect seed is computed from observed direct-effect cells so that the evaluation isolates spatial propagation. In de novo inference, the same graph interface accepts a predicted direct-effect seed, but the resulting spatial field should be interpreted as a response-field hypothesis rather than matched experimental ground truth.
+\paragraph{Response-field target.}
+The prediction target is a cell-by-gene response delta on the post-patch coordinate frame, not a global perturbation score. PPP construction provides a matched pre-state for each post-perturbation patch, producing a target $\Delta_i=x_i^{\mathrm{post}}-\widetilde x_i^{\mathrm{pre}}$ for each cell. This target allows the model to learn whether neighboring cells change in the same or different directions from direct-effect cells and whether the response decays, amplifies, or changes sign across radial neighborhoods. The graph-level output is therefore a structured response field $\{\widehat\Delta_i\}_{i\in V}$ that can be evaluated at cell, ring, and gene-program levels.
 \paragraph{Niche--propagation decomposition.}
 \methodname{} is a perturbation-aware graph neural network that decomposes each cell-level PPP response target into niche impact and propagation impact:
 \begin{equation}
@@ -174,6 +178,7 @@ Given an unperturbed cell-resolved ST slide, a perturbation, and a set of direct
 \Delta_i = I_i^{\mathrm{niche}} + I_i^{\mathrm{prop}}, \qquad \widehat x_i^{\mathrm{post}} = x_i+\widehat\Delta_i .
 \end{equation}
 Here $I_i^{\mathrm{niche}}$ denotes the microenvironment-explainable component associated with baseline expression, local cell-state composition, tissue geometry, and niche context. $I_i^{\mathrm{prop}}$ denotes the remaining perturbation-associated component induced when direct-effect cells influence neighboring cells through the spatial graph. The model estimates these terms with a masked niche module, a direct-effect-to-neighbor propagation module, and a distance-aware refinement module.
+This decomposition is the main design constraint in \methodname{}. A generic graph predictor can obtain high correlation by fitting local anatomy, because neighboring cells in matched patches often share baseline expression and cell-state composition. Such a model may still fail to use the perturbation seed. By first estimating the niche-explainable component and training propagation on the residual target, \methodname{} forces perturbation information to enter through direct-effect cells and asks the propagation branch to explain what remains beyond local tissue context.
 \subsection{Niche impact estimation}
 \label{sec:method_niche_impact}
 \paragraph{Masked niche module.}
@@ -183,6 +188,7 @@ The niche module estimates the part of the response predictable from local tissu
 \widehat I_i^{\mathrm{niche}} = f_{\mathrm{niche}}(x,c,p,e;\,a=0,d=0), \qquad I_i^{\mathrm{prop},\star} = \Delta_i-\widehat I_i^{\mathrm{niche}} .
 \end{equation}
 The second term defines the propagation target. This prevents the propagation module from learning generic niche variation and forces it to focus on perturbation-associated spatial effects.
+Operationally, the masked niche module sees the same matched-control expression, cell-state, coordinate, geometry, and edge context used by the full model, but it receives no direct-effect indicator and no direct-effect seed. It therefore models response components that are predictable from the local pre-state and tissue organization. The residual $I_i^{\mathrm{prop},\star}$ is computed after this niche prediction, so a neighbor response must be explained by the spatial arrangement of direct-effect cells, the direct-effect profile, and edge-specific routing features. This residualization also defines a diagnostic ablation: if removing it causes performance to collapse, the model is using the decomposition to separate tissue background from perturbation-conditioned propagation rather than merely adding parameters.
 \subsection{Direct-effect-to-neighbor graph propagation}
 \label{sec:method_graph_propagation}
 \paragraph{State initialization.}
@@ -192,6 +198,7 @@ Each cell is embedded from matched-control and spatial features, then split into
 h_i=\phi_x(x_i)+\phi_c(c_i)+\phi_p(p_i)+\phi_g(g_i), \qquad n_i^0=\phi_N(h_i), \qquad u_i^0=a_i\phi_D([h_i,d_i,g_i]) .
 \end{equation}
 The direct-effect state $u_i^0$ is nonzero only for direct-effect cells, so perturbation information enters the graph only through direct-effect cells.
+This initialization creates an asymmetric graph even when the underlying spatial neighborhood is undirected. Neighbor cells are represented by their baseline state and local context, but they do not directly receive the perturbation vector. Direct-effect cells carry both their baseline state and the supplied direct-effect profile. This design matches the biological assumption of the task: perturbation identity first changes direct-effect cells, and neighbor responses arise through local propagation conditioned on tissue geometry and cell-state compatibility.
 \paragraph{Directed message passing.}
 For direct-effect cell $i$ and neighbor cell $j$, the propagation module computes gated messages along graph edges and updates neighbor states:
 \begin{equation}
@@ -206,10 +213,12 @@ The compatibility score $q_{ij}$ biases routing but does not define a fixed comm
 \label{eq:base_propagation_impact}
 \widehat I_i^{\mathrm{prop},\mathrm{base}} = a_i\psi_{\mathrm{direct}}(u_i^0) + (1-a_i)\psi_{\mathrm{neighbor}}(n_i^L).
 \end{equation}
+The gate in \Cref{eq:directed_message_passing} combines the direct-effect state, the current neighbor state, and edge features. Thus, the same direct-effect profile can produce different neighbor messages depending on cell-state pair, distance, and local compatibility. The scalar compatibility term $q_{ij}$ is used as a prior inside a learned gate rather than as a hard communication edge. This avoids forcing ligand--receptor or co-expression scores to be correct in every patch, while still allowing known spatial and cell-type structure to shape message routing. After $L$ propagation layers, direct-effect cells and neighbor cells are decoded with separate heads, reflecting the fact that direct-effect reconstruction and neighbor propagation are different prediction problems.
 \subsection{ST niche prior and distance-aware refinement}
 \label{sec:method_st_refinement}
 \paragraph{Reference-ST niche encoder.}
 To improve generalization across tissue contexts, we pretrain a frozen niche encoder on large-scale unperturbed mouse-brain spatial transcriptomics. The encoder learns cell-level and patch-level microenvironment representations with self-supervised gene-program, neighborhood, patch-composition, and edge objectives. These representations provide perturbation-label-free niche priors for propagation, but are not treated as response labels or oracle communication edges.
+The reference-ST encoder is used because spatial perturbation labels are scarce, while unperturbed spatial transcriptomics is more abundant. During pretraining, the encoder learns which cell states, gene programs, and local compositions tend to co-occur in mouse-brain tissue. During perturbation training, it is frozen and attached through lightweight adapters. The adapters are initialized so that the model begins as the base propagation network, then learns only corrections supported by the perturbation benchmark. This prevents the reference prior from replacing response supervision and keeps its role limited to tissue contextualization.
 \paragraph{Distance-aware refinement.}
 After the first propagation pass, high-response neighbor cells are grouped into three distance rings around the direct-effect region: the nearest eight neighbors, the next 24 neighbors, and the remaining neighbors. Ring tokens summarize first-pass response structure and are injected into a second lightweight propagation pass, producing an ST-conditioned propagation impact $\widehat I_i^{\mathrm{prop},\mathrm{st}}$. The refinement is restricted to direct-effect cells and selected high-response neighbors, so it corrects spatially organized response patterns rather than uniformly rewriting the full patch. The final response is
 \begin{equation}
@@ -217,6 +226,7 @@ After the first propagation pass, high-response neighbor cells are grouped into 
 \widehat\Delta_i = \widehat I_i^{\mathrm{niche}} + (1-\alpha)\widehat I_i^{\mathrm{prop},\mathrm{base}} + \alpha\widehat I_i^{\mathrm{prop},\mathrm{st}}, \qquad \alpha=0.65 .
 \end{equation}
 All terms are response deltas; post-perturbation expression is reconstructed only after the final delta is predicted.
+The refinement module targets a specific failure mode of flat neighbor prediction. A model can predict the average magnitude of neighbor response while misplacing the response across near and far cells. The ring tokens summarize where the first pass assigns high response and provide a structured feedback signal for the second pass. Because the correction is restricted to direct-effect cells and high-response neighbors, the refinement cannot arbitrarily overwrite all cells in the patch. It instead adjusts the spatial organization of the predicted field, which is why we evaluate both cell-level and ring-level correlations.
 \subsection{Training and inference}
 \label{sec:training_inference}
 The reference-ST encoder and propagation model are trained with:
@@ -227,7 +237,9 @@ The reference-ST encoder and propagation model are trained with:
 \mathcal{L}_{\mathrm{prop}} &= 1.0\mathcal{L}_{\mathrm{neighbor}} + 0.3\mathcal{L}_{\mathrm{ring}} + 0.3\mathcal{L}_{\mathrm{post}} + 0.1\mathcal{L}_{\mathrm{rank}} .
 \end{aligned}
 \end{equation}
-Training proceeds in four stages: reference-ST niche pretraining, niche-module training with perturbation inputs removed, propagation-module training on $I_i^{\mathrm{prop},\star}$, and distance-aware refinement with the frozen niche encoder attached through zero-initialized adapters. The direct-effect-cell loss is assigned zero weight in the strongest propagation setting so that neighbor-cell propagation is not dominated by the easier direct-effect prediction task. At inference time, the direct-effect seed is either computed from observed direct-effect-cell response or supplied by an external single-cell perturbation model, then propagated through the local tissue graph. Full equations and implementation details are provided in the supplementary material.
+Training proceeds in four stages. First, the reference-ST encoder is pretrained on unperturbed spatial transcriptomics using gene-program, neighborhood, patch-composition, and edge objectives. Second, the niche module is trained with perturbation inputs removed, producing the baseline estimate $\widehat I_i^{\mathrm{niche}}$. Third, the directed propagation module is trained on the residual target $I_i^{\mathrm{prop},\star}$ so that direct-effect seeds and edge features explain propagation beyond the niche baseline. Fourth, the distance-aware refinement module is trained with the frozen reference encoder attached through zero-initialized adapters. The direct-effect-cell loss is assigned zero weight in the strongest propagation setting so that neighbor-cell propagation is not dominated by the easier direct-effect prediction task.
+
+At inference time, the same procedure applies to measured and de novo settings. The user supplies an unperturbed tissue graph, a direct-effect region, and a direct-effect seed. \methodname{} computes the niche component, propagates the seed through the directed graph, applies distance-aware refinement, and returns $\widehat\Delta_i$ for every cell in the local patch. In measured benchmark evaluation, observed direct-effect seeds isolate the propagation problem. In de novo use, an external single-cell perturbation model supplies $d_i$, and \methodname{} maps that direct effect onto the tissue graph. The latter mode does not by itself validate the perturbation biology; it generates spatial response-field hypotheses for experimental follow-up. Full equations and implementation details are provided in the supplementary material.
 \section{Experiments}
 \label{sec:experiments}
 \subsection{Benchmark and metrics}
@@ -532,4 +544,3 @@ We will release the anonymized code, configuration files, processed split manife
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 \end{document}
-
