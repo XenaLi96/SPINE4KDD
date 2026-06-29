@@ -142,13 +142,19 @@ with causal generative modeling, and CONCERT~\citep{concert2025} predicts
 niche-aware spot-level responses. \methodname{} is complementary: it predicts
 cell-resolved direct-effect-to-neighbor response fields and validates them across
 Spatial Perturb-seq, controlled synthetic LR propagation, and Perturb-map.
+
+
+
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{model.png}
 \caption{\textbf{Overview of \methodname.}
-\methodname{} predicts spatial perturbation response fields from an unperturbed cell-resolved tissue graph and a direct-effect seed. The input graph contains matched-control expression, cell-state labels, relative coordinates, local geometry, direct-effect indicators, and edge features that encode spatial distance, cell-state-pair identity, and communication-compatibility scores. The model separates the response into two terms. A masked niche branch removes perturbation inputs and estimates the component explained by local tissue context, while a directed propagation branch injects perturbation information only through direct-effect cells and routes gated messages to neighboring cells. A frozen reference-ST niche encoder supplies perturbation-label-free microenvironment priors, and a distance-aware refinement module summarizes high-response neighbors across radial rings before a second propagation pass. The final output is a signed cell-by-gene response delta, which is added to the matched-control state to reconstruct the predicted post-perturbation expression field.}
+\methodname{} predicts spatial perturbation response fields from an unperturbed cell-resolved tissue graph and a direct-effect seed. Inputs include matched-control expression, cell-state and spatial features, direct-effect indicators, and edge features encoding distance, cell-state pairs, and communication compatibility. The model decomposes responses into niche and propagation components: a masked niche branch estimates context-driven effects, while a directed propagation branch routes direct-effect signals to neighbors. A frozen reference-ST encoder and distance-aware refinement module add microenvironment priors and radial response correction. The output is a signed cell-by-gene response delta used to reconstruct the predicted post-perturbation expression field.}
 \label{fig:main_framework}
 \end{figure*}
+
+
+
 \section{Data Preparation}
 \label{sec:data_construction}
 \subsection{Pre--Post Perturbation Pairing (PPP) Construction}
@@ -184,9 +190,9 @@ The prediction target is a cell-by-gene response delta on the post-patch coordin
 \label{eq:niche_prop_decomposition}
 \begin{aligned}
 \Delta_i
-&= I_i^{\mathrm{niche}} + I_i^{\mathrm{prop}},\\
+&= I_i^{\mathrm{niche}} + I_i^{\mathrm{prop}},
 \widehat x_i^{\mathrm{post}}
-&= x_i+\widehat\Delta_i .
+= x_i+\widehat\Delta_i .
 \end{aligned}
 \end{equation}
 Here $I_i^{\mathrm{niche}}$ denotes the microenvironment-explainable component associated with baseline expression, local cell-state composition, tissue geometry, and niche context. $I_i^{\mathrm{prop}}$ denotes the remaining perturbation-associated component induced when direct-effect cells influence neighboring cells through the spatial graph. The model estimates these terms with a masked niche module, a direct-effect-to-neighbor propagation module, and a distance-aware refinement module.
@@ -245,8 +251,7 @@ The compatibility score $q_{ij}$ biases routing but does not define a fixed comm
 \label{eq:base_propagation_impact}
 \begin{aligned}
 \widehat I_i^{\mathrm{prop},\mathrm{base}}
-&= a_i\psi_{\mathrm{direct}}(u_i^0)\\
-&\quad + (1-a_i)\psi_{\mathrm{neighbor}}(n_i^L).
+&= a_i\psi_{\mathrm{direct}}(u_i^0) + (1-a_i)\psi_{\mathrm{neighbor}}(n_i^L).
 \end{aligned}
 \end{equation}
 The gate in \Cref{eq:directed_message_passing} combines the direct-effect state, the current neighbor state, and edge features. Thus, the same direct-effect profile can produce different neighbor messages depending on cell-state pair, distance, and local compatibility. The scalar compatibility term $q_{ij}$ is used as a prior inside a learned gate rather than as a hard communication edge. This avoids forcing ligand--receptor or co-expression scores to be correct in every patch, while still allowing known spatial and cell-type structure to shape message routing. After $L$ propagation layers, direct-effect cells and neighbor cells are decoded with separate heads, reflecting the fact that direct-effect reconstruction and neighbor propagation are different prediction problems.
@@ -262,9 +267,8 @@ After the first propagation pass, high-response neighbor cells are grouped into 
 \begin{aligned}
 \widehat\Delta_i
 &= \widehat I_i^{\mathrm{niche}}
- + (1-\alpha)\widehat I_i^{\mathrm{prop},\mathrm{base}}\\
-&\quad + \alpha\widehat I_i^{\mathrm{prop},\mathrm{st}},\\
-\alpha&=0.65 .
+ + (1-\alpha)\widehat I_i^{\mathrm{prop},\mathrm{base}} + \alpha\widehat I_i^{\mathrm{prop},\mathrm{st}},
+\alpha=0.65 .
 \end{aligned}
 \end{equation}
 All terms are response deltas; post-perturbation expression is reconstructed only after the final delta is predicted.
