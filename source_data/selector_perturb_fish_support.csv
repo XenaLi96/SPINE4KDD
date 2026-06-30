@@ -1,0 +1,3 @@
+subset,specs,tqr,burden_reduction,obs_u_pred_s_reduction,pairwise_safety
+reliable,39,0.718,0.151,0.207,0.851
+all,64,0.641,0.137,0.218,0.851

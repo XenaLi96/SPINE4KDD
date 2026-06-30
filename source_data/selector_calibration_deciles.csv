@@ -1,0 +1,21 @@
+split,pred_decile,observed_tqr
+main block,1,0.042802
+main block,2,0.074828
+main block,3,0.105657
+main block,4,0.131138
+main block,5,0.163424
+main block,6,0.20443
+main block,7,0.262575
+main block,8,0.313679
+main block,9,0.404669
+main block,10,0.574978
+strict guide,1,0.053471
+strict guide,2,0.07925
+strict guide,3,0.119854
+strict guide,4,0.174181
+strict guide,5,0.17026
+strict guide,6,0.236068
+strict guide,7,0.243349
+strict guide,8,0.318398
+strict guide,9,0.381406
+strict guide,10,0.461366

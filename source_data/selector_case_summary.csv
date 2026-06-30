@@ -1,0 +1,4 @@
+target,ring_direction,target_only_guide,selector_guide,target_retention_pct,burden_reduction_pct
+TGF$\beta$/stroma,near down,rraga,oligo2,97.9076,49.7128
+Vascular stress,near down,rraga,clu,99.8073,24.444
+Myeloid activation,far up,Cfap410,stk39,89.2837,24.386

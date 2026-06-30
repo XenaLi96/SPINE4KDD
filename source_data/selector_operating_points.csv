@@ -1,0 +1,5 @@
+setting,actions,specs,tqr,burden_reduction
+clean weighted,5286,36,0.639,0.354
+off-program,5286,36,0.667,0.362
+rank-consensus,5286,36,0.62,0.418
+observed oracle,5286,36,1.0,0.672

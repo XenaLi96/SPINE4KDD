@@ -2142,25 +2142,23 @@ The reference-ST encoder is pretrained from unperturbed spatial transcriptomics 
 \paragraph{Interpretation of the IFN-$\gamma$ case study.}
 The IFN-$\gamma$ analysis should be read as a hypothesis-generating deployment demonstration rather than a matched experimental validation. It shows that a perturbation-identity-derived direct-effect profile can produce spatially heterogeneous response fields, recover canonical IFN/MHC-I-like genes, suppress selected structural or vascular-like programs, and generate local response gradients. These outputs illustrate the intended deployment interface, but their biological claims require direct experimental validation.
 
-\subsection{Retrospective response-field prioritization audit}
+\subsection{Retrospective SPINE drug-selector audit}
 \label{app:selector_audit}
 
-Beyond predicting spatial response fields, we asked whether frozen response-field outputs can support a downstream biological prioritization task: among perturbations that preserve a specified target program in a spatial ring, select an alternative with lower collateral burden. We use this appendix only as a retrospective audit of response-field utility. Candidate actions and target specifications were fixed before held-out evaluation, and observed fields were used only for evaluation. Because the audit was assembled from frozen response-field caches compatible with the \methodname{} interface, we do not treat it as a second main method or as prospective validation.
+Beyond predicting spatial response fields, we asked whether frozen \methodname{} response-field outputs can be used as a downstream drug/perturbation selector: among candidate actions that preserve a specified target program in a spatial ring, select an alternative with lower collateral burden. We use this appendix only as a retrospective audit of response-field utility. Candidate actions and target specifications were fixed before held-out evaluation, and observed fields were used only for evaluation. Because the audit was assembled from frozen response-field caches compatible with the \methodname{} interface, we do not treat it as a second main method or as prospective validation.
 
-The audit scores each candidate by target utility and collateral burden. Target utility measures whether the desired program response is retained in the requested spatial ring. Burden summarizes responses outside the requested target, including far-field, off-program, and harmful-program components. Fig.~\ref{fig:app_selector_prioritization} summarizes the audit design and main diagnostic panels. Across 5,286 candidate perturbation actions and 36 target specifications, a clean weighted-head operating point reached a target-qualified rate (TQR) of 0.639 and burden reduction of 0.354. An off-program-sensitive operating point reached TQR 0.667 and burden reduction 0.362, while a rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. These values remain below the observed-field oracle burden reduction of 0.672, as expected for a predicted-field selector.
+The SPINE drug selector scores each candidate by target utility and collateral burden. Target utility measures whether the desired program response is retained in the requested spatial ring. Burden summarizes responses outside the requested target, including far-field, off-program, and harmful-program components. Fig.~\ref{fig:app_selector_prioritization} summarizes the selector workflow and main diagnostic panels. Across 5,286 candidate perturbation actions and 36 target specifications, a clean weighted-head operating point reached a target-qualified rate (TQR) of 0.639 and burden reduction of 0.354. An off-program-sensitive operating point reached TQR 0.667 and burden reduction 0.362, while a rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. These values remain below the observed-field oracle burden reduction of 0.672, as expected for a predicted-field selector.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.8\textwidth]{selector_prioritization_appendix.pdf}
-\caption{\textbf{Retrospective response-field prioritization audit.}
-(a) Audit schematic: frozen response fields are decomposed into target utility and collateral burden, then used to select lower-burden target-retaining alternatives.
-(b) Three pre-specified biological cases retain most target utility while reducing burden.
-(c) TGF-$\beta$/stroma near-down burden decomposition; the selected alternative preserves target score while lowering weighted, far-field, off-program, and harmful burden.
-(d) Selector operating points compared with the observed-field oracle.
-(e) Perturb-FISH provides module-level external support under a different action pool and readout panel.
-(f) Predicted target utility stratifies observed target qualification, but calibration remains incomplete, especially under strict guide holdout.}
+\includegraphics[width=\linewidth]{selector_prioritization_appendix.pdf}
+\caption{\textbf{Retrospective SPINE drug-selector audit.}
+(a) Frozen \methodname{} response fields are scored as target utility and collateral burden, then used as a drug/perturbation selector that ranks only target-retaining actions.
+(b) Three pre-specified biological cases move from the target-only baseline toward lower burden while mostly retaining target utility.
+(c) For the TGF-$\beta$/stroma near-down case, the selected alternative lowers weighted, far-field, off-program, and harmful burden components.
+(d) The same selector signal is summarized with spatial-audit and Perturb-FISH support metrics, while predicted target utility still requires calibration under strict guide holdout.}
 \label{fig:app_selector_prioritization}
-\end{figure*}
+\end{figure}
 
 Three pre-specified biological cases give the most interpretable view of the audit (Table~\ref{tab:app_selector_cases}). The selected alternatives retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. For TGF-$\beta$/stroma near-down, the selector replaced \texttt{sgrna\_rraga} with \texttt{sgrna\_oligo2}, preserving target score from 5.074 to 4.968 while reducing weighted burden from 1.188 to 0.597. The same case reduced far-field burden from 1.213 to 0.604, off-program burden from 1.228 to 0.615, and harmful burden from 1.457 to 0.778 (Table~\ref{tab:app_selector_burden_decomposition}). Vascular-stress near-down and myeloid-activation far-up show the same target-retaining, lower-burden pattern.
 
@@ -2236,7 +2234,7 @@ All specifications & 64 & 0.641 & 0.137 & 0.218 & 0.851 \\
 \end{tabular}
 \end{table}
 
-Finally, the audit has a calibration limitation. Predicted utility deciles do stratify observed target qualification, but absolute reliability is incomplete: the main block split rises from TQR 0.043 in the bottom predicted-utility decile to 0.575 in the top decile, while strict guide holdout rises from 0.053 to 0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report the selector as a response-field prioritization audit and not as a calibrated controller for prospective intervention design.
+Finally, the audit has a calibration limitation. Predicted utility deciles do stratify observed target qualification, but absolute reliability is incomplete: the main block split rises from TQR 0.043 in the bottom predicted-utility decile to 0.575 in the top decile, while strict guide holdout rises from 0.053 to 0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report the SPINE drug selector as a response-field prioritization audit and not as a calibrated controller for prospective intervention design.
 
 \begin{table}[t]
 \centering
