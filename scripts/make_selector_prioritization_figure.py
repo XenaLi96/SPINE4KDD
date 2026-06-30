@@ -152,7 +152,15 @@ def panel_title(ax: plt.Axes, letter: str, title: str) -> None:
     ax.set_title(f"{letter}. {title}", loc="left", pad=4, color=TEXT)
 
 
-def draw_box(ax: plt.Axes, xy: tuple[float, float], text: str, fc: str, w: float = 0.36, h: float = 0.16) -> None:
+def draw_box(
+    ax: plt.Axes,
+    xy: tuple[float, float],
+    text: str,
+    fc: str,
+    w: float = 0.36,
+    h: float = 0.16,
+    fontsize: float = 5.4,
+) -> None:
     x, y = xy
     rect = mpl.patches.FancyBboxPatch(
         (x - w / 2, y - h / 2),
@@ -165,31 +173,22 @@ def draw_box(ax: plt.Axes, xy: tuple[float, float], text: str, fc: str, w: float
         transform=ax.transAxes,
     )
     ax.add_patch(rect)
-    ax.text(x, y, text, transform=ax.transAxes, ha="center", va="center", fontsize=5.8, color=TEXT)
+    ax.text(x, y, text, transform=ax.transAxes, ha="center", va="center", fontsize=fontsize, color=TEXT)
 
 
 def plot_selector_workflow(ax: plt.Axes) -> None:
     ax.axis("off")
+    ax.set_box_aspect(1)
     panel_title(ax, "A", "SPINE drug selector")
-    draw_box(ax, (0.50, 0.76), "SPINE\nresponse fields", LIGHT, w=0.45, h=0.17)
-    draw_box(ax, (0.50, 0.49), "score target utility U\nand collateral burden S", LIGHT, w=0.72, h=0.16)
-    draw_box(ax, (0.50, 0.21), "select lower-burden\n target-retaining action", SELECTOR_LIGHT, w=0.72, h=0.17)
-    arrows = [((0.50, 0.67), (0.50, 0.58)), ((0.50, 0.40), (0.50, 0.30))]
+    draw_box(ax, (0.50, 0.76), "SPINE\nfields", LIGHT, w=0.58, h=0.20, fontsize=5.5)
+    draw_box(ax, (0.50, 0.49), "score U\nand S", LIGHT, w=0.68, h=0.20, fontsize=5.5)
+    draw_box(ax, (0.50, 0.21), "select action:\nlow burden,\ntarget kept", SELECTOR_LIGHT, w=0.74, h=0.24, fontsize=5.1)
+    arrows = [((0.50, 0.66), (0.50, 0.59)), ((0.50, 0.38), (0.50, 0.33))]
     for start, end in arrows:
         ax.annotate("", xy=end, xytext=start, xycoords=ax.transAxes, arrowprops={"arrowstyle": "->", "lw": 0.8, "color": TEXT})
-    ax.text(
-        0.50,
-        0.03,
-        "rank only after target qualification",
-        transform=ax.transAxes,
-        ha="center",
-        va="bottom",
-        fontsize=5.2,
-        color="#59636E",
-    )
-
 
 def plot_case_arrows(ax: plt.Axes) -> None:
+    ax.set_box_aspect(1)
     df = case_df()
     offsets = [-0.6, 0.0, 0.6]
     ax.axhline(90, color="#B9C1C8", lw=0.8, ls="--")
@@ -218,6 +217,7 @@ def plot_case_arrows(ax: plt.Axes) -> None:
 
 
 def plot_burden_dumbbell(ax: plt.Axes) -> None:
+    ax.set_box_aspect(1)
     df = burden_df().iloc[::-1].reset_index(drop=True)
     y = np.arange(len(df))
     for i, row in df.iterrows():
@@ -237,6 +237,7 @@ def plot_burden_dumbbell(ax: plt.Axes) -> None:
 
 
 def plot_checks(ax: plt.Axes) -> None:
+    ax.set_box_aspect(1)
     cal = calibration_df()
     for split, color in [("main block", SELECTOR), ("strict guide", STRICT)]:
         subset = cal[cal["split"] == split]
@@ -264,8 +265,8 @@ def plot_checks(ax: plt.Axes) -> None:
 def make_figure(out_png: Path, out_pdf: Path | None, source_out_dir: Path) -> None:
     configure_matplotlib()
     write_source_data(source_out_dir)
-    fig = plt.figure(figsize=(3.45, 4.75), constrained_layout=True)
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.03])
+    fig = plt.figure(figsize=(3.55, 3.65), constrained_layout=True)
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.0])
     plot_selector_workflow(fig.add_subplot(gs[0, 0]))
     plot_case_arrows(fig.add_subplot(gs[0, 1]))
     plot_burden_dumbbell(fig.add_subplot(gs[1, 0]))
