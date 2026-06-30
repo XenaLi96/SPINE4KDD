@@ -27,6 +27,7 @@
 \usepackage{tabularx}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{placeins}
 \usepackage[capitalize]{cleveref}
 \setcitestyle{numbers,square,comma,sort&compress}
 \graphicspath{{./}{appendix_image/}}
@@ -600,6 +601,24 @@ Right: local 64-cell neighborhoods, where highlighted target cells show the stro
 \label{sec:ifng_case_study}
 We use the trained propagation model as a de novo perturbation-query engine on an intact mouse-brain spatial graph. This setting has no paired IFN-$\gamma$ spatial perturbation labels. To construct the direct-effect seed, we train/fine-tune CPA on PerturbSapiens cytokine data, using treatment status (PBS/control versus IFN-$\gamma$), cell type, and tissue/broad class as covariates. For each Sample2/pre4 spatial cell, CPA predicts the IFN-$\gamma$ state and the matched control state; their difference gives a per-cell direct delta, which is then fed to the \methodname{} propagation module. This is a hypothesis-generation demonstration, not matched validation.
 \Cref{fig:ifng_response_field} shows a heterogeneous response field across genes, regions, and local neighborhoods. \textbf{First, the model recovers the canonical IFN-$\gamma$/MHC-I program.} Target-cell deltas are positive for interferon and antigen-presentation genes, including \textit{B2m} $(+1.91)$, \textit{H2-D1} $(+1.57)$, and \textit{Ifitm3} $(+1.72)$, indicating a systematic IFN/MHC-I response across high-response targets. \textbf{Second, inferred IFN-$\gamma$ target cells are biased toward immune, vascular, and glial-associated states.} Microglia account for 11.91\% of top-pathway 5\% targets versus 7.98\% background frequency, a 1.49$\times$ enrichment. Endothelial and pericyte states are also mildly enriched, matching the expectation that IFN-$\gamma$ is sensed by immune, vascular, and glial microenvironments rather than arbitrary spatial locations. \textbf{Third, the perturbation is not only activating, it also suppresses structural and vascular-associated programs.} Target cells show down-regulation of \textit{Col1a2} $(-1.31)$, \textit{Vcan} $(-1.28)$, and \textit{Flt1} $(-1.82)$, suggesting a shift from homeostatic structural or vascular-like programs toward immune and antiviral programs. The response is spatially heterogeneous rather than a uniform slide shift: high-response patches show consistent IFN/MHC-I activation together with structural-gene suppression, and patch-level gradients reveal region-specific response direction and magnitude. Seed construction and full numerical readouts are reported in the appendix.
+
+\subsection{Application: Using SPINE as a Drug Selector}
+\label{sec:drug_selector_application}
+Spatial response fields can also be used as a downstream drug/perturbation selector. Instead of evaluating only one perturbation query, we score each candidate action by a target utility \(U\), measuring whether the requested program response is retained in a specified spatial ring, and a collateral burden \(S\), measuring far-field, off-program, and harmful-program responses outside the target. The selector ranks only target-retaining actions and then prefers lower-burden alternatives. This use is a retrospective response-field audit rather than a prospective controller, because observed held-out fields are used only for evaluation.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{selector_application_main.pdf}
+\caption{\textbf{Using \methodname{} response fields as a drug selector.}
+(a) \methodname{} response fields are converted into target utility and collateral burden scores, then used to rank target-retaining, low-burden actions.
+(b) Three pre-specified biological cases keep target utility while moving away from the target-only baseline toward lower burden.
+(c) In the TGF-$\beta$/stroma near-down case, the selected action lowers weighted, far-field, off-program, and harmful burden.
+(d) Retrospective support combines the Spatial Perturb-seq selector audit and Perturb-FISH module-level support, while target-utility calibration remains bounded.}
+\label{fig:drug_selector_application}
+\end{figure}
+
+In the Spatial Perturb-seq audit, the selector screened 5,286 candidate actions across 36 target specifications. A clean weighted operating point reached TQR 0.639 with burden reduction 0.354, and an off-program-sensitive operating point reached TQR 0.667 with burden reduction 0.362. A rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. Three biological examples retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. The strongest example, TGF-$\beta$/stroma near-down, reduced weighted burden from 1.188 to 0.597 while preserving target score from 5.074 to 4.968. External Perturb-FISH support is directionally consistent at the module level: on 39 reliable specifications, the predicted-utility/predicted-burden selector reached TQR 0.718, burden reduction 0.151, and pairwise safety 0.851. These results suggest that \methodname{} response fields can help prioritize interventions that preserve a desired local target response while reducing spatial collateral effects. Full operating points, burden decompositions, Perturb-FISH support, and calibration limits are provided in \Cref{app:selector_audit,fig:app_selector_prioritization}.
+\FloatBarrier
 \section{Discussion and Conclusion}
 \label{sec:discussion_conclusion}
 Predicting perturbation responses inside intact tissue requires models that connect cell-intrinsic direct effects with secondary responses in neighboring cells and local niches. \methodname{} addresses this spatial layer by separating direct-effect estimation from direct-effect-to-neighbor propagation and by predicting a signed cell-by-gene response field on tissue graphs. The Spatial Perturb-Seq, controlled synthetic LR, and Perturb-map evaluations support this decomposition across matched cell-resolved, rule-controlled, and coarser external readouts. The ring-level and ablation results further indicate that niche-impact residualization, edge-aware routing, and direct-effect seeds contribute complementary signal rather than only increasing model capacity. Overall, \methodname{} provides a practical interface for converting measured or predicted direct-effect profiles into spatial response-field hypotheses for experimental follow-up.
@@ -2147,18 +2166,20 @@ The IFN-$\gamma$ analysis should be read as a hypothesis-generating deployment d
 
 Beyond predicting spatial response fields, we asked whether frozen \methodname{} response-field outputs can be used as a downstream drug/perturbation selector: among candidate actions that preserve a specified target program in a spatial ring, select an alternative with lower collateral burden. We use this appendix only as a retrospective audit of response-field utility. Candidate actions and target specifications were fixed before held-out evaluation, and observed fields were used only for evaluation. Because the audit was assembled from frozen response-field caches compatible with the \methodname{} interface, we do not treat it as a second main method or as prospective validation.
 
-The SPINE drug selector scores each candidate by target utility and collateral burden. Target utility measures whether the desired program response is retained in the requested spatial ring. Burden summarizes responses outside the requested target, including far-field, off-program, and harmful-program components. Fig.~\ref{fig:app_selector_prioritization} summarizes the selector workflow and main diagnostic panels. Across 5,286 candidate perturbation actions and 36 target specifications, a clean weighted-head operating point reached a target-qualified rate (TQR) of 0.639 and burden reduction of 0.354. An off-program-sensitive operating point reached TQR 0.667 and burden reduction 0.362, while a rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. These values remain below the observed-field oracle burden reduction of 0.672, as expected for a predicted-field selector.
+The SPINE drug selector scores each candidate by target utility and collateral burden. Target utility measures whether the desired program response is retained in the requested spatial ring. Burden summarizes responses outside the requested target, including far-field, off-program, and harmful-program components. The compact main-text view is shown in \Cref{fig:drug_selector_application}, and \Cref{fig:app_selector_prioritization} gives the fuller appendix audit. Across 5,286 candidate perturbation actions and 36 target specifications, a clean weighted-head operating point reached a target-qualified rate (TQR) of 0.639 and burden reduction of 0.354. An off-program-sensitive operating point reached TQR 0.667 and burden reduction 0.362, while a rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. These values remain below the observed-field oracle burden reduction of 0.672, as expected for a predicted-field selector.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\linewidth]{selector_prioritization_appendix.pdf}
-\caption{\textbf{Retrospective SPINE drug-selector audit.}
-(a) Frozen \methodname{} response fields are scored as target utility and collateral burden, then used as a drug/perturbation selector that ranks only target-retaining actions.
-(b) Three pre-specified biological cases move from the target-only baseline toward lower burden while mostly retaining target utility.
-(c) For the TGF-$\beta$/stroma near-down case, the selected alternative lowers weighted, far-field, off-program, and harmful burden components.
-(d) The same selector signal is summarized with spatial-audit and Perturb-FISH support metrics, while predicted target utility still requires calibration under strict guide holdout.}
+\includegraphics[width=\textwidth]{selector_prioritization_appendix.pdf}
+\caption{\textbf{Detailed retrospective SPINE drug-selector audit.}
+(a) Selector interface and audit scale: frozen \methodname{} response fields are decomposed into target utility and collateral burden and used to rank target-retaining, low-burden actions.
+(b) Three pre-specified biological cases show high target retention and lower collateral burden.
+(c) Burden decomposition across all three cases shows weighted, far-field, off-program, and harmful-program burden reductions.
+(d) Spatial Perturb-seq operating points show the trade-off between target-qualified rate and burden reduction, with the observed-field oracle as an upper reference.
+(e) Perturb-FISH provides module-level external support under a different action pool and readout panel.
+(f) Predicted target utility stratifies observed target qualification, but absolute calibration remains incomplete under both main-block and strict-guide splits.}
 \label{fig:app_selector_prioritization}
-\end{figure}
+\end{figure*}
 
 Three pre-specified biological cases give the most interpretable view of the audit (Table~\ref{tab:app_selector_cases}). The selected alternatives retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. For TGF-$\beta$/stroma near-down, the selector replaced \texttt{sgrna\_rraga} with \texttt{sgrna\_oligo2}, preserving target score from 5.074 to 4.968 while reducing weighted burden from 1.188 to 0.597. The same case reduced far-field burden from 1.213 to 0.604, off-program burden from 1.228 to 0.615, and harmful burden from 1.457 to 0.778 (Table~\ref{tab:app_selector_burden_decomposition}). Vascular-stress near-down and myeloid-activation far-up show the same target-retaining, lower-burden pattern.
 

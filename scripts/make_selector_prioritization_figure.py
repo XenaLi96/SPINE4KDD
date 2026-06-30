@@ -28,6 +28,8 @@ TEXT = "#1F2933"
 GRID = "#D7DCE2"
 LIGHT = "#F2F5F7"
 SELECTOR_LIGHT = "#DDF2EC"
+CASE_ORDER = ["TGF$\\beta$/stroma", "Vascular stress", "Myeloid activation"]
+BURDEN_COMPONENTS = ["weighted", "far-field", "off-program", "harmful"]
 PDF_METADATA = {
     "Creator": "SPINE4KDD/scripts/make_selector_prioritization_figure.py",
     "Producer": "Matplotlib",
@@ -88,6 +90,20 @@ def burden_df() -> pd.DataFrame:
     )
 
 
+def burden_full_df() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            ("TGF$\\beta$/stroma", "target-only", 5.074, 1.188, 1.213, 1.228, 1.457),
+            ("TGF$\\beta$/stroma", "selector", 4.968, 0.597, 0.604, 0.615, 0.778),
+            ("Vascular stress", "target-only", 2.734, 1.278, 1.213, 1.347, 1.655),
+            ("Vascular stress", "selector", 2.729, 0.965, 0.892, 1.024, 1.380),
+            ("Myeloid activation", "target-only", 1.578, 0.717, 0.918, 0.742, 0.811),
+            ("Myeloid activation", "selector", 1.409, 0.542, 0.651, 0.550, 0.657),
+        ],
+        columns=["target", "role", "target_score", "weighted", "far-field", "off-program", "harmful"],
+    )
+
+
 def operating_df() -> pd.DataFrame:
     return pd.DataFrame(
         [
@@ -143,6 +159,7 @@ def write_source_data(out_dir: Path) -> None:
     source_dir.mkdir(parents=True, exist_ok=True)
     case_df().to_csv(source_dir / "selector_case_summary.csv", index=False)
     burden_df().to_csv(source_dir / "selector_tgfb_burden_decomposition.csv", index=False)
+    burden_full_df().to_csv(source_dir / "selector_burden_decomposition.csv", index=False)
     operating_df().to_csv(source_dir / "selector_operating_points.csv", index=False)
     perturb_fish_df().to_csv(source_dir / "selector_perturb_fish_support.csv", index=False)
     calibration_df().to_csv(source_dir / "selector_calibration_deciles.csv", index=False)
@@ -180,10 +197,14 @@ def plot_selector_workflow(ax: plt.Axes) -> None:
     ax.axis("off")
     ax.set_box_aspect(1)
     panel_title(ax, "A", "SPINE drug selector")
-    draw_box(ax, (0.50, 0.76), "SPINE\nfields", LIGHT, w=0.58, h=0.20, fontsize=5.5)
-    draw_box(ax, (0.50, 0.49), "score U\nand S", LIGHT, w=0.68, h=0.20, fontsize=5.5)
-    draw_box(ax, (0.50, 0.21), "select action:\nlow burden,\ntarget kept", SELECTOR_LIGHT, w=0.74, h=0.24, fontsize=5.1)
-    arrows = [((0.50, 0.66), (0.50, 0.59)), ((0.50, 0.38), (0.50, 0.33))]
+    box_w = 0.72
+    box_h = 0.18
+    centers = [0.78, 0.50, 0.22]
+    draw_box(ax, (0.50, centers[0]), "SPINE\nfields", LIGHT, w=box_w, h=box_h, fontsize=5.4)
+    draw_box(ax, (0.50, centers[1]), "score\nU and S", LIGHT, w=box_w, h=box_h, fontsize=5.4)
+    draw_box(ax, (0.50, centers[2]), "select\nlow burden\ntarget kept", SELECTOR_LIGHT, w=box_w, h=box_h, fontsize=4.9)
+    arrows = [((0.50, centers[0] - box_h / 2 - 0.01), (0.50, centers[1] + box_h / 2 + 0.01)),
+              ((0.50, centers[1] - box_h / 2 - 0.01), (0.50, centers[2] + box_h / 2 + 0.01))]
     for start, end in arrows:
         ax.annotate("", xy=end, xytext=start, xycoords=ax.transAxes, arrowprops={"arrowstyle": "->", "lw": 0.8, "color": TEXT})
 
@@ -194,9 +215,9 @@ def plot_case_arrows(ax: plt.Axes) -> None:
     ax.axhline(90, color="#B9C1C8", lw=0.8, ls="--")
     ax.scatter([0], [100], s=34, color=TARGET, zorder=3)
     label_offsets = {
-        "TGF$\\beta$/stroma": (1.1, -0.55),
-        "Vascular stress": (1.1, 0.55),
-        "Myeloid activation": (1.1, -0.65),
+        "TGF$\\beta$/stroma": (-1.2, -1.0, "right"),
+        "Vascular stress": (1.4, 0.75, "left"),
+        "Myeloid activation": (2.3, -0.75, "left"),
     }
     for offset, (_, row) in zip(offsets, df.iterrows()):
         y0 = 100.0 + offset
@@ -204,10 +225,10 @@ def plot_case_arrows(ax: plt.Axes) -> None:
         x1 = row["burden_reduction_pct"]
         ax.annotate("", xy=(x1, y1), xytext=(0, y0), arrowprops={"arrowstyle": "->", "lw": 1.0, "color": SELECTOR, "alpha": 0.8})
         ax.scatter([x1], [y1], s=40, color=SELECTOR, edgecolor="white", linewidth=0.5, zorder=4)
-        dx, dy = label_offsets[row["target"]]
+        dx, dy, ha = label_offsets[row["target"]]
         label = row["target"]
-        ax.text(x1 + dx, y1 + dy, label, ha="left", va="center", fontsize=5.2, color=TEXT)
-    ax.text(2.2, 89.7, "90% retention", fontsize=5.0, color="#59636E", va="top")
+        ax.text(x1 + dx, y1 + dy, label, ha=ha, va="center", fontsize=5.2, color=TEXT)
+    ax.text(1.2, 90.25, "90% retention", fontsize=5.0, color="#59636E", va="bottom")
     ax.set_xlim(-3, 58)
     ax.set_ylim(86.8, 102.0)
     ax.set_xlabel("Burden reduction (%)")
@@ -232,7 +253,7 @@ def plot_burden_dumbbell(ax: plt.Axes) -> None:
     ax.set_ylim(-0.35, 3.45)
     ax.grid(axis="x", color=GRID, lw=0.45, alpha=0.7)
     ax.text(1.15, 3.34, "target-only", color=TARGET, fontsize=5.2, ha="left", va="center")
-    ax.text(0.53, 3.12, "selector", color=SELECTOR, fontsize=5.2, ha="left", va="center")
+    ax.text(0.46, 3.34, "selector", color=SELECTOR, fontsize=5.2, ha="left", va="center")
     panel_title(ax, "C", "TGF$\\beta$/stroma burden split")
 
 
@@ -262,7 +283,134 @@ def plot_checks(ax: plt.Axes) -> None:
     panel_title(ax, "D", "Support and calibration boundary")
 
 
-def make_figure(out_png: Path, out_pdf: Path | None, source_out_dir: Path) -> None:
+def plot_appendix_overview(ax: plt.Axes) -> None:
+    ax.axis("off")
+    panel_title(ax, "A", "Selector interface and audit scale")
+    draw_box(ax, (0.50, 0.74), "SPINE\nresponse fields", LIGHT, w=0.60, h=0.17, fontsize=6.0)
+    draw_box(ax, (0.50, 0.51), "target utility U\nin requested ring", LIGHT, w=0.72, h=0.16, fontsize=5.7)
+    draw_box(ax, (0.50, 0.30), "collateral burden S\nfar-field / off-program / harmful", LIGHT, w=0.82, h=0.15, fontsize=5.1)
+    draw_box(ax, (0.50, 0.10), "rank target-retaining\nlow-burden actions", SELECTOR_LIGHT, w=0.76, h=0.15, fontsize=5.6)
+    for start, end in [((0.50, 0.65), (0.50, 0.60)), ((0.50, 0.43), (0.50, 0.38)), ((0.50, 0.22), (0.50, 0.18))]:
+        ax.annotate("", xy=end, xytext=start, xycoords=ax.transAxes, arrowprops={"arrowstyle": "->", "lw": 0.8, "color": TEXT})
+    ax.text(
+        0.50,
+        0.93,
+        "5,286 actions / 36 target specs\nobserved fields used only for evaluation",
+        transform=ax.transAxes,
+        ha="center",
+        va="top",
+        fontsize=5.4,
+        color="#59636E",
+    )
+
+
+def plot_appendix_cases(ax: plt.Axes) -> None:
+    df = case_df().iloc[::-1].reset_index(drop=True)
+    y = np.arange(len(df))
+    ax.axvline(90, color="#B9C1C8", lw=0.8, ls="--")
+    ax.axvline(0, color="#B9C1C8", lw=0.8)
+    ax.scatter(df["target_retention_pct"], y + 0.13, color=TARGET, s=38)
+    ax.scatter(df["burden_reduction_pct"], y - 0.13, color=SELECTOR, s=38)
+    for i, row in df.iterrows():
+        ax.text(row["target_retention_pct"] - 1.0, i + 0.13, f"{row['target_retention_pct']:.1f}%", ha="right", va="center", fontsize=5.5, color=TARGET)
+        ax.text(row["burden_reduction_pct"] + 1.0, i - 0.13, f"{row['burden_reduction_pct']:.1f}%", ha="left", va="center", fontsize=5.5, color=SELECTOR)
+    ax.set_yticks(y)
+    ax.set_yticklabels(df["target"], fontsize=5.6)
+    ax.set_xlim(0, 104)
+    ax.set_xlabel("Percent")
+    ax.grid(axis="x", color=GRID, lw=0.45, alpha=0.7)
+    ax.text(0.03, 0.94, "target retention", transform=ax.transAxes, ha="left", va="center", fontsize=5.2, color=TARGET)
+    ax.text(0.03, 0.86, "burden reduction", transform=ax.transAxes, ha="left", va="center", fontsize=5.2, color=SELECTOR)
+    panel_title(ax, "B", "Pre-specified target-retaining cases")
+
+
+def plot_appendix_burden_heatmap(ax: plt.Axes) -> None:
+    full = burden_full_df()
+    reductions = []
+    for target in CASE_ORDER:
+        target_row = full[(full["target"] == target) & (full["role"] == "target-only")].iloc[0]
+        selector_row = full[(full["target"] == target) & (full["role"] == "selector")].iloc[0]
+        reductions.append([100.0 * (target_row[c] - selector_row[c]) / target_row[c] for c in BURDEN_COMPONENTS])
+    data = np.asarray(reductions)
+    im = ax.imshow(data, cmap=mpl.colors.LinearSegmentedColormap.from_list("burden_drop", ["#F7F9FB", "#A7D9D0", SELECTOR]), vmin=0, vmax=55)
+    ax.set_xticks(np.arange(len(BURDEN_COMPONENTS)))
+    ax.set_xticklabels(BURDEN_COMPONENTS, rotation=30, ha="right")
+    ax.set_yticks(np.arange(len(CASE_ORDER)))
+    ax.set_yticklabels(CASE_ORDER, fontsize=5.6)
+    ax.tick_params(length=0)
+    for i in range(data.shape[0]):
+        for j in range(data.shape[1]):
+            ax.text(j, i, f"{data[i, j]:.0f}%", ha="center", va="center", fontsize=5.4, color=TEXT)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    cbar = ax.figure.colorbar(im, ax=ax, fraction=0.045, pad=0.025)
+    cbar.set_label("Burden reduction", fontsize=5.5)
+    cbar.ax.tick_params(labelsize=5, length=2)
+    panel_title(ax, "C", "Burden decomposition across cases")
+
+
+def plot_appendix_operating(ax: plt.Axes) -> None:
+    df = operating_df()
+    colors = [SELECTOR, "#4BA3C7", "#C77C2B", "#7A8796"]
+    ax.scatter(df["tqr"], df["burden_reduction"], s=[54, 54, 54, 62], color=colors, zorder=3)
+    offsets = {
+        "clean weighted": (0.010, -0.020, "left"),
+        "off-program": (0.010, 0.012, "left"),
+        "rank-consensus": (0.012, 0.018, "left"),
+        "observed oracle": (-0.012, -0.022, "right"),
+    }
+    for _, row in df.iterrows():
+        dx, dy, ha = offsets[row["setting"]]
+        ax.text(row["tqr"] + dx, row["burden_reduction"] + dy, row["setting"], fontsize=5.4, ha=ha, va="center")
+    ax.set_xlim(0.58, 1.03)
+    ax.set_ylim(0.30, 0.72)
+    ax.set_xlabel("Target-qualified rate")
+    ax.set_ylabel("Burden reduction")
+    ax.grid(color=GRID, lw=0.45, alpha=0.7)
+    panel_title(ax, "D", "Operating points and oracle gap")
+
+
+def plot_appendix_perturb_fish(ax: plt.Axes) -> None:
+    df = perturb_fish_df()
+    metrics = [
+        ("tqr", "TQR"),
+        ("burden_reduction", "burden\nred."),
+        ("obs_u_pred_s_reduction", "obs-U /\npred-S"),
+        ("pairwise_safety", "pairwise\nsafety"),
+    ]
+    x = np.arange(len(metrics))
+    width = 0.34
+    reliable = df[df["subset"] == "reliable"].iloc[0]
+    all_specs = df[df["subset"] == "all"].iloc[0]
+    ax.bar(x - width / 2, [reliable[k] for k, _ in metrics], width, color=SELECTOR, label="39 reliable specs")
+    ax.bar(x + width / 2, [all_specs[k] for k, _ in metrics], width, color="#9AA5AD", label="64 all specs")
+    ax.set_xticks(x)
+    ax.set_xticklabels([label for _, label in metrics])
+    ax.set_ylim(0, 0.95)
+    ax.set_ylabel("Score")
+    ax.grid(axis="y", color=GRID, lw=0.45, alpha=0.7)
+    ax.legend(loc="upper left", fontsize=5.3)
+    panel_title(ax, "E", "Perturb-FISH module-level support")
+
+
+def plot_appendix_calibration(ax: plt.Axes) -> None:
+    cal = calibration_df()
+    for split, color in [("main block", SELECTOR), ("strict guide", STRICT)]:
+        subset = cal[cal["split"] == split]
+        ax.plot(subset["pred_decile"], subset["observed_tqr"], marker="o", lw=1.4, ms=3.0, color=color, label=split)
+    ax.set_xlim(1, 10)
+    ax.set_ylim(0, 0.63)
+    ax.set_xticks([1, 5, 10])
+    ax.set_xlabel("Predicted utility decile")
+    ax.set_ylabel("Observed TQR")
+    ax.grid(axis="y", color=GRID, lw=0.45, alpha=0.7)
+    ax.legend(loc="upper left", fontsize=5.3)
+    ax.text(9.7, 0.575, "0.575", color=SELECTOR, ha="right", va="bottom", fontsize=5.4)
+    ax.text(9.7, 0.461, "0.461", color=STRICT, ha="right", va="top", fontsize=5.4)
+    panel_title(ax, "F", "Target calibration remains bounded")
+
+
+def make_compact_figure(out_png: Path, out_pdf: Path | None, source_out_dir: Path) -> None:
     configure_matplotlib()
     write_source_data(source_out_dir)
     fig = plt.figure(figsize=(3.55, 3.65), constrained_layout=True)
@@ -279,19 +427,50 @@ def make_figure(out_png: Path, out_pdf: Path | None, source_out_dir: Path) -> No
     plt.close(fig)
 
 
+def make_appendix_figure(out_png: Path, out_pdf: Path | None, source_out_dir: Path) -> None:
+    configure_matplotlib()
+    write_source_data(source_out_dir)
+    fig = plt.figure(figsize=(7.15, 5.35), constrained_layout=True)
+    gs = fig.add_gridspec(2, 3, width_ratios=[1.0, 1.08, 1.12], height_ratios=[1.0, 1.0])
+    plot_appendix_overview(fig.add_subplot(gs[0, 0]))
+    plot_appendix_cases(fig.add_subplot(gs[0, 1]))
+    plot_appendix_burden_heatmap(fig.add_subplot(gs[0, 2]))
+    plot_appendix_operating(fig.add_subplot(gs[1, 0]))
+    plot_appendix_perturb_fish(fig.add_subplot(gs[1, 1]))
+    plot_appendix_calibration(fig.add_subplot(gs[1, 2]))
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_png, dpi=450, bbox_inches="tight")
+    if out_pdf is not None:
+        out_pdf.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_pdf, bbox_inches="tight", metadata=PDF_METADATA)
+    plt.close(fig)
+
+
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build the compact SPINE drug-selector appendix figure.")
+    parser = argparse.ArgumentParser(description="Build the SPINE drug-selector main and appendix figures.")
     parser.add_argument(
-        "--png",
+        "--main-png",
         type=Path,
-        default=ROOT / "appendix_image" / "selector_prioritization_appendix.png",
-        help="PNG output path.",
+        default=ROOT / "selector_application_main.png",
+        help="Compact main-text PNG output path.",
     )
     parser.add_argument(
-        "--pdf",
+        "--main-pdf",
+        type=Path,
+        default=ROOT / "selector_application_main.pdf",
+        help="Compact main-text PDF output path. Use an empty string to skip PDF output.",
+    )
+    parser.add_argument(
+        "--appendix-png",
+        type=Path,
+        default=ROOT / "appendix_image" / "selector_prioritization_appendix.png",
+        help="Detailed appendix PNG output path.",
+    )
+    parser.add_argument(
+        "--appendix-pdf",
         type=Path,
         default=ROOT / "appendix_image" / "selector_prioritization_appendix.pdf",
-        help="PDF output path. Use an empty string to skip PDF output.",
+        help="Detailed appendix PDF output path. Use an empty string to skip PDF output.",
     )
     parser.add_argument(
         "--source-out",
@@ -304,8 +483,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    out_pdf = None if str(args.pdf) == "" else args.pdf
-    make_figure(args.png, out_pdf, args.source_out)
+    main_pdf = None if str(args.main_pdf) == "" else args.main_pdf
+    appendix_pdf = None if str(args.appendix_pdf) == "" else args.appendix_pdf
+    make_compact_figure(args.main_png, main_pdf, args.source_out)
+    make_appendix_figure(args.appendix_png, appendix_pdf, args.source_out)
 
 
 if __name__ == "__main__":
