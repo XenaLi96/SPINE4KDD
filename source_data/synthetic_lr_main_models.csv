@@ -1,0 +1,6 @@
+model,neighbor,ring
+Context-only,0.0033,0.0062
+Pre alpha=0,0.0663,0.1281
+Pre alpha=.75,0.0692,0.132
+Pre alpha=1,0.0699,0.1327
+Fine-tuned,0.6193,0.8148

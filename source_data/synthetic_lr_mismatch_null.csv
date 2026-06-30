@@ -1,0 +1,5 @@
+simulator,neighbor,ring
+LIANA LR proxy,0.0739,0.1022
+Direct distance,0.0727,0.0994
+Random ligand-target,0.2135,0.3144
+Shuffled direct effect,0.0357,0.0359

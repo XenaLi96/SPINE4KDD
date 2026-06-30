@@ -1,0 +1,11 @@
+factor,setting,neighbor,ring
+Geometry,Cluster,0.4608,0.8159
+Geometry,Interface,0.4491,0.8011
+Geometry,Random,0.3975,0.7069
+Strength,0.75,0.4323,0.7538
+Strength,1.25,0.4391,0.7931
+Strength,2.00,0.4359,0.7769
+Direct frac.,0.05,0.4309,0.7638
+Direct frac.,0.10,0.4407,0.7854
+Radius,0.50,0.447,0.7687
+Radius,1.00,0.4246,0.7806

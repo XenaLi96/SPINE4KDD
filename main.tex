@@ -1473,16 +1473,16 @@ with simulator-distribution mismatch.
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=\textwidth]{synthetic_lr_summary.png}
+    \includegraphics[width=\textwidth]{synthetic_lr_summary.pdf}
     \caption{\textbf{Controlled synthetic LR-propagation validation.}
-    (A) Cross-split recovery across the main stratified split and held-out perturbation,
-    interface geometry, strength, and host-patch splits. Niche-module-only predictions remain
-    near zero, while synthetic-trained models recover neighbor and ring-level
-    structure. (B) Main-split model comparison. Direct transfer from the real-data
-    pretrained model is weak, whereas synthetic fine-tuning recovers the synthetic
-    target. (C) Gain over the niche-module-only baseline across cross-split settings.
-    (D) Simulator mismatch and null-control settings. (E) Main-split performance by
-    geometry strategy. (F) Main-split performance by perturbation strength.}
+    (A) Main-split model trajectory showing that direct transfer from the real-data
+    pretrained model is weak, whereas synthetic fine-tuning recovers neighbor and
+    ring-level structure. (B) Cross-split recovery from the niche-module-only baseline
+    to the synthetic-trained model across held-out perturbation, interface geometry,
+    strength, and host-patch splits. (C) Heatmap summary of trained recovery across
+    geometry, strength, direct-effect fraction, and radius-scale factors. (D)
+    Simulator mismatch and null-control settings remain far below the matched
+    synthetic LR benchmark.}
     \label{fig:synthetic_lr_summary}
 \end{figure*}
 

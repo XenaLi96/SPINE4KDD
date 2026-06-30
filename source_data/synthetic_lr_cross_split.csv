@@ -1,0 +1,6 @@
+split,niche_neighbor,niche_ring,trained_neighbor,trained_ring
+Main,0.0033,0.0062,0.6193,0.8148
+Perturbation,0.0037,0.0095,0.2743,0.5503
+Interface,0.0038,0.0076,0.607,0.8056
+Strength,0.004,0.0089,0.5201,0.8068
+Host patch,0.003,0.0056,0.597,0.8063
