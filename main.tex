@@ -836,15 +836,7 @@ where $\mathcal G$ is the set of communication programs and $\beta_{pq}$ is a pr
 
 To expand the reference microenvironment corpus beyond the single true spatial perturbation benchmark, we mined perturbation-like local regions from unperturbed mouse-brain HD and Xenium spatial transcriptomics datasets. These regions are not treated as perturbation-response labels. Instead, they provide diverse mouse-brain microenvironments in which specific gene programs are locally enriched and can be paired with matched background regions for reference-prior pretraining.
 
-We used seven perturbation-like program templates:
-\texttt{interferon\_inflammatory\_like},
-\texttt{trem2\_microglia\_dam\_like},
-\texttt{astrocyte\_gliosis\_like},
-\texttt{oligodendrocyte\_myelin\_like},
-\texttt{neuronal\_activity\_srf\_like},
-\texttt{rbfox\_neuronal\_like}, and
-\texttt{mitochondrial\_oxidative\_like}.
-Across two HD mouse-brain sections and three Xenium mouse-brain studies, this procedure screened 392,962 cells, identified 1,619 perturbation-like positive anchors, and generated 9,316 anchor--normal local pairs. The mined anchors cover inflammatory/IFN-like, TREM2 microglia/DAM-like, astrocyte gliosis-like, oligodendrocyte/myelin-like, neuronal activity/SRF-like, Rbfox neuronal/RNA-splicing-like, and mitochondrial/OXPHOS-like microenvironments.
+We used seven perturbation-like program templates spanning IFN/inflammatory, TREM2 microglia/DAM, astrocyte gliosis, myelin-lineage, neuronal/SRF, Rbfox/splicing, and mitochondrial/OXPHOS programs. Across two HD mouse-brain sections and three Xenium mouse-brain studies, this procedure screened 392,962 cells, identified 1,619 perturbation-like positive anchors, and generated 9,316 anchor--normal local pairs.
 
 These mined anchor--normal pairs are used to pretrain the reference microenvironment encoder. The encoder learns local niche structure, program co-activation, and cell--cell plausibility from unperturbed reference ST. During supervised spatial perturbation training, however, the signed response targets still come only from Spatial Perturb-seq PPP pairs. Thus, the mined HD/Xenium regions mitigate the limited diversity of available ground-truth spatial perturbation data without converting unperturbed ST into pseudo perturbation labels.
 
@@ -857,116 +849,66 @@ These mined anchor--normal pairs are used to pretrain the reference microenviron
 \vspace{-0.6em}
 \end{figure}
 
-\begin{table*}[t]
+\paragraph{Study-level mining summary.}
+The HD sections were dominated by Rbfox and OXPHOS-like anchors; \texttt{FFMB039} by myelin-like anchors; \texttt{FFMB028} by interferon and TREM2-like anchors; and \texttt{XISAM001} by neuronal/SRF and interferon-like anchors. Across all studies, the program totals were 587 myelin, 366 IFN/inflammatory, 238 Rbfox/splicing, 170 neuronal/SRF, 148 OXPHOS, 103 TREM2, and 7 astrocyte anchors.
+
+\begin{table}[t]
 \centering
-\caption{Study-level mouse-brain perturbation-like microenvironment mining results. Positive anchors denote local regions assigned to one perturbation-like program. Pairs denote mined anchor--normal local pairs used for reference microenvironment prior pretraining.}
+\caption{Study-level mouse-brain microenvironment mining counts.}
 \label{tab:mouse_mining_studies}
-\scriptsize
+\footnotesize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.10}
-\begin{tabularx}{\textwidth}{@{}llrrr>{\raggedright\arraybackslash}X@{}}
+\begin{tabular}{@{}llrrr@{}}
 \toprule
-Study & Modality & Cells & Anchors & Pairs & Inferred perturbation-like areas \\
+Study & Modality & Cells & Anchors & Pairs \\
 \midrule
 
-\texttt{HD\_e} &
-HD &
-51,190 &
-211 &
-1,055 &
-Rbfox-like neuronal/RNA-splicing response (114); mitochondrial/OXPHOS stress-like response (95); oligodendrocyte/myelin lineage-like response (2). \\
-
-\texttt{HD\_ah} &
-HD &
-54,298 &
-187 &
-935 &
-Rbfox-like neuronal/RNA-splicing response (124); mitochondrial/OXPHOS stress-like response (53); oligodendrocyte/myelin lineage-like response (10). \\
-
-\texttt{Xenium\_FFMB039} &
-Xenium &
-162,033 &
-579 &
-3,474 &
-Oligodendrocyte/myelin-like response (575); neuronal activity/SRF-like response (4). \\
-
-\texttt{Xenium\_FFMB028} &
-Xenium &
-63,173 &
-377 &
-2,262 &
-Interferon/inflammatory-like response (286); TREM2 microglia/DAM-like response (84); astrocyte gliosis-like response (7). \\
-
-\texttt{Xenium\_XISAM001} &
-Xenium &
-62,268 &
-265 &
-1,590 &
-Neuronal activity/SRF-like response (166); interferon/inflammatory-like response (80); TREM2 microglia/DAM-like response (19). \\
+\texttt{HD\_e} & HD & 51,190 & 211 & 1,055 \\
+\texttt{HD\_ah} & HD & 54,298 & 187 & 935 \\
+\texttt{FFMB039} & Xenium & 162,033 & 579 & 3,474 \\
+\texttt{FFMB028} & Xenium & 63,173 & 377 & 2,262 \\
+\texttt{XISAM001} & Xenium & 62,268 & 265 & 1,590 \\
 
 \midrule
-Total &
--- &
-392,962 &
-1,619 &
-9,316 &
-587 oligodendrocyte/myelin-like; 366 interferon/inflammatory-like; 238 Rbfox neuronal/RNA-splicing-like; 170 neuronal activity/SRF-like; 148 mitochondrial/OXPHOS-like; 103 TREM2 microglia/DAM-like; 7 astrocyte gliosis-like anchors. \\
+Total & -- & 392,962 & 1,619 & 9,316 \\
 
 \bottomrule
-\end{tabularx}
-\end{table*}
+\end{tabular}
+\end{table}
 
 \subsection{Comparison to available spatial and single-cell perturbation resources}
 \label{app:resource_comparison}
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\caption{Comparison to available spatial and single-cell perturbation resources. ``Ready for propagation'' means that the public data can directly define cell-resolved direct-effect-to-neighbor propagation targets with perturbation assignment, transcriptome-scale expression, and spatial coordinates measured in the same cells.}
+\caption{Resource support for cell-resolved propagation benchmarking.}
 \label{tab:app_resource_comparison}
-\footnotesize
-\setlength{\tabcolsep}{2.5pt}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
 \renewcommand{\arraystretch}{1.18}
-\begin{tabular}{@{}p{0.18\linewidth}ccccccp{0.34\linewidth}@{}}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
-Resource / assay &
-\makecell[c]{Single\\cell} &
-\makecell[c]{Spatial\\coords} &
-\makecell[c]{Pert.\\barcode} &
-\makecell[c]{Whole\\transcriptome} &
-\makecell[c]{Native\\tissue} &
-\makecell[c]{Ready for\\propagation} &
-Reason not used as an external benchmark \\
+\makecell[l]{Resource} &
+\makecell[c]{SC} &
+\makecell[c]{XY} &
+\makecell[c]{Pert.} &
+\makecell[c]{WT} &
+\makecell[c]{Native} &
+\makecell[c]{Ready} \\
 \midrule
-Spatial Perturb-Seq &
-Yes & Yes & Yes & Yes & Yes & Yes &
-Primary benchmark in this work; it jointly provides cell-level perturbation assignment, transcriptome-scale expression, and spatial coordinates in intact mouse brain. \\
-
-Dissociated Perturb-Seq / single-cell perturbation collections &
-Yes & No & Yes & Yes & No & No &
-Useful for direct-effect prediction, but dissociation removes spatial neighborhoods and native neighbor context. \\
-
-Unperturbed spatial transcriptomics atlases &
-Partial & Yes & No & Partial & Yes & No &
-Provide reference tissue context and coordinates, but no perturbation assignment or perturbation-response labels. \\
-
-Perturb-map / Pro-Code spatial CRISPR screens &
-Partial & Yes & Yes & Partial & Yes & No &
-Perturbation identity is spatially mapped through protein or imaging barcodes, but the public readouts do not provide matched whole-transcriptome cell-level response fields for this neighbor-propagation benchmark. \\
-
-Perturb-FISH and related imaging-barcode spatial screens &
-Yes & Yes & Yes & Targeted & Yes & No &
-Combine spatial imaging transcriptomics with guide detection, but current public readouts are not benchmark-ready paired whole-transcriptome neighbor-response fields. \\
-
-Emerging spatial CRISPR co-sequencing platforms &
-Partial & Yes & Yes & Partial / Yes & Yes & Not yet &
-Promising platforms can co-measure spatial transcriptomes and guide RNAs, but are not yet available as public, benchmark-ready, cell-resolved paired response-field datasets for this task. \\
-
-Multi-condition spatial transcriptomics studies &
-Partial & Yes & Condition & Partial & Yes & No &
-Compare perturbed or disease conditions across samples or slices, but do not provide cell-level perturbation barcodes identifying direct-effect cells and neighbor propagation targets. \\
+Spatial Perturb-Seq & Yes & Yes & Yes & Yes & Yes & Yes \\
+Dissoc. perturb & Yes & No & Yes & Yes & No & No \\
+Unperturbed ST & Part. & Yes & No & Part. & Yes & No \\
+Perturb-map & Part. & Yes & Yes & Part. & Yes & No \\
+Perturb-FISH & Yes & Yes & Yes & Targeted & Yes & No \\
+Spatial CRISPR co-seq & Part. & Yes & Yes & Part./Yes & Yes & Not yet \\
+Multi-condition ST & Part. & Yes & Cond. & Part. & Yes & No \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
+
+``Ready'' means that a public resource can directly define cell-resolved direct-effect-to-neighbor propagation targets with perturbation assignment, transcriptome-scale expression, and spatial coordinates measured in the same cells. Spatial Perturb-Seq is therefore the primary exact benchmark. Dissociated perturbation collections provide direct-effect priors but remove spatial neighborhoods. Unperturbed ST atlases provide tissue context without perturbation labels. Perturb-map and Perturb-FISH offer useful external support but lack matched whole-transcriptome cell-level neighbor-response fields in their current public forms. Emerging spatial CRISPR co-sequencing platforms are promising, but are not yet available as public benchmark-ready datasets for this task.
 
 \subsection{Full method equations and training details}
 \label{app:method_full_details}
@@ -1926,50 +1868,50 @@ The frozen reference encoder is trained only on unperturbed reference ST. These 
 \subsection{Development ablations}
 \label{app:development_ablations}
 
-The following tables retain the original development evidence but replace internal run names with descriptive labels. The early structural ablations show that explicit direct-effect-to-neighbor propagation is more effective than generic patch regression or purely semantic pairwise prediction. The recipe ablations show that longer optimization, three-control consensus targets, and post-state supervision improve earlier baselines, while strict same-type pseudo-pre targets are too noisy for the current local benchmark.
+The following tables retain the original development evidence but replace internal run names with compact labels. In \Cref{tab:app_ablation_modules}, rows marked ``block'' use the final spatial block-holdout setting, whereas rows marked ``coord'' come from earlier coordinate-split development runs. The early structural ablations show that explicit direct-effect-to-neighbor propagation is more effective than generic patch regression or purely semantic pairwise prediction. The recipe ablations show that longer optimization, three-control consensus targets, and post-state supervision improve earlier baselines, while strict same-type pseudo-pre targets are too noisy for the current local benchmark.
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\caption{Broad module and structural ablations from development runs, rewritten with descriptive labels.}
+\caption{Broad module and structural ablations from development runs.}
 \label{tab:app_ablation_modules}
-\small
-\setlength{\tabcolsep}{8pt}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.14}
-\begin{tabular}{@{}p{0.50\linewidth}ccc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Variant & \makecell[c]{Direct-effect-cell\\Pearson} & \makecell[c]{Neighbor\\Pearson} & \makecell[c]{Ring\\Pearson} \\
+Variant & Direct & Neighbor & Ring \\
 \midrule
-\textbf{Full structured propagation}, spatial block holdout & 0.959 & 0.670 & 0.421 \\
-Niche-module-only region-patch baseline, spatial block holdout & 1.000 & 0.610 & 0.405 \\
-\textbf{Structured propagation}, earlier coordinate split & 0.963 & 0.643 & 0.375 \\
-Structured propagation without post-state loss, earlier coordinate split & 0.963 & 0.640 & 0.373 \\
-Semantic propagation module, earlier coordinate split & 0.983 & 0.607 & 0.426 \\
-Direct-effect-indicator-only baseline, earlier coordinate split & 0.188 & 0.486 & 0.342 \\
-Pair-only semantic-difference model, earlier coordinate split & 0.984 & 0.362 & 0.210 \\
+Full structured, block & 0.959 & 0.670 & 0.421 \\
+Niche only, block & 1.000 & 0.610 & 0.405 \\
+Structured, coord & 0.963 & 0.643 & 0.375 \\
+No post loss, coord & 0.963 & 0.640 & 0.373 \\
+Semantic module, coord & 0.983 & 0.607 & 0.426 \\
+Indicator only, coord & 0.188 & 0.486 & 0.342 \\
+Pair-only diff., coord & 0.984 & 0.362 & 0.210 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\caption{Training, target-construction, and split ablations from development runs, rewritten with descriptive labels. The last two rows are robustness or task-definition tests rather than standard leave-one-module-out ablations.}
+\caption{Training, target-construction, and split ablations.}
 \label{tab:app_ablation_recipe}
-\small
-\setlength{\tabcolsep}{8pt}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.14}
-\begin{tabular}{@{}p{0.50\linewidth}p{0.43\linewidth}@{}}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.42\linewidth}@{}}
 \toprule
 Recipe change & Key metrics \\
 \midrule
-Single-control target baseline: 10 $\rightarrow$ 30 epochs & neighbor $0.364\rightarrow0.509$; ring $0.236\rightarrow0.291$ \\
-Single-control target $\rightarrow$ three-control consensus target, same 10-epoch baseline setting & neighbor $0.364\rightarrow0.425$; ring $0.236\rightarrow0.279$ \\
-Three-control consensus target: 10 $\rightarrow$ 30 epochs & neighbor $0.425\rightarrow0.577$; ring $0.279\rightarrow0.355$ \\
-Add post-state supervision to the region-patch baseline & neighbor $0.425\rightarrow0.536$; ring $0.279\rightarrow0.361$ \\
-Coordinate-based split $\rightarrow$ spatial block holdout, strongest propagation model & neighbor $0.643\rightarrow0.670$; ring $0.375\rightarrow0.421$ \\
-Matched-control target $\rightarrow$ strict same-cell-type aligned pseudo-pre target, stress test & full model: neighbor $0.0028$; ring $0.0000$ \\
+Single-control, 10$\rightarrow$30 epochs & neighbor $0.364\rightarrow0.509$; ring $0.236\rightarrow0.291$ \\
+Single-control $\rightarrow$ consensus target & neighbor $0.364\rightarrow0.425$; ring $0.236\rightarrow0.279$ \\
+Consensus, 10$\rightarrow$30 epochs & neighbor $0.425\rightarrow0.577$; ring $0.279\rightarrow0.355$ \\
+Add post-state supervision & neighbor $0.425\rightarrow0.536$; ring $0.279\rightarrow0.361$ \\
+Coordinate $\rightarrow$ block holdout & neighbor $0.643\rightarrow0.670$; ring $0.375\rightarrow0.421$ \\
+Matched-control $\rightarrow$ strict pseudo-pre & neighbor $0.0028$; ring $0.0000$ \\
 \bottomrule
-\end{tabular}
-\end{table*}
+\end{tabularx}
+\end{table}
 
 \subsection{Detailed structural and design-refinement ablations}
 \label{app:structural_design_refinement}
@@ -2004,100 +1946,86 @@ No direct-effect input &
 \paragraph{Interpretation of structural ablations.}
 The final propagation blend combines a shared niche-impact baseline with directed direct-effect-to-neighbor propagation and ring-aware refinement. Removing niche-impact residualization produces the largest collapse, indicating that directly predicting the response fails to separate background tissue variation from perturbation-conditioned propagation. Removing edge attributes reduces both neighbor and ring performance, showing that spatial geometry, cell-type-pair information, and communication-compatibility features improve propagation structure. Removing the direct-effect input also degrades neighbor prediction, especially beyond niche-module-only correlation, confirming that the propagation module benefits from a meaningful direct-effect signal.
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\caption{Design-refinement ablations. Deltas are reported relative to the stated reference model within each ablation family. Positive deltas mean the ablated comparison is better; negative deltas mean it is worse.}
+\caption{Design-refinement ablations. Deltas are relative to the stated reference within each ablation family.}
 \label{tab:app_design_refinement_ablations}
-\small
-\setlength{\tabcolsep}{4pt}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.22\textwidth}
->{\raggedright\arraybackslash}X
-rrr@{}}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}Xrrr@{}}
 \toprule
-Design question & Ablated comparison & $\Delta$Score & $\Delta$Neighbor & $\Delta$Ring \\
+Ablation & $\Delta$Score & $\Delta$Neigh. & $\Delta$Ring \\
 \midrule
 
-Directed propagation &
-Niche-module-only patch model $\rightarrow$ base direct-effect$\rightarrow$neighbor propagation &
+Base propagation vs. niche only &
 --- & $+0.07447$ & $+0.04694$ \\
 
-Ring-aware spatial refinement &
-Base propagation module relative to reference-ST ring refinement &
+Base vs. ring refinement &
 $-0.00569$ & $+0.00101$ & $-0.00477$ \\
 
-Reference niche integration &
-Reference-niche adapter without response feedback &
+Reference adapter only &
 $-0.00180$ & $+0.00014$ & $-0.00125$ \\
 
-Reference prior placement &
-Using the reference edge-prior signal directly &
+Reference edge-prior gate &
 $-0.00400$ & $-0.00057$ & $-0.00191$ \\
 
-Feedback structure &
-Plain second-pass refinement without ring-aware scaling &
+Plain second pass &
 $-0.00081$ & $+0.00022$ & $-0.00071$ \\
 
-Reference-prior necessity &
-Ring refinement without the reference-prior adapter &
+No reference adapter &
 $-0.00231$ & $+0.00106$ & $-0.00271$ \\
 
-Neighbor-focused loss &
-Including direct-effect-cell reconstruction in the propagation loss &
+Include direct-cell loss &
 $-0.06372$ & $-0.01307$ & $-0.02665$ \\
 
-Ring supervision &
-Removing ring loss from the current module &
+Remove ring loss &
 $-0.00150$ & $+0.00021$ & $-0.00113$ \\
 
 \bottomrule
 \end{tabularx}
-\end{table*}
+\end{table}
 
 \paragraph{Interpretation of design-refinement ablations.}
 The design-refinement ablations support the final architecture choices. Explicit direct-effect-to-neighbor propagation substantially improves neighbor prediction over the niche-module-only patch model. The base propagation module is slightly stronger in raw neighbor correlation than the reference-ST ring-refinement module, but weaker at ring-level spatial structure. Frozen reference context helps most when used inside ring-aware response refinement; using the reference edge-prior signal directly is weaker than injecting reference-ST information through node- and patch-level niche embeddings. A plain second pass is useful, but ring-aware response tokens and ring-specific scales give a better spatial tradeoff. Removing the reference-prior adapter slightly improves raw neighbor correlation but hurts ring propagation and the overall score. Including direct-effect-cell reconstruction in the propagation loss substantially hurts neighbor propagation, indicating that the easier direct signal can dominate training. Removing ring loss gives only a negligible raw-neighbor gain while reducing ring-level propagation structure.
 
-\begin{table*}[t]
+\paragraph{Compact IFN-\texorpdfstring{$\gamma$}{gamma} readout summary.}
+The de novo IFN-$\gamma$ example is interpreted as hypothesis generation, not matched validation. Its main qualitative pattern is a spatially extended IFN/MHC-I-like response: immune and vascular-associated states are enriched among high-response targets, canonical IFN/MHC-I genes increase, selected structural or vascular programs decrease, and patch-level gradients show that the response is spatially heterogeneous rather than a uniform slide-wide shift. The key numerical readouts are summarized below; the following text gives the biological interpretation.
+
+\begin{table}[t]
 \centering
-\caption{De novo IFN-$\gamma$ mouse-brain case-study readouts. This table supports a hypothesis-generating analysis, not a matched-ground-truth validation.}
+\caption{Key numerical readouts for the de novo IFN-$\gamma$ case study.}
 \label{tab:app_ifng_case_readouts}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.16}
-\begin{tabular}{@{}p{0.18\linewidth}p{0.40\linewidth}p{0.37\linewidth}@{}}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.34\linewidth}>{\raggedright\arraybackslash}X@{}}
 \toprule
-Readout & Observation & Interpretation \\
+Readout & Value \\
 \midrule
 Top-pathway target composition &
-Microglia: 11.91\% among top-pathway 5\% targets versus 7.98\% background; 1.49$\times$ enrichment. Endothelial: 7.81\% versus 7.22\%; 1.08$\times$ enrichment. Pericyte: 5.81\% versus 5.49\%; 1.06$\times$ enrichment. &
-IFN-$\gamma$ susceptibility concentrates in immune/glial-associated niches and also involves vascular-associated microenvironments. \\
+Microglia 11.91\% vs. 7.98\% background; endothelial 7.81\% vs. 7.22\%; pericyte 5.81\% vs. 5.49\%. \\
 
 Canonical IFN/MHC-I genes &
-Target-cell response: \textit{B2m} $+1.91$, \textit{H2-D1} $+1.57$, \textit{Ifitm3} $+1.72$. &
-The de novo pipeline recovers a coherent IFN-$\gamma$/antigen-presentation-like program rather than arbitrary high-response genes. \\
+\textit{B2m} $+1.91$, \textit{H2-D1} $+1.57$, \textit{Ifitm3} $+1.72$. \\
 
 Suppressed programs &
-Target-cell response: \textit{Col1a2} $-1.31$, \textit{Vcan} $-1.28$, \textit{Flt1} $-1.82$. &
-The predicted response includes suppression of selected ECM, structural, or vascular-like programs, not only inflammatory activation. \\
+\textit{Col1a2} $-1.31$, \textit{Vcan} $-1.28$, \textit{Flt1} $-1.82$. \\
 
 Spatial field coverage &
-2,048 top-5\% targets; 64NN patch union covers 38,922/40,944 cells in the bottom-right region, or 95.06\%. &
-The perturbation forms an extended spatial response field; target cells are strongest, but neighboring cells also show visible response. \\
+2,048 top-5\% targets; 64NN union covers 38,922/40,944 bottom-right cells (95.06\%). \\
 
 Context-dependent gradients &
-Patch-level $x$ coordinate is negatively associated with \textit{B2m} $(r=-0.290,\ p=4.2\times10^{-41})$ and \textit{Irf8} $(r=-0.296,\ p=8.8\times10^{-43})$, and positively associated with \textit{Col1a2} $(r=+0.307,\ p=5.7\times10^{-46})$ and \textit{Flt1} $(r=+0.417,\ p=7.4\times10^{-87})$. &
-The same perturbation does not produce a uniform tissue-wide shift; local spatial context modulates response direction and strength. \\
+Patch $x$ coordinate: \textit{B2m} $r=-0.290$, \textit{Irf8} $r=-0.296$, \textit{Col1a2} $r=+0.307$, \textit{Flt1} $r=+0.417$. \\
 
 Representative local patches &
-Six representative patches: P1 $(x=14{,}955, y=8{,}981)$, P2 $(18{,}877, 11{,}976)$, P3 $(15{,}281, 12{,}090)$, P4 $(14{,}662, 15{,}755)$, P5 $(19{,}830, 17{,}042)$, and P6 $(16{,}754, 18{,}181)$. These patches show positive \textit{B2m}/\textit{Ifitm3} and negative \textit{Col1a2}/\textit{Vcan} patch-average responses. &
-Local examples connect whole-map response gradients to neighborhood-scale propagation behavior. \\
+P1--P6 at $(14955,8981)$, $(18877,11976)$, $(15281,12090)$, $(14662,15755)$, $(19830,17042)$, and $(16754,18181)$. \\
 
 Reference-prior deployment context &
-The de novo query uses the frozen reference microenvironment prior during whole-brain deployment; no matched IFN-$\gamma$ labels or paired prior ablation are used for this table. &
-The reference prior is framed as tissue contextualization for deployment, not as experimental validation of IFN-$\gamma$ biology or as the main source of raw benchmark Pearson improvement. \\
+Frozen reference prior used for deployment; no matched IFN-$\gamma$ labels or paired prior ablation. \\
 \bottomrule
-\end{tabular}
-\end{table*}
+\end{tabularx}
+\end{table}
 
 \subsection{Extended de novo IFN-\texorpdfstring{$\gamma$}{gamma} case-study interpretation}
 \label{app:ifng_extended_interpretation}
@@ -2196,21 +2124,22 @@ The audit scores each candidate by target utility and collateral burden. Target 
 
 Three pre-specified biological cases give the most interpretable view of the audit (Table~\ref{tab:app_selector_cases}). The selected alternatives retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. For TGF-$\beta$/stroma near-down, the selector replaced \texttt{sgrna\_rraga} with \texttt{sgrna\_oligo2}, preserving target score from 5.074 to 4.968 while reducing weighted burden from 1.188 to 0.597. The same case reduced far-field burden from 1.213 to 0.604, off-program burden from 1.228 to 0.615, and harmful burden from 1.457 to 0.778 (Table~\ref{tab:app_selector_burden_decomposition}). Vascular-stress near-down and myeloid-activation far-up show the same target-retaining, lower-burden pattern.
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\small
-\caption{Pre-specified response-field prioritization cases. Target retention and burden reduction are computed relative to the target-only guide for the same target specification.}
+\scriptsize
+\caption{Pre-specified response-field prioritization cases.}
 \label{tab:app_selector_cases}
-\begin{tabular}{lllrr}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllrr@{}}
 \toprule
-Biological target & Target-only guide & Selector guide & Retention & Burden red. \\
+Target & Target-only & Selector & Retain & Burden red. \\
 \midrule
-TGF-$\beta$/stroma near-down & \texttt{sgrna\_rraga} & \texttt{sgrna\_oligo2} & 97.9\% & 49.7\% \\
-Vascular stress near-down & \texttt{sgrna\_rraga} & \texttt{sgrna\_clu} & 99.8\% & 24.4\% \\
-Myeloid activation far-up & \texttt{sgrna\_Cfap410} & \texttt{sgrna\_stk39} & 89.3\% & 24.4\% \\
+TGF$\beta$/stroma & \texttt{rraga} & \texttt{oligo2} & 97.9\% & 49.7\% \\
+Vascular stress & \texttt{rraga} & \texttt{clu} & 99.8\% & 24.4\% \\
+Myeloid activation & \texttt{Cfap410} & \texttt{stk39} & 89.3\% & 24.4\% \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 \begin{table*}[t]
 \centering
@@ -2231,39 +2160,41 @@ Myeloid activation far-up & selector & 1.409 & 0.542 & 0.651 & 0.550 & 0.657 \\
 \end{tabular}
 \end{table*}
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
 \small
-\caption{Selector operating points used only as a retrospective appendix audit. All rows use the same Spatial Perturb-seq target-specification family; operating points differ in burden definition or aggregation.}
+\caption{Selector operating points for the retrospective audit.}
 \label{tab:app_selector_operating_points}
-\begin{tabular}{lrrrr}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
-Operating point & Candidate actions & Specs & TQR & Burden reduction \\
+Operating point & Actions & Specs & TQR & Burden red. \\
 \midrule
-Clean weighted-all head & 5,286 & 36 & 0.639 & 0.354 \\
-Off-program sensitivity & 5,286 & 36 & 0.667 & 0.362 \\
-Rank-consensus operating point & 5,286 & 36 & 0.620 & 0.418 \\
-Observed-field oracle & 5,286 & 36 & 1.000 & 0.672 \\
+Clean weighted & 5,286 & 36 & 0.639 & 0.354 \\
+Off-program & 5,286 & 36 & 0.667 & 0.362 \\
+Rank-consensus & 5,286 & 36 & 0.620 & 0.418 \\
+Observed oracle & 5,286 & 36 & 1.000 & 0.672 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 Perturb-FISH provides external support for the direction of these response-field prioritization cases, but we interpret it as module-level support rather than full selector replication. The action pool and readout panel differ from Spatial Perturb-seq, so the external assay tests whether the same module-level target and burden directions are plausible rather than whether the identical guide-level selector transfers unchanged. On 39 reliable Perturb-FISH specifications, the full predicted-utility/predicted-burden selector reached TQR 0.718, burden reduction 0.151, observed-utility/predicted-burden reduction 0.207, and pairwise safety 0.851 (Table~\ref{tab:app_selector_perturb_fish}).
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\small
-\caption{Perturb-FISH module-level external support for the response-field prioritization audit. The external assay has a different action pool and readout panel, so these rows support module-level direction rather than full selector replication.}
+\scriptsize
+\caption{Perturb-FISH module-level support for the prioritization audit.}
 \label{tab:app_selector_perturb_fish}
-\begin{tabular}{lrrrrr}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
-Subset & Specs & Full TQR & Full burden red. & Obs-U/pred-S red. & Pairwise safety \\
+Subset & Specs & TQR & Burden & Obs-U & Safety \\
 \midrule
 Reliable specifications & 39 & 0.718 & 0.151 & 0.207 & 0.851 \\
 All specifications & 64 & 0.641 & 0.137 & 0.218 & 0.851 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 Finally, the audit has a calibration limitation. Predicted utility deciles do stratify observed target qualification, but absolute reliability is incomplete: the main block split rises from TQR 0.043 in the bottom predicted-utility decile to 0.575 in the top decile, while strict guide holdout rises from 0.053 to 0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report the selector as a response-field prioritization audit and not as a calibrated controller for prospective intervention design.
 
