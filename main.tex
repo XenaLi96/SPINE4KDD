@@ -90,12 +90,38 @@ Genetic and drug perturbation models are increasingly used to predict cellular r
 % Spatial functional genomics, including Perturb-map, Perturb-FISH, and Spatial Perturb-Seq, begins to close this gap by placing CRISPR perturbations within intact tissue and reading out molecular state in situ~\citep{dhainaut2022spatialcrispr,binan2025perturbfish,shen2026spatialperturbseq}. 
 % These measurements shift the modeling problem from predicting isolated cell-intrinsic responses to predicting how perturbation effects propagate through spatially organized tissue. 
 % Without models that infer sender-to-receiver responses under local communication and geometry, spatial Perturb-Seq remains difficult to translate into predictive target prioritization.
+
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{model.png}
+\caption{\textbf{Overview of \methodname.}
+\methodname{} predicts spatial perturbation response fields from an unperturbed cell-resolved tissue graph and a direct-effect seed. Inputs include matched-control expression, cell-state and spatial features, direct-effect indicators, and edge features encoding distance, cell-state pairs, and communication compatibility. The model decomposes responses into niche and propagation components: a masked niche branch estimates context-driven effects, while a directed propagation branch routes direct-effect signals to neighbors. A frozen reference-ST encoder and distance-aware refinement module add microenvironment priors and radial response correction. The output is a signed cell-by-gene response delta used to reconstruct the predicted post-perturbation expression field.}
+\label{fig:main_framework}
+\end{figure*}
+
+
+
 \section{Introduction}
 Predicting genetic-perturbation responses in native tissue is central to mapping development and prioritizing niche-specific therapeutic targets~\citep{dixit2016perturbseq,norman2019combinatorial,zheng2024invivo,finan2017druggable,king2019genetic}. Most data come from dissociated Perturb-seq and pooled CRISPR assays, which support cell-intrinsic modeling but remove the cell--cell communication and niche architecture that shape many in vivo effects~\citep{adamson2016crispr,datlinger2017cropsseq,replogle2022mapping,frangieh2021multimodal}. Spatial functional genomics assays, including Perturb-map, Perturb-FISH, and Spatial Perturb-Seq, restore this tissue layer by placing perturbations in intact tissue and reading out molecular state in situ~\citep{dhainaut2022spatialcrispr,binan2025perturbfish,shen2026spatialperturbseq}. They shift the target from isolated cell responses to spatial response fields, but remain too costly to cover perturbation--context combinations exhaustively.
 Existing methods cover only fragments of this problem. Single-cell perturbation-response models use latent translation, optimal transport, gene-relation graphs, disentangled representations, or foundation models~\citep{lotfollahi2019scgen,bunne2023cellot,roohani2023gears,piran2024biolord,theodoris2023geneformer,cui2024scgpt,hao2024scfoundation}, but lack a tissue graph for propagation. Spatial transcriptomics and communication methods preserve geometry, niches, and plausible cell--cell routes~\citep{stahl2016spatial,vickovic2019hdst,rodriques2019slideseq,stickels2021slideseqv2,cang2023commot,dries2021giotto,phan2023stlearn,tiling2024nicheformer}, but do not predict which perturbation activates which route or the signed magnitude of neighbor responses. The missing interface maps direct effects onto neighbors in an intact tissue graph.
 We formulate spatial perturbation prediction as two stages. Given an ST slide and a perturbation, one first locates direct-effect cells and estimates their cell-intrinsic transcriptional changes. Direct-effect cells can be specified by guide labels, experimental design, or manual intervention sites; their direct-effect profile can be measured or predicted by a fine-tuned single-cell perturbation model such as CPA~\citep{Lotfollahi2023}. \methodname{} addresses the second stage: conditioned on the tissue graph and direct-effect seed, it predicts neighbor changes.
 This setting presents three challenges. \textbf{Challenge 1.} Spatial perturbation data are scarce, limiting direct supervision for propagation. We build Pre--Post Perturbation Pairing (PPP) from Spatial Perturb-Seq~\cite{shen2026spatialperturbseq}: each perturbed post patch is paired with matched control-like pre-state patches, forming pairs with estimated initial states and response targets. Together with a controlled synthetic LR benchmark built from GSE157977 mouse in vivo Perturb-seq profiles and NicheNet v2 mouse ligand--target priors~\citep{jin2020invivo,browaeys2020nichenet,browaeys2022nichenetv2}, plus Perturb-map/GSE193460 validation~\citep{dhainaut2022spatialcrispr}, PPP provides cell-resolved supervision, rule-controlled tests, and coarser real spatial readout agreement.\textbf{Challenge 2.} Neighbor responses mix perturbation-driven propagation with endogenous microenvironment effects. \methodname{} uses a niche--propagation architecture: the niche module masks perturbation inputs to estimate niche impact from baseline expression, cell-state composition, spatial geometry, and local context, while the propagation module routes direct-effect seeds through the tissue graph to predict remaining propagation impact. Distance-aware refinement integrates signals across radial neighborhoods. \textbf{Challenge 3.} Spatial perturbation models must generalize beyond measured perturbation--context pairs. We mine response-like microenvironments from unperturbed mouse-brain ST: two HD sections and three Xenium studies, totaling $392{,}962$ cells. Seven templates spanning interferon/inflammatory, microglial, astrocytic, myelin-lineage, neuronal, splicing, and mitochondrial/OXPHOS programs yield $1{,}619$ positive anchors and $9{,}316$ anchor--normal local pairs. These pairs pretrain a reference-ST niche encoder on gene programs, neighborhood structure, patch composition, and communication plausibility without perturbation labels.
 Across three validation settings, \methodname{} shows consistent performance. On block-held-out mouse-brain Spatial Perturb-Seq, it outperforms statistical, retrieval, diffusion, fixed-CCC, linear, and generic graph baselines, reaching neighbor/ring Pearson $0.684/0.457$ with lower Neighbor MAE. Under a stricter grouped guide-out split, we jointly held out three unseen perturbation guides (\textit{fasn}, \textit{stk39}, and \textit{trem2}) and evaluated them separately; \methodname{} achieved stable per-guide neighbor Pearson values around $0.60$ and ring Pearson values around $0.45$, indicating that guide-out generalization was not driven by a single held-out guide. On synthetic LR propagation, it recovers known response fields with $0.619/0.815$ neighbor/ring Pearson; on external spot/lesion-level Perturb-map validation, it reaches spot-level program agreement up to Pearson $0.853$. Ablations support the design: removing niche-impact residualization causes the largest collapse to $0.165/0.153$, while removing edge features or direct-effect inputs also weakens performance.
+
+
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\linewidth]{pair_2.png}
+\caption{\textbf{Pre-Post Perturbation Pairing (PPP) construction and validation.}
+(a) Each post-perturbation 64-cell patch is matched to K=3 control patches, softly aligned, and aggregated into a consensus post--pre response target. (b) Example matched pre/post patches. (c--e) Stability and null audits show that PPP targets are consistent across matched controls and align more strongly with their own guide signatures than with wrong-guide or shuffled nulls. Consensus/ring correlations are $0.944/0.923$, and 512-gene own-guide alignment exceeds wrong-guide and target-shuffled nulls for both center cells and neighbor cells. Full pseudocode and exact audit tables are provided in the appendix.}
+\label{fig:data_pair}
+\end{figure*}
+
+
 \paragraph{Contributions.}
 \begin{itemize}
     \item \textbf{An audited PPP benchmark for spatial perturbation propagation.} 
@@ -145,13 +171,8 @@ Spatial Perturb-seq, controlled synthetic LR propagation, and Perturb-map.
 
 
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.98\linewidth]{model.png}
-\caption{\textbf{Overview of \methodname.}
-\methodname{} predicts spatial perturbation response fields from an unperturbed cell-resolved tissue graph and a direct-effect seed. Inputs include matched-control expression, cell-state and spatial features, direct-effect indicators, and edge features encoding distance, cell-state pairs, and communication compatibility. The model decomposes responses into niche and propagation components: a masked niche branch estimates context-driven effects, while a directed propagation branch routes direct-effect signals to neighbors. A frozen reference-ST encoder and distance-aware refinement module add microenvironment priors and radial response correction. The output is a signed cell-by-gene response delta used to reconstruct the predicted post-perturbation expression field.}
-\label{fig:main_framework}
-\end{figure*}
+
+
 
 
 
@@ -161,14 +182,6 @@ Spatial Perturb-seq, controlled synthetic LR propagation, and Perturb-map.
 For each guide-positive anchor $a$, we form a 64-cell post-perturbation patch $P(a)=\{a\}\cup\mathcal{N}_{63}(a)$. Because the same cells are not observed before and after perturbation, we approximate the pre-perturbation state by matching the full post-perturbation patch, rather than only the guide-positive cell, to non-perturbed or control-like patches. We call this construction \textbf{Pre--Post Perturbation Pairing} (PPP). Candidate controls are ranked by spatial proximity, center-cell expression similarity, patch-level expression similarity, and cell-type composition; the top $K=3$ matches are softly aligned and aggregated into a consensus post-minus-matched-pre response target. \textbf{PPP target audit.}
 PPP is a perturbation-consistent pseudo-target rather than directly observed causal ground truth. We therefore partition post anchors and candidate controls before matching, perform matching only within the same split, and ensure that no post anchor, matched-control anchor, or 64-cell control patch is shared across train/test partitions. Candidate pre-states use only non-perturbed or control-like cells, and model predictions are never used to construct targets. PPP targets are stable across independently selected controls, with consensus/ring correlations of $0.944/0.923$, node target variance $0.0570$, and ring consistency $0.327$ (Figure~\ref{fig:data_pair}; \Cref{tab:app_ppp_control_stability}). Guide-specific audits show strong center-cell alignment and weaker but consistently positive neighbor-side alignment over wrong-guide and shuffled-response nulls: in the 512-gene panel, own-guide alignment exceeds wrong-guide/target-shuffled nulls for center cells ($0.3169$ vs. $0.1292/0.1908$), high-confidence neighbors ($0.0220$ vs. $0.0039/0.0137$), and all neighbors ($0.0287$ vs. $0.0012/0.0139$; \Cref{tab:app_ppp_guide_signature}). These audits support the narrower claim that PPP provides a stable, guide-consistent response proxy for supervised propagation training.
 
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.9\linewidth]{pair_2.png}
-\caption{\textbf{Pre-Post Perturbation Pairing (PPP) construction and validation.}
-(a) Each post-perturbation 64-cell patch is matched to K=3 control patches, softly aligned, and aggregated into a consensus post--pre response target. (b) Example matched pre/post patches. (c--e) Stability and null audits show that PPP targets are consistent across matched controls and align more strongly with their own guide signatures than with wrong-guide or shuffled nulls. Consensus/ring correlations are $0.944/0.923$, and 512-gene own-guide alignment exceeds wrong-guide and target-shuffled nulls for both center cells and neighbor cells. Full pseudocode and exact audit tables are provided in the appendix.}
-\label{fig:data_pair}
-\end{figure*}
 
 
 
@@ -255,6 +268,18 @@ The compatibility score $q_{ij}$ biases routing but does not define a fixed comm
 \end{aligned}
 \end{equation}
 
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.90\linewidth]{main_exp.png}
+\caption{\textbf{Main real-data evaluation on the Spatial Perturb-Seq mouse-brain benchmark.}
+The visualization summarizes receiver-side perturbation prediction under the block-holdout matched-control setting, complementing the gene-centric quantitative analysis in \Cref{tab:main_results}. A full-resolution version with additional spatial and local-neighborhood panels is provided in the appendix.}
+\label{fig:main_exp}
+\end{figure*}
+
+
+
+
 \subsection{ST niche prior and distance-aware refinement}
 \label{sec:method_st_refinement}
 
@@ -309,13 +334,6 @@ We report Neighbor Pearson, centered/high-confidence variants, ring Pearson, Nei
 
 
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.90\linewidth]{main_exp.png}
-\caption{\textbf{Main real-data evaluation on the Spatial Perturb-Seq mouse-brain benchmark.}
-The visualization summarizes receiver-side perturbation prediction under the block-holdout matched-control setting, complementing the gene-centric quantitative analysis in \Cref{tab:main_results}. A full-resolution version with additional spatial and local-neighborhood panels is provided in the appendix.}
-\label{fig:main_exp}
-\end{figure*}
 
 
 
@@ -329,11 +347,11 @@ The visualization summarizes receiver-side perturbation prediction under the blo
 (c) Spot/lesion-level external validation on Perturb-map.}
 \label{tab:main_results}
 \vspace{2pt}
-\begin{minipage}[t]{0.56\linewidth}
+\begin{minipage}[t]{0.6\linewidth}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3.0pt}
-\renewcommand{\arraystretch}{1.02}
+\renewcommand{\arraystretch}{0.9}
 \textbf{(a) Exact cell-resolved Spatial Perturb-Seq benchmark}
 \vspace{2pt}
 \resizebox{0.96\linewidth}{!}{%
@@ -373,11 +391,11 @@ The visualization summarizes receiver-side perturbation prediction under the blo
 }
 \end{minipage}
 \hfill
-\begin{minipage}[t]{0.42\linewidth}
+\begin{minipage}[t]{0.38\linewidth}
 \centering
 \footnotesize
 \setlength{\tabcolsep}{3.0pt}
-\renewcommand{\arraystretch}{1.1}
+\renewcommand{\arraystretch}{0.95}
 \textbf{(b) synthetic LR-propagation validation}
 \vspace{2pt}
 \resizebox{\linewidth}{!}{%
