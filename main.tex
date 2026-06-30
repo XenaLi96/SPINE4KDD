@@ -1541,27 +1541,39 @@ Held-out host patch & 252 & 72 & 108 & 0.0030 & 0.0056 & 0.5970 & 0.2269 & 0.806
 \end{tabular}
 \end{table*}
 
+
+
+
 \begin{table}[t]
 \centering
-\small
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.08}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.05}
 \caption{\textbf{Simulator mismatch and null controls.}
 The trained model transfers weakly to mismatched or null simulators, supporting the
 interpretation that the main synthetic benchmark tests a specific LR-propagation
 distribution rather than generic target leakage.}
 \label{tab:synthetic_lr_mismatch_null}
-\begin{tabular}{lcccc}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Simulator & $n$ graphs & Trained nei. & Trained ring & Gain nei. / ring \\
+Simulator &
+\shortstack{$n$\\graphs} &
+\shortstack{Trained\\nei.} &
+\shortstack{Trained\\ring} &
+\shortstack{Gain\\nei. / ring} \\
 \midrule
-Direct distance & 360 & 0.0727 & 0.0994 & 0.0700 / 0.0948 \\
-LIANA LR proxy & 360 & 0.0739 & 0.1022 & 0.0715 / 0.0989 \\
-Random ligand--target & 360 & 0.2135 & 0.3144 & 0.2120 / 0.3141 \\
-Shuffled direct effect & 360 & 0.0357 & 0.0359 & 0.0332 / 0.0312 \\
+Direct distance          & 360 & 0.0727 & 0.0994 & 0.0700 / 0.0948 \\
+LIANA LR proxy           & 360 & 0.0739 & 0.1022 & 0.0715 / 0.0989 \\
+Random ligand--target    & 360 & 0.2135 & 0.3144 & 0.2120 / 0.3141 \\
+Shuffled direct effect   & 360 & 0.0357 & 0.0359 & 0.0332 / 0.0312 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
+
+
+
 
 \begin{table*}[t]
 \centering
@@ -1698,27 +1710,34 @@ Signature & Top-10 & Top-25 & Top-50 \\
 \end{tabular}
 \end{table}
 
+
+
 \begin{table}[t]
 \centering
-\small
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.08}
-\caption{\textbf{Bootstrap confidence intervals and null controls for Perturb-map validation.}
-All interpretable spot-level programs are significant against score-permutation nulls
-($p=0.001$). The random gene-program null is stricter and supports selected readouts.}
+\footnotesize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.06}
+\caption{\textbf{Perturb-map bootstrap CIs and null controls.}
+Spot-level programs are significant against score-permutation nulls
+($p=0.001$); random gene-program nulls support selected readouts.}
 \label{tab:perturbmap_null_ci}
-\begin{tabular}{lccc}
+\begin{tabularx}{\columnwidth}{@{}
+>{\raggedright\arraybackslash}X
+ccc@{}}
 \toprule
-Readout & Observed score & 95\% bootstrap CI & Random program null $p$ \\
+Readout & Score & 95\% CI & \shortstack{Null\\$p$} \\
 \midrule
-\textit{Ifngr2} top-25 spot Pearson & 0.8528 & [0.8114, 0.8867] & 0.0150 \\
-\textit{Jak2} top-25 spot Pearson & 0.7569 & [0.7019, 0.8014] & trend \\
-\textit{Tgfbr2} top-25 spot Pearson & 0.7138 & [0.6647, 0.7545] & trend \\
-Curated TGF$\beta$--stroma spot Pearson & 0.8076 & [0.7648, 0.8423] & 0.0040 \\
-\textit{Jak2} lesion Spearman & 0.9286 & -- & 0.0490 \\
+\textit{Ifngr2} top-25 spot $r$      & 0.8528 & [0.8114, 0.8867] & 0.0150 \\
+\textit{Jak2} top-25 spot $r$        & 0.7569 & [0.7019, 0.8014] & trend \\
+\textit{Tgfbr2} top-25 spot $r$      & 0.7138 & [0.6647, 0.7545] & trend \\
+TGF$\beta$--stroma spot $r$          & 0.8076 & [0.7648, 0.8423] & 0.0040 \\
+\textit{Jak2} lesion $\rho$          & 0.9286 & --               & 0.0490 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
+
+
+
 
 \paragraph{Interpretation.}
 Perturb-map provides a coarse external validation setting rather than a matched
@@ -1732,6 +1751,10 @@ cross-assay alignment of \methodname{} response fields under coarser Perturb-map
 supervision, while preserving the primary role of Spatial Perturb-Seq as the exact
 cell-resolved benchmark.
 
+
+
+
+
 \subsection{Complete system-level baseline comparison}
 \label{app:full_baseline_comparison}
 
@@ -1739,7 +1762,7 @@ cell-resolved benchmark.
 \centering
 \caption{Complete system-level baseline comparison on the block-holdout Spatial Perturb-seq benchmark. Neighbor, neighbor-centered, high-confidence neighbor, and ring metrics are Pearson correlations; higher is better. MAE is lower better.}
 \label{tab:app_full_baseline_comparison}
-\scriptsize
+\footnotesize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.12}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.11\textwidth}
@@ -1964,51 +1987,45 @@ No direct-effect input &
 \paragraph{Interpretation of structural ablations.}
 The final propagation blend combines a shared niche-impact baseline with directed direct-effect-to-neighbor propagation and ring-aware refinement. Removing niche-impact residualization produces the largest collapse, indicating that directly predicting the response fails to separate background tissue variation from perturbation-conditioned propagation. Removing edge attributes reduces both neighbor and ring performance, showing that spatial geometry, cell-type-pair information, and communication-compatibility features improve propagation structure. Removing the direct-effect input also degrades neighbor prediction, especially beyond niche-module-only correlation, confirming that the propagation module benefits from a meaningful direct-effect signal.
 
+
+
+
 \begin{table}[t]
 \centering
 \caption{Design-refinement ablations. Deltas are relative to the stated reference within each ablation family.}
 \label{tab:app_design_refinement_ablations}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.12}
+\small
+\setlength{\tabcolsep}{1.6pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}Xrrr@{}}
 \toprule
 Ablation & $\Delta$Score & $\Delta$Neigh. & $\Delta$Ring \\
 \midrule
-
-Base propagation vs. niche only &
---- & $+0.07447$ & $+0.04694$ \\
-
-Base vs. ring refinement &
-$-0.00569$ & $+0.00101$ & $-0.00477$ \\
-
-Reference adapter only &
-$-0.00180$ & $+0.00014$ & $-0.00125$ \\
-
-Reference edge-prior gate &
-$-0.00400$ & $-0.00057$ & $-0.00191$ \\
-
-Plain second pass &
-$-0.00081$ & $+0.00022$ & $-0.00071$ \\
-
-No reference adapter &
-$-0.00231$ & $+0.00106$ & $-0.00271$ \\
-
-Include direct-cell loss &
-$-0.06372$ & $-0.01307$ & $-0.02665$ \\
-
-Remove ring loss &
-$-0.00150$ & $+0.00021$ & $-0.00113$ \\
-
+Base propagation vs. niche only & --- & $+0.0745$ & $+0.0469$ \\
+Base vs. ring refinement        & $-0.0057$ & $+0.0010$ & $-0.0048$ \\
+Reference adapter only          & $-0.0018$ & $+0.0001$ & $-0.0013$ \\
+Reference edge-prior gate       & $-0.0040$ & $-0.0006$ & $-0.0019$ \\
+Plain second pass               & $-0.0008$ & $+0.0002$ & $-0.0007$ \\
+No reference adapter            & $-0.0023$ & $+0.0011$ & $-0.0027$ \\
+Include direct-cell loss        & $-0.0637$ & $-0.0131$ & $-0.0267$ \\
+Remove ring loss                & $-0.0015$ & $+0.0002$ & $-0.0011$ \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+
+
+
 
 \paragraph{Interpretation of design-refinement ablations.}
 The design-refinement ablations support the final architecture choices. Explicit direct-effect-to-neighbor propagation substantially improves neighbor prediction over the niche-module-only patch model. The base propagation module is slightly stronger in raw neighbor correlation than the reference-ST ring-refinement module, but weaker at ring-level spatial structure. Frozen reference context helps most when used inside ring-aware response refinement; using the reference edge-prior signal directly is weaker than injecting reference-ST information through node- and patch-level niche embeddings. A plain second pass is useful, but ring-aware response tokens and ring-specific scales give a better spatial tradeoff. Removing the reference-prior adapter slightly improves raw neighbor correlation but hurts ring propagation and the overall score. Including direct-effect-cell reconstruction in the propagation loss substantially hurts neighbor propagation, indicating that the easier direct signal can dominate training. Removing ring loss gives only a negligible raw-neighbor gain while reducing ring-level propagation structure.
 
 \paragraph{Compact IFN-\texorpdfstring{$\gamma$}{gamma} readout summary.}
 The de novo IFN-$\gamma$ example is interpreted as hypothesis generation, not matched validation. Its main qualitative pattern is a spatially extended IFN/MHC-I-like response: immune and vascular-associated states are enriched among high-response targets, canonical IFN/MHC-I genes increase, selected structural or vascular programs decrease, and patch-level gradients show that the response is spatially heterogeneous rather than a uniform slide-wide shift. The key numerical readouts are summarized below; the following text gives the biological interpretation.
+
+
+
+
 
 \begin{table}[t]
 \centering
@@ -2044,6 +2061,11 @@ Frozen reference prior used for deployment; no matched IFN-$\gamma$ labels or pa
 \bottomrule
 \end{tabularx}
 \end{table}
+
+
+
+
+
 
 \subsection{Extended de novo IFN-\texorpdfstring{$\gamma$}{gamma} case-study interpretation}
 \label{app:ifng_extended_interpretation}
@@ -2129,7 +2151,7 @@ The audit scores each candidate by target utility and collateral burden. Target 
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=\textwidth]{selector_prioritization_appendix.pdf}
+\includegraphics[width=0.8\textwidth]{selector_prioritization_appendix.pdf}
 \caption{\textbf{Retrospective response-field prioritization audit.}
 (a) Audit schematic: frozen response fields are decomposed into target utility and collateral burden, then used to select lower-burden target-retaining alternatives.
 (b) Three pre-specified biological cases retain most target utility while reducing burden.
