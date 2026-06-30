@@ -766,16 +766,16 @@ Third, the audit includes target-shuffle and transport-randomization sanity chec
 \end{figure}
 }{}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.82\linewidth]{TURB1.png}
+\includegraphics[width=0.82\textwidth]{TURB1.png}
 
 \vspace{0.4em}
 
-\includegraphics[width=0.82\linewidth]{TURB2.png}
+\includegraphics[width=0.82\textwidth]{TURB2.png}
 \caption{Mining communication-rich microenvironments from unperturbed reference ST. Candidate tissue regions are scored for spatially local cell--cell structure, including neighborhood geometry, cell-state organization, and communication compatibility. Selected communication-rich and background regions pretrain a frozen reference microenvironment encoder without perturbation labels.}
 \label{fig:app_st_mining}
-\end{figure}
+\end{figure*}
 
 \subsection{Communication-rich microenvironment mining}
 \label{app:communication_microenvironment_mining}
@@ -1331,9 +1331,9 @@ from $0.6767$ to $0.6952$, and per-guide ring Pearson ranges from $0.4276$ to
 $0.4956$. This indicates that the aggregate held-out performance is not driven by
 a single guide or a small subset of guides.
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=0.8\textwidth]{path2_organringblend_guide_stratified_heldout_test_dotplot.png}
+    \includegraphics[width=1.0\linewidth]{path2_organringblend_guide_stratified_heldout_test_dotplot.png}
     \caption{\textbf{Guide-stratified held-out test stability.}
     Frozen \methodname{} predictions are stratified by guide identity on the same
     held-out Spatial Perturb-Seq test split. Dashed vertical lines show the overall
@@ -1341,7 +1341,7 @@ a single guide or a small subset of guides.
     neighbor and ring Pearson remain close to the overall result, indicating that
     the benchmark performance is not driven by a small number of guides.}
     \label{fig:guide_stratified_stability}
-\end{figure*}
+\end{figure}
 
 \begin{table}[t]
 \centering
@@ -1488,7 +1488,7 @@ with simulator-distribution mismatch.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.5\linewidth]{synthetic_lr_gene_breakdown.png}
+    \includegraphics[width=0.9\linewidth]{synthetic_lr_gene_breakdown.png}
     \caption{\textbf{Main-split synthetic benchmark by perturbation gene.}
     Bars show mean graph Pearson $r$ for neighbor and ring-level recovery,
     ranked by perturbation gene. Ring-level recovery remains strong across perturbation
@@ -1507,13 +1507,13 @@ relative to niche-module-only prediction and direct transfer from the real-data 
 \label{tab:synthetic_lr_main_models}
 \begin{tabular}{lcccccc}
 \toprule
-Model & Neighbor & Centered & Ring & Center & $\Delta$Nei. & $\Delta$Ring \\
+Model & Neighbor & Centered & Ring & Center & $\Delta$Nei.\\
 \midrule
-Niche module only & 0.0033 & 0.0012 & 0.0062 & -0.0047 & 0.0000 & 0.0000 \\
-Pretrained, $\alpha=0$ & 0.0663 & 0.0087 & 0.1281 & 0.5003 & 0.0631 & 0.1219 \\
-Pretrained, $\alpha=0.75$ & 0.0692 & 0.0097 & 0.1320 & 0.5008 & 0.0659 & 0.1258 \\
-Pretrained, $\alpha=1$ & 0.0699 & 0.0101 & 0.1327 & 0.5003 & 0.0666 & 0.1265 \\
-Synthetic fine-tuned & \textbf{0.6193} & \textbf{0.3142} & \textbf{0.8148} & \textbf{0.9971} & \textbf{0.6160} & \textbf{0.8086} \\
+Niche module only & 0.0033 & 0.0012 & 0.0062 & -0.0047 & 0.0000 \\
+Pretrained, $\alpha=0$ & 0.0663 & 0.0087 & 0.1281 & 0.5003 & 0.0631 \\
+Pretrained, $\alpha=0.75$ & 0.0692 & 0.0097 & 0.1320 & 0.5008 & 0.0659 \\
+Pretrained, $\alpha=1$ & 0.0699 & 0.0101 & 0.1327 & 0.5003 & 0.0666 \\
+Synthetic fine-tuned & \textbf{0.6193} & \textbf{0.3142} & \textbf{0.8148} & \textbf{0.9971} & \textbf{0.6160}\\
 \bottomrule
 \end{tabular}
 \end{table}
