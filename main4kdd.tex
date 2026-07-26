@@ -91,6 +91,8 @@
 \section{Additional Experiments and Implementation Details}
 \label{app:additional_experiments}
 
+\input{generated/appendix_confirmatory}
+
 \subsection{Detailed data construction}
 \label{app:detailed_data_construction}
 
@@ -99,23 +101,25 @@ For each perturbation anchor cell $a$, we construct a post-perturbation patch
 \[
 P(a)=\{a\}\cup\mathcal N_{63}(a),
 \]
-with $m=64$ cells. A candidate control anchor $u$ defines a control patch $P(u)$ in the same way. Candidate anchors are selected from non-perturbed or control-like cells within the same data partition, with preference for anchors sharing the same coarse cell type as $a$. This prevents any post anchor, matched-control patch, or derived pseudo-target from crossing train, validation, and test partitions.
+with $m=64$ cells. A candidate control anchor $u$ defines a control patch $P(u)$ in the same way. Candidate anchors are selected from non-perturbed or control-like cells within the same data partition. The implementation nominally prefers anchors with the same coarse cell type as $a$; however, all coarse labels in the reported cache mapped to one effective ID, so this filter is constant. Partitioning prevents any post anchor, matched-control patch, or derived pseudo-target from crossing train, validation, and test partitions.
 
-Each candidate control patch is scored by spatial proximity, center-cell transcriptional similarity, patch-level transcriptional similarity, and cell-type composition. To avoid scale dominance across heterogeneous distance channels, each raw distance is standardized over the candidate-control pool for the same post anchor. Specifically, for $t\in\{\mathrm{sp},\mathrm{ctr},\mathrm{patch},\mathrm{ctype}\}$,
+Each candidate control patch is scored by spatial proximity, center-cell transcriptional similarity, patch-level transcriptional similarity, and cell-type composition. The implementation first retains at most the 256 spatially nearest candidates. It scales spatial distance by
 \[
-\bar d_t(a,u)=\frac{d_t(a,u)-\mu_{t,a}}{\sigma_{t,a}+\epsilon},
+\eta_a=\max\left\{\operatorname{median}_{u}
+\|s_a-s_u\|_2,\,100\right\},
 \]
-where $\mu_{t,a}$ and $\sigma_{t,a}$ are computed over candidate controls for anchor $a$. The standardized matching score is
+while the three other channels remain mean-squared distances in their native
+feature spaces. The implemented matching score is
 \[
 \mathrm{score}(a,u)
 =
-0.35\,\bar d_{\mathrm{sp}}(a,u)
+0.35\,\frac{d_{\mathrm{sp}}(a,u)}{\eta_a}
 +
-0.35\,\bar d_{\mathrm{ctr}}(a,u)
+0.35\,d_{\mathrm{ctr}}(a,u)
 +
-0.20\,\bar d_{\mathrm{patch}}(a,u)
+0.20\,d_{\mathrm{patch}}(a,u)
 +
-0.10\,\bar d_{\mathrm{ctype}}(a,u),
+0.10\,d_{\mathrm{ctype}}(a,u),
 \]
 with raw channels
 \[
@@ -131,6 +135,10 @@ d_{\mathrm{ctype}}
 \end{aligned}
 \]
 Here $s_i$ is the absolute spatial coordinate, $z_i$ is the PCA expression embedding, $\bar z_{P(\cdot)}$ is the patch-mean PCA embedding, and $\pi_{P(\cdot)}$ is the patch cell-type composition vector. For each perturbed patch, we keep the top $K=3$ lowest-scoring control patches.
+In the reported primary cache, $d_{\mathrm{ctype}}=0$ for every candidate
+because of the collapsed label map. Thus the effective matching score uses
+spatial, center-expression, and patch-expression channels; the composition
+term contributes no ranking information.
 
 Within each matched control--post pair, the control cells are projected into the post-patch coordinate frame before response aggregation. Let $i\in P(a)$ index cells in the post patch and $j\in P(u_k)$ index cells in the $k$-th matched control patch. We define a transport matrix from each post-patch cell to cells in the matched control patch:
 \[
@@ -159,6 +167,9 @@ Here $p_i$ denotes the patch-relative coordinate, $c_i$ denotes the coarse cell 
 x_i^{\mathrm{post}}-\widetilde{x}^{\mathrm{pre},(k)}_i .
 \end{aligned}
 \]
+The same provenance issue makes the cell-type mismatch penalty constant in
+this cache. We retain it in the general formulation but do not attribute any
+reported result to cell-type-aware transport.
 Thus every matched-control response is first expressed on the shared 64-cell post-patch coordinate frame. Writing $s_k=\mathrm{score}(a,u_k)$, the final PPP response target is the score-weighted consensus over the $K$ aligned control patches:
 \[
 \begin{aligned}
@@ -238,15 +249,24 @@ g3000 full-guide & Neighbor & 0.0044 & -0.0056 & -0.0013 & 0.0100 & 0.0057 \\
 \vspace{0.4em}
 
 \includegraphics[width=0.82\textwidth]{TURB2.png}
-\caption{Mining communication-rich microenvironments from unperturbed reference ST. Candidate tissue regions are scored for spatially local cell--cell structure, including neighborhood geometry, cell-state organization, and communication compatibility. Selected communication-rich and background regions pretrain a frozen reference microenvironment encoder without perturbation labels.}
+\caption{\textbf{Historical reference-ST adapter construction.} Candidate
+tissue regions are scored for local geometry, cell-state organization, and
+communication compatibility. These regions were used in an optional
+development-stage adapter without perturbation labels. The paired low-data
+audit in \Cref{tab:app_reference_st_lowdata} finds near-zero response-field
+gain, so this adapter is not part of core \methodname{}.}
 \label{fig:app_st_mining}
 \end{figure*}
 
-\subsection{Communication-rich microenvironment mining}
+\subsection{Historical communication-rich microenvironment mining}
 \label{app:communication_microenvironment_mining}
 
 \paragraph{Mining communication-rich microenvironments from unperturbed reference ST.}
-The second data component uses unperturbed high-resolution spatial transcriptomics to identify reference microenvironments with strong local communication structure. These data are not used as perturbation labels. Instead, they provide spatial contexts in which cell--cell communication is plausible.
+An optional development-stage experiment used unperturbed high-resolution
+spatial transcriptomics to identify reference microenvironments with strong
+local structure. These data were never used as perturbation labels. We retain
+the full construction for reproducibility, although confirmatory paired tests
+show no robust gain and the adapter is excluded from core \methodname{}.
 
 For each organ or tissue source, we construct a reference ST corpus
 \[
@@ -296,7 +316,10 @@ R\in\mathcal B:
 \]
 We also retain low-communication regions as background controls. Together, these regions form a reference library of communication-rich and communication-poor tissue contexts.
 
-The mined regions are used to pretrain the reference microenvironment encoder. They expose the model to diverse local gene-coupling and cell--cell communication patterns, but do not define perturbation-response targets. During perturbation training, Spatial Perturb-Seq patches supervise the signed response field, while the frozen microenvironment encoder supplies niche context for ring-aware propagation refinement.
+In the original development pipeline, the mined regions pretrained a
+reference microenvironment encoder. They expose the optional adapter to local
+gene coupling but do not define perturbation-response targets. Spatial
+Perturb-Seq \ppp patches remain the only signed response-field supervision.
 
 The corresponding reference communication prior is
 \[
@@ -312,22 +335,34 @@ A_{\mathrm{CCC}}(i,j)
 \right),
 \end{aligned}
 \]
-where $\mathcal G$ is the set of communication programs and $\beta_{pq}$ is a program weight learned from the mined regions. This prior acts as a gate for plausible communication paths. It does not define the perturbation target; effective propagated responses are still learned from true spatial perturbation supervision.
+where $\mathcal G$ is the set of communication programs and $\beta_{pq}$ is a
+program weight learned from the mined regions. This score was evaluated as an
+optional edge feature. It does not define the perturbation target, and
+randomizing cached communication scores leaves Ring Pearson unchanged
+(0.4574 versus 0.4575); we therefore make no performance claim for this prior.
 
-\subsection{Mouse perturbation-like microenvironment mining from HD and Xenium reference ST}
+\subsection{Mouse reference-ST mining used by the optional adapter}
 \label{app:mouse_microenvironment_mining}
 
 To expand the reference microenvironment corpus beyond the single true spatial perturbation benchmark, we mined perturbation-like local regions from unperturbed mouse-brain HD and Xenium spatial transcriptomics datasets. These regions are not treated as perturbation-response labels. Instead, they provide diverse mouse-brain microenvironments in which specific gene programs are locally enriched and can be paired with matched background regions for reference-prior pretraining.
 
 We used seven perturbation-like program templates spanning IFN/inflammatory, TREM2 microglia/DAM, astrocyte gliosis, myelin-lineage, neuronal/SRF, Rbfox/splicing, and mitochondrial/OXPHOS programs. Across two HD mouse-brain sections and three Xenium mouse-brain studies, this procedure screened 392,962 cells, identified 1,619 perturbation-like positive anchors, and generated 9,316 anchor--normal local pairs.
 
-These mined anchor--normal pairs are used to pretrain the reference microenvironment encoder. The encoder learns local niche structure, program co-activation, and cell--cell plausibility from unperturbed reference ST. During supervised spatial perturbation training, however, the signed response targets still come only from Spatial Perturb-seq PPP pairs. Thus, the mined HD/Xenium regions mitigate the limited diversity of available ground-truth spatial perturbation data without converting unperturbed ST into pseudo perturbation labels.
+These anchor--normal pairs were used only to pretrain the optional reference
+adapter. Signed response targets still come exclusively from Spatial
+Perturb-Seq \ppp pairs. The scale of this corpus documents the attempted
+extension, not evidence that reference-ST pretraining improves perturbation
+prediction; paired low-data gains are near zero.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{mouse_mining.png}
 \vspace{-0.6em}
-\caption{Mouse-brain perturbation-like microenvironment mining from HD and Xenium reference ST. Program-enriched local regions are identified from unperturbed mouse-brain spatial transcriptomics and paired with matched background regions. These mined pairs pretrain the frozen microenvironment prior used by \methodname{}, but do not define perturbation-response targets.}
+\caption{\textbf{Mouse-brain reference-ST mining for the optional adapter.}
+Program-enriched regions from unperturbed HD and Xenium data are paired with
+matched background regions. They do not define perturbation-response targets,
+and the resulting adapter is excluded from core \methodname{} after the
+negative paired-gain audit.}
 \label{fig:mouse_mining}
 \vspace{-0.6em}
 \end{figure}
@@ -399,244 +434,122 @@ Multi-condition ST & Part. & Yes & Cond. & Part. & Yes & No \\
 \paragraph{Graph notation.}
 Each local perturbation sample is a graph $P=(V,E)$ with $m=64$ cells. Cell $i$ has matched-control expression $x_i\in\mathbb R^G$, coarse cell state $c_i$, relative coordinate $p_i$, direct-effect-relative geometry $g_i$, direct-effect indicator $a_i\in\{0,1\}$, and direct-effect profile $d_i\in\mathbb R^G$. The direct-effect profile is nonzero only on direct-effect cells. Directed edge $(i,j)$ has features $e_{ij}$, including relative geometry, cell-type-pair indicators, and communication-compatibility score $q_{ij}$. The model predicts $\widehat\Delta_i\in\mathbb R^G$ and reconstructs $\widehat x_i^{\mathrm{post}}=x_i+\widehat\Delta_i$.
 
-\paragraph{Niche-impact residualization.}
-The response decomposition is
+\paragraph{Context residualization.}
+The canonical predictive decomposition is
 \[
-\begin{aligned}
-\Delta_i
-&=
-I_i^{\mathrm{niche}}+I_i^{\mathrm{prop}} .
-\end{aligned}
+\widehat\Delta_i=\widehat C_i+\widehat R_i,\qquad
+\widehat C_i=f_{\mathrm{context}}(x,c,p,e;\,a=0,d=0).
 \]
-The niche module removes perturbation information:
+The context model is trained first and frozen. The residual target is
 \[
-\begin{aligned}
-\widehat I_i^{\mathrm{niche}}
-&=
-f_{\mathrm{niche}}(x,c,p,e;\ a=0,d=0).
-\end{aligned}
+R_i^\star=\Delta_i^{\mathrm{PPP}}-\widehat C_i .
 \]
-The propagation target is
-\[
-\begin{aligned}
-I_i^{\mathrm{prop},\star}
-&=
-\Delta_i-\widehat I_i^{\mathrm{niche}} .
-\end{aligned}
-\]
-Thus, matched-control variation, local tissue composition, and geometry are absorbed by $\widehat I_i^{\mathrm{niche}}$, while directed propagation learns perturbation-conditioned propagation impact.
+This is a predictive separation and does not identify causal communication.
 
-\paragraph{Direct-effect and neighbor initialization.}
-Each cell embedding is
+\paragraph{Direct-effect and receiver initialization.}
+The baseline embedding and separate receiver/direct-effect states are
 \[
 \begin{aligned}
-h_i
-&=
-\phi_x(x_i)+\phi_c(c_i)+\phi_p(p_i)+\phi_g(g_i).
+h_i&=\phi_x(x_i)+\phi_c(c_i)+\phi_p(p_i)+\phi_g(g_i),\\
+b_i&=\phi_N(h_i),\qquad n_i^0=0,\\
+u_i&=a_i\phi_D([h_i,d_i,g_i]).
 \end{aligned}
 \]
-Neighbor and direct-effect states are initialized separately:
-\[
-\begin{aligned}
-n_i^0
-&=\phi_N(h_i),\\
-u_i^0
-&=a_i\phi_D([h_i,d_i,g_i]).
-\end{aligned}
-\]
-This construction prevents neighbor cells from directly seeing the perturbation input.
+The profile $d_i$ is zero at receiver cells, so they cannot directly read the
+perturbation input.
 
-\paragraph{Directed direct-effect-to-neighbor propagation.}
-For propagation layer $\ell$, a direct-effect-to-neighbor message from direct-effect cell $i$ to neighbor cell $j$ is
+\paragraph{Implemented direct-effect-to-receiver propagation.}
+The propagation block filters the graph to edges with a direct-effect source
+and receiver destination. For each retained edge,
 \[
 \begin{aligned}
-g_{ij}^{\ell}
-&=
-\sigma\!\left(
-\phi_a([u_i^\ell,n_j^\ell,e_{ij}])
-+
-w_{\mathrm{comm}}q_{ij}
-\right),
-\end{aligned}
-\]
-\[
-\begin{aligned}
+z_{ij}^{\ell}
+&=\sigma\!\left(
+\phi_a([u_i,b_j,n_j^\ell,e_{ij}])+w_{\mathrm{comm}}q_{ij}
+\right),\\
 \mu_{ij}^{\ell}
-&=
-g_{ij}^{\ell}
-\phi_\mu([u_i^\ell,n_j^\ell,e_{ij}]).
-\end{aligned}
-\]
-Neighbor messages are aggregated over direct-effect cells:
-\[
-\begin{aligned}
-\bar\mu_j^\ell
-&=
-\sum_{i:a_i=1}\mu_{ij}^{\ell},\\
+&=z_{ij}^{\ell}\phi_\mu([u_i,b_j,e_{ij}]),\\
 n_j^{\ell+1}
-&=
-\phi_u([n_j^\ell,\bar\mu_j^\ell]).
+&=\operatorname{LN}\!\left(n_j^\ell+
+\sum_{\substack{i:(i,j)\in E\\a_i=1}}\mu_{ij}^{\ell}\right)
++\phi_u([n_j^\ell,b_j]).
 \end{aligned}
 \]
-After $L$ layers, the base propagation module predicts
-\[
-\begin{aligned}
-\widehat I_i^{\mathrm{prop},\mathrm{base}}
-&=
-a_i\psi_{\mathrm{direct}}(u_i^L)
-\\
-&\quad +
-(1-a_i)\psi_{\mathrm{neighbor}}(n_i^L).
-\end{aligned}
-\]
+Direct-effect states remain fixed across layers. Receiver states are updated
+only by direct-effect-to-receiver messages; the core code contains no
+receiver-to-receiver path. A receiver head decodes $\widehat R_j$ from
+$b_j$, $n_j^L$, and a graph-level sender summary.
 
-\paragraph{Reference-ST niche encoder.}
-The reference encoder is pretrained on unperturbed ST regions and then frozen. It returns cell-level niche embeddings, a patch-level niche token, and edge-plausibility estimates:
-\[
-\begin{aligned}
-&\{z_i^{\mathrm{ref}}\},\ n_P^{\mathrm{ref}},\\
-&\qquad b_{ij}^{\mathrm{ref}},\ u_{ij}^{\mathrm{ref}}
- = f_{\mathrm{ref}}(x,c,p,e).
-\end{aligned}
-\]
-The neighbor-side niche summary is
-\[
-\begin{aligned}
-o_P
-&=
-\begin{bmatrix}
-n_P^{\mathrm{ref}}\\
-|V_N|^{-1}\sum_{j\in V_N}z_j^{\mathrm{ref}}
-\end{bmatrix},
-\end{aligned}
-\]
-where $V_N$ is the neighbor set. The frozen reference context is injected through zero-initialized adapters:
-\[
-\begin{aligned}
-u_i^0
-&\leftarrow
-u_i^0+a_i\lambda_D\phi_D^{\mathrm{ref}}(o_P),\\
-n_i^0
-&\leftarrow
-n_i^0+(1-a_i)\lambda_N\phi_N^{\mathrm{ref}}(o_P).
-\end{aligned}
-\]
-Because $\lambda_D$ and $\lambda_N$ are initialized at zero, the reference-ST module begins as the base propagation model and learns only microenvironment corrections.
+\paragraph{Optional edge and refinement diagnostics.}
+The communication score $q_{ij}$ is an optional gate bias. Randomizing it gives
+Ring Pearson 0.4575 versus 0.4574 for the unmodified cache. The released code
+also contains optional response-feedback and reference-ST adapters. The
+distance-aware response-feedback variant groups first-pass responses into
+three rings and applies a restricted second correction. The unperturbed
+reference-ST adapter is excluded from core \methodname{} because its paired
+low-data gains are near zero (\Cref{tab:app_reference_st_lowdata}).
 
-\paragraph{Ring-aware response feedback.}
-The ST-conditioned module first predicts $\widehat I_i^{\mathrm{prop},(1)}$. Neighbor response strength is scored by
+\paragraph{Training objective and inference.}
+The implemented residual objective is
 \[
-\kappa_j
-=
-\frac{1}{G}
-\sum_{g=1}^{G}
-\left|
-\widehat I_{jg}^{\mathrm{prop},(1)}
-\right|.
-\]
-The top 5\% neighbor cells by $\kappa_j$ are selected as feedback cells $F$. Neighbors are partitioned by direct-effect-relative distance into three rings: nearest eight neighbors, next 24 neighbors, and remaining neighbors. For each ring $b$, the model constructs a response token:
-\[
-\begin{aligned}
-t_b
-&=
-\phi_b\!\left(
-\begin{bmatrix}
-\mathrm{mean}_{j\in F\cap B_b}\widehat I_j^{\mathrm{prop},(1)}\\
-\mathrm{std}_{j\in F\cap B_b}\widehat I_j^{\mathrm{prop},(1)}
-\end{bmatrix}
-\right).
-\end{aligned}
-\]
-The direct-effect cells receive the average ring token, and each neighbor receives the token for its ring. A second directed propagation pass produces $\widehat I_i^{\mathrm{prop},(2)}$.
-
-\paragraph{Restricted ring-aware correction.}
-The final ST-conditioned propagation impact is
-\[
-\begin{aligned}
-\widehat I_i^{\mathrm{prop},\mathrm{st}}
-&=
-\widehat I_i^{\mathrm{prop},(1)}
-+
-\lambda_i
-\mathbf 1[i\in V_D\cup F]
-\left(
-\widehat I_i^{\mathrm{prop},(2)}-\widehat I_i^{\mathrm{prop},(1)}
-\right),
-\end{aligned}
-\]
-where $V_D$ is the direct-effect set, $F$ is the feedback-neighbor set, and neighbor-side $\lambda_i$ is ring-specific. This restriction lets high-response regions feed back into the model without allowing the second pass to uniformly rewrite all neighbor cells.
-
-\paragraph{Final response prediction.}
-The final prediction is
-\[
-\begin{aligned}
-\widehat\Delta_i
-&=
-\widehat I_i^{\mathrm{niche}}
-+
-(1-\alpha)\widehat I_i^{\mathrm{prop},\mathrm{base}}
-\\
-&\quad +
-\alpha\widehat I_i^{\mathrm{prop},\mathrm{st}},
-\end{aligned}
-\]
-with $\alpha=0.65$ selected on validation data. This is a propagation-delta blend. The reconstructed post-state expression is
-\[
-\widehat x_i^{\mathrm{post}}
-=
-x_i+\widehat\Delta_i.
-\]
-
-\paragraph{Reference-ST pretraining objective.}
-The reference microenvironment encoder is trained without perturbation labels:
-\[
-\begin{aligned}
-\mathcal L_{\mathrm{ref}}
-&=
-2.0\mathcal L_{\mathrm{masked\text{-}program}}
-+
-1.0\mathcal L_{\mathrm{neighborhood}}
-\\
-&\quad +
-0.25\mathcal L_{\mathrm{patch\text{-}hist}}
-+
-0.25\mathcal L_{\mathrm{edge}}.
-\end{aligned}
-\]
-The terms supervise masked gene-program reconstruction, neighborhood-conditioned program prediction, patch cell-type composition, and pseudo edge-plausibility prediction. These objectives teach local niche structure and communication plausibility, but not perturbation response.
-
-\paragraph{Propagation-impact objective.}
-After niche-impact residualization, the propagation module is trained with neighbor-focused supervision:
-\[
-\begin{aligned}
 \mathcal L_{\mathrm{prop}}
-&=
-1.0\mathcal L_{\mathrm{neighbor}}
-+
-0.3\mathcal L_{\mathrm{ring}}
-\\
-&\quad +
-0.3\mathcal L_{\mathrm{post}}
-+
-0.1\mathcal L_{\mathrm{rank}}.
-\end{aligned}
+=\mathcal L_{\mathrm{neighbor}}
++0.3\mathcal L_{\mathrm{ring}}
++0.3\mathcal L_{\mathrm{post}}
++0.1\mathcal L_{\mathrm{rank}}.
 \]
-$\mathcal L_{\mathrm{neighbor}}$ is a Huber loss on high-confidence neighbor-cell propagation impacts. $\mathcal L_{\mathrm{ring}}$ supervises ring-aggregated response after adding the niche-impact baseline. $\mathcal L_{\mathrm{post}}$ supervises reconstructed post-state expression $x_i+\widehat I_i^{\mathrm{niche}}+\widehat I_i^{\mathrm{prop}}$. $\mathcal L_{\mathrm{rank}}$ is a pairwise ranking loss over per-patch gene-response magnitudes. The direct-effect-cell loss weight is set to zero in the strongest propagation setting so that the easier direct-effect signal does not dominate neighbor propagation.
+The terms are high-confidence receiver Huber loss, ring-summary loss,
+post-state reconstruction, and pairwise gene-response ranking. The
+direct-effect-cell loss weight is zero. At inference, the frozen context and
+residual predictions are added, and post-state expression is reconstructed as
+$\widehat x_i^{\mathrm{post}}=x_i+\widehat\Delta_i$.
 
 \subsection{Gene-centric neighbor-response validation status}
 \label{app:full_gene_centric_validation}
 
-The held-out benchmark predicts 512 genes. The current appendix reports
-aggregate gene-space metrics, response-magnitude-stratified examples, and the
-pre-specified perturbation-related genes used in the original analysis.
-Exporting the complete per-gene percentile table remains a submission
-checklist item; selected markers should not be interpreted as the full
-performance distribution.
+The held-out benchmark predicts 512 genes. We therefore report the complete
+receiver-side gene distribution rather than only selected markers.
+\Cref{tab:app_full_gene_distribution} shows that performance is heterogeneous:
+receiver-gene Pearson has mean/median $0.304/0.146$, with a p10--p90 range of
+$0.057$--$0.860$. Pearson is positive for $99.0\%$ of genes, exceeds $0.2$ for
+$38.9\%$, and exceeds $0.5$ for $24.2\%$. Per-gene $R^2$ is positive for
+$53.7\%$ of genes and has median $0.004$. The Spearman association between
+mean absolute response magnitude and receiver-gene Pearson is $0.910$.
+Accordingly, the high aggregate cell--gene correlation should not be
+interpreted as uniformly strong recovery of weak-response genes.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.04}
+\caption{\textbf{Complete held-out receiver-gene distribution.}
+All 512 output genes are included; no marker filtering is applied.}
+\label{tab:app_full_gene_distribution}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Metric} & \textbf{p10} & \textbf{p25} & \textbf{Median} & \textbf{p75} & \textbf{p90} \\
+\midrule
+Pearson $r$ & 0.057 & 0.090 & 0.146 & 0.457 & 0.860 \\
+$R^2$ & -0.047 & -0.024 & 0.004 & 0.174 & 0.730 \\
+Sign accuracy & 0.230 & 0.330 & 0.468 & 0.660 & 0.843 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Strict grouped guide-out stability}
 \label{sec:guide_stratified_stability}
 
-To test perturbation-level generalization, we use a strict grouped guide-out split. The perturbation guides \textit{fasn}, \textit{stk39}, and \textit{trem2} are jointly excluded from training and validation, yielding 992 unseen-guide graphs. With observed sender-side direct-effect seeds, \methodname{} reaches pooled neighbor/ring Pearson $0.596/0.451$, outperforming elastic-net patch-summary regression $(0.334/0.142)$ and a Generic Graph Transformer without CCC priors $(0.497/0.395)$. Per-guide performance remains stable across all three held-out perturbations, indicating that the grouped guide-out result is not driven by a single guide.
+To test perturbation-level generalization, we use a strict grouped guide-out
+split. The perturbation guides \textit{fasn}, \textit{stk39}, and
+\textit{trem2} are jointly excluded from training and validation, yielding 992
+unseen-guide graphs. With observed sender-side direct-effect seeds,
+\methodname{} reaches pooled neighbor/ring Pearson $0.596/0.451$. A strict
+context-only node MLP reaches $0.818/0.654$, confirming that absolute PPP field
+correlation remains context dominated. The relevant \methodname{} diagnostic is
+the measured-versus-zero-seed Ring lift ($0.451$ versus $0.437$), not
+total-field superiority. Per-guide \methodname{} performance remains stable
+across all three held-out perturbations.
 
 \begin{table*}[t]
 \centering
@@ -754,6 +667,14 @@ Patch summary &
 0.4856 &
 0.1393 \\
 
+Strict context-only node MLP &
+Overall &
+992 &
+No seed/mask/guide &
+0.8183 &
+0.8385 &
+0.6536 \\
+
 Generic Graph Transformer, no CCC &
 \textit{fasn} &
 413 &
@@ -783,7 +704,44 @@ Graph only &
 }
 \end{table*}
 
-The \methodname{} rows are consistent across the three unseen perturbations: observed-seed neighbor Pearson stays between $0.5978$ and $0.6006$, and observed-seed ring Pearson stays between $0.4540$ and $0.4573$. Zero-seed evaluation preserves nearly identical neighbor Pearson but reduces ring Pearson to $0.4449$--$0.4517$. The two baseline families remain substantially lower in ring Pearson across all three guides, supporting strict grouped guide-out generalization rather than a single-guide artifact.
+The \methodname{} rows are consistent across the three unseen perturbations:
+observed-seed neighbor Pearson stays between $0.5978$ and $0.6006$, and
+observed-seed ring Pearson stays between $0.4540$ and $0.4573$. Zero-seed
+evaluation preserves nearly identical neighbor Pearson but reduces pooled Ring
+Pearson from $0.4514$ to $0.4374$. The context-only node MLP nevertheless
+dominates absolute field prediction, so this table supports only a small,
+stable perturbation-conditioned Ring lift rather than overall guide-out
+superiority.
+
+\paragraph{Five-fold guide OOD and cross-assay seed transfer.}
+The original three-guide split above is fold 0 of a grouped five-fold audit in
+which every guide is assigned to test exactly once. Measured spatial seeds
+improve Ring in all five folds, whereas validation-calibrated guide profiles
+from the independent companion scRNA-seq assay underperform zero seeds in
+every fold (\Cref{tab:app_fivefold_seed_transfer}).
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{\textbf{Context-only Ring correlation across grouped-guide folds.}
+Seed-conditioned results for the same folds are reported in
+\Cref{tab:app_fivefold_seed_transfer}.}
+\label{tab:app_fivefold_context}
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{lr}
+\toprule
+Fold & Context Ring \\
+\midrule
+0 & 0.408 \\
+1 & 0.413 \\
+2 & 0.434 \\
+3 & 0.454 \\
+4 & 0.441 \\
+\midrule
+Macro & 0.430 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Guide-stratified stability on the held-out Spatial Perturb-Seq test set}
 \label{app:guide_stratified_stability}
@@ -1334,7 +1292,10 @@ At the flat gene-space level, the same run reaches Pearson/Spearman/Cosine $0.67
 
 \begin{table}[t]
 \centering
-\caption{Propagation-blend sensitivity on the held-out local benchmark. $\alpha=0$ is the base propagation module, and $\alpha=1$ is the reference-ST ring-refinement module.}
+\caption{\textbf{Development-stage propagation-blend sensitivity.}
+$\alpha=0$ is the base propagation module and $\alpha=1$ is the historical
+reference-ST ring-refinement output. This post-hoc sweep is retained for
+provenance; component attribution uses the paired low-data audit.}
 \label{tab:app_blend_sweep}
 \small
 \setlength{\tabcolsep}{5pt}
@@ -1353,7 +1314,10 @@ $\alpha$ & Neighbor & Neighbor-centered & Ring & Neighbor MAE & Score \\
 \end{tabular}
 \end{table}
 
-The selected blend $\alpha=0.65$ gives the highest composite score in this sweep. The base propagation module is slightly stronger in neighbor-centered Pearson, while the reference-ST refinement improves ring structure.
+The post-hoc development sweep selects $\alpha=0.65$ by its composite score,
+with only small changes across settings. Because the sweep is not an
+independent paired estimate of the adapter contribution, we do not interpret
+the difference as evidence that reference-ST pretraining improves the field.
 
 \begin{table}[t]
 \centering
@@ -1375,7 +1339,10 @@ Edge-prior correlation & 0.99439 \\
 \end{tabular}
 \end{table}
 
-The frozen reference encoder is trained only on unperturbed reference ST. These diagnostics verify that it learns stable microenvironment and edge-plausibility structure, but they should not be interpreted as perturbation-response accuracy.
+The frozen reference encoder fits its self-supervised objectives on
+unperturbed reference ST. These diagnostics are representation checks only:
+they neither establish perturbation-response accuracy nor contradict the
+near-zero paired response-field gains.
 
 \subsection{Development ablations}
 \label{app:development_ablations}
@@ -1456,7 +1423,11 @@ No direct-effect input &
 \end{table*}
 
 \paragraph{Interpretation of structural ablations.}
-The final propagation blend combines a shared niche-impact baseline with directed direct-effect-to-neighbor propagation and ring-aware refinement. Removing niche-impact residualization produces the largest collapse, indicating that directly predicting the response fails to separate background tissue variation from perturbation-conditioned propagation. Removing edge attributes reduces both neighbor and ring performance, showing that spatial geometry, cell-type-pair information, and communication-compatibility features improve propagation structure. Removing the direct-effect input also degrades neighbor prediction, especially beyond niche-module-only correlation, confirming that the propagation module benefits from a meaningful direct-effect signal.
+These development ablations support context residualization and
+direct-effect-to-receiver routing. The ``no edge attributes'' intervention
+removes geometry and nominal pair features together with communication scores,
+so it cannot attribute the decrease specifically to communication priors; the
+targeted randomized-CCC control shows no measurable CCC contribution.
 
 
 
@@ -1489,7 +1460,14 @@ Remove ring loss                & $-0.0015$ & $+0.0002$ & $-0.0011$ \\
 
 
 \paragraph{Interpretation of design-refinement ablations.}
-The design-refinement ablations support the final architecture choices. Explicit direct-effect-to-neighbor propagation substantially improves neighbor prediction over the niche-module-only patch model. The base propagation module is slightly stronger in raw neighbor correlation than the reference-ST ring-refinement module, but weaker at ring-level spatial structure. Frozen reference context helps most when used inside ring-aware response refinement; using the reference edge-prior signal directly is weaker than injecting reference-ST information through node- and patch-level niche embeddings. A plain second pass is useful, but ring-aware response tokens and ring-specific scales give a better spatial tradeoff. Removing the reference-prior adapter slightly improves raw neighbor correlation but hurts ring propagation and the overall score. Including direct-effect-cell reconstruction in the propagation loss substantially hurts neighbor propagation, indicating that the easier direct signal can dominate training. Removing ring loss gives only a negligible raw-neighbor gain while reducing ring-level propagation structure.
+The largest development gain comes from explicit
+direct-effect-to-receiver residual routing over the context model. Optional
+second-pass and reference-adapter changes are small and inconsistent across
+metrics; the independent low-data audit therefore supersedes any positive
+reference-ST interpretation. Including direct-effect-cell reconstruction
+substantially hurts receiver propagation, consistent with the easier sender
+task dominating optimization. Removing ring loss produces a small
+ring-structure decrease.
 
 \paragraph{Compact IFN-\texorpdfstring{$\gamma$}{gamma} readout summary.}
 The de novo IFN-$\gamma$ example is interpreted as hypothesis generation, not matched validation. Its main qualitative pattern is a spatially extended IFN/MHC-I-like response: immune and vascular-associated states are enriched among high-response targets, canonical IFN/MHC-I genes increase, selected structural or vascular programs decrease, and patch-level gradients show that the response is spatially heterogeneous rather than a uniform slide-wide shift. The key numerical readouts are summarized below; the following text gives the biological interpretation.
@@ -1605,10 +1583,21 @@ The high-response regions are enriched for immune and glial-associated tissue co
 At the gene-program level, the model predicts a coherent IFN-$\gamma$/MHC-I-like response. Target-cell deltas are positive for canonical interferon and antigen-presentation genes, including \textit{B2m} $(+1.91)$, \textit{H2-D1} $(+1.57)$, and \textit{Ifitm3} $(+1.72)$. In parallel, selected structural or vascular-associated programs are suppressed, including \textit{Col1a2} $(-1.31)$, \textit{Vcan} $(-1.28)$, and \textit{Flt1} $(-1.82)$. The selected local patches recapitulate this pattern at neighborhood scale: patch-averaged deltas are consistently positive for \textit{B2m} and \textit{Ifitm3}, and consistently negative for \textit{Col1a2} and \textit{Vcan}. Across the six displayed patches, \textit{B2m} averages range from $+0.69$ to $+0.96$, \textit{Ifitm3} from $+0.24$ to $+0.33$, while \textit{Col1a2} and \textit{Vcan} remain negative.
 
 \paragraph{Extended spatial field.}
-The predicted response forms an extended spatial field. The 64-nearest-neighbor union around 2,048 top-5\% targets covers 38,922 of 40,944 cells in the analyzed bottom-right region, or 95.06\%. Thus, the deployment output should be interpreted as a tissue-level response field rather than a set of isolated target-cell predictions. Consistent with this interpretation, patch-level spatial gradients show that the $x$ coordinate is negatively associated with \textit{B2m} response $(r=-0.290,\ p=4.2\times10^{-41})$ and \textit{Irf8} response $(r=-0.296,\ p=8.8\times10^{-43})$, and positively associated with \textit{Col1a2} response $(r=+0.307,\ p=5.7\times10^{-46})$ and \textit{Flt1} response $(r=+0.417,\ p=7.4\times10^{-87})$.
+The 64-nearest-neighbor union around 2,048 top-5\% targets covers 38,922 of
+40,944 cells in the analyzed bottom-right region (95.06\%). Patch-level
+gradients are directionally heterogeneous: the $x$ coordinate correlates
+negatively with \textit{B2m} and \textit{Irf8} response
+($r=-0.290$ and $-0.296$) and positively with \textit{Col1a2} and
+\textit{Flt1} response ($r=0.307$ and $0.417$). We omit cell-level
+significance tests because spatial autocorrelation and overlapping patches
+violate independent-sample assumptions.
 
 \paragraph{Role of the reference microenvironment prior.}
-In the paired benchmark, the reference microenvironment module is a secondary ring-level refinement rather than the main source of Neighbor Pearson improvement. In de novo whole-brain deployment, however, the frozen reference prior provides tissue-contextual information that helps map the same perturbation query onto susceptible microenvironments and generate a heterogeneous response field. The IFN-$\gamma$ analysis should therefore be read as a biologically grounded deployment example, not as experimental validation of IFN-$\gamma$ biology.
+This deployment used the historical frozen reference adapter, but there is no
+paired IFN-$\gamma$ spatial target or matched adapter ablation. Its contribution
+cannot be identified from this example. The case is therefore a
+hypothesis-generating interface demonstration, not validation of either the
+adapter or IFN-$\gamma$ biology.
 
 \subsection{Extended discussion}
 \label{app:extended_discussion}
@@ -1623,37 +1612,73 @@ Matched-control construction, local anatomy, and cell-type composition explain a
 Flat Neighbor Pearson is not a sufficient diagnostic of perturbation conditioning, because several direct-effect perturbation controls retain high Neighbor Pearson through the niche module. Ring-level lift is more sensitive to whether perturbation information changes the radial organization of neighbor response. The measured direct-effect model produces the largest ring lift over niche-module-only prediction, whereas shuffled or noisy controls largely collapse back toward the niche-impact baseline.
 
 \paragraph{Use of ST-mined microenvironment priors.}
-The reference-ST encoder is pretrained from unperturbed spatial transcriptomics and frozen before perturbation training. It is used to provide tissue-contextual information, including local niche structure and communication plausibility, but it does not provide perturbation-response labels. In the paired benchmark, this prior mainly contributes a modest ring-level refinement. In de novo whole-brain inference, it helps contextualize which microenvironments are susceptible to the same perturbation query.
+The optional reference-ST encoder was pretrained without perturbation labels.
+Although retained in the released development code and deployment example, it
+does not show robust paired Ring gain and is not part of core \methodname{}.
 
 \paragraph{Interpretation of the IFN-$\gamma$ case study.}
 The IFN-$\gamma$ analysis should be read as a hypothesis-generating deployment demonstration rather than a matched experimental validation. It shows that a perturbation-identity-derived direct-effect profile can produce spatially heterogeneous response fields, recover canonical IFN/MHC-I-like genes, suppress selected structural or vascular-like programs, and generate local response gradients. These outputs illustrate the intended deployment interface, but their biological claims require direct experimental validation.
 
-\subsection{Retrospective spatially constrained perturbation prioritization}
+\subsection{Exploratory discovery-set prioritization audit}
 \label{app:selector_audit}
 
-Beyond predicting spatial response fields, we asked whether frozen \methodname{} response-field outputs can prioritize perturbations: among candidate actions that preserve a specified target program in a spatial ring, select an alternative with lower collateral burden. We use this appendix only as a retrospective audit of response-field utility. Candidate actions and target specifications were fixed before held-out evaluation, and observed fields were used only for evaluation. Because the audit was assembled from frozen response-field caches compatible with the \methodname{} interface, we do not treat it as prospective validation.
+Beyond predicting spatial response fields, we asked whether frozen
+\methodname{} outputs can prioritize perturbations: among candidate actions
+that preserve a specified target program in a spatial ring, select an
+alternative with lower collateral burden. The figures and detailed operating
+points below preserve the original discovery audit. Its legacy
+``validation'' cache duplicated training graphs and its method family was
+examined post hoc, so the $0.354$--$0.418$ reductions are exploratory rather
+than the confirmatory main result. The independent three-way audit in
+\Cref{tab:selector_main} selects the complete rule on a disjoint validation
+block and obtains TQR $0.694$ with $0.120$ mean relative reduction on frozen
+test. Neither audit is prospective validation.
 
-The intervention selector scores each candidate by target utility and collateral burden. Target utility measures whether the desired program response is retained in the requested spatial ring. Burden summarizes responses outside the requested target, including far-field, off-program, and pre-specified undesirable-program components. \Cref{fig:app_selector_prioritization} gives the full audit. Across 5,286 candidate perturbation actions and 36 target specifications, a clean weighted-head operating point reached a target-qualified rate (TQR) of 0.639 and burden reduction of 0.354. An off-program-sensitive operating point reached TQR 0.667 and burden reduction 0.362, while a rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. These values remain below the observed-field oracle burden reduction of 0.672, as expected for a predicted-field selector.
+The intervention selector scores each candidate by target utility and
+collateral burden. Target utility measures whether the desired program response
+is retained in the requested spatial ring. Burden summarizes far-field,
+off-program, and validation-defined undesirable-program components.
+\Cref{fig:app_selector_prioritization} gives the full exploratory audit. Across
+5,286 actions and 36 target specifications, the examined operating points reach
+TQR 0.620--0.667 and post-hoc burden reduction 0.354--0.418. The observed-field
+oracle reaches 0.672. These discovery-set values characterize mechanism and
+oracle gap, not held-out selector effect size.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{selector_prioritization_appendix.pdf}
-\caption{\textbf{Detailed retrospective perturbation-prioritization audit.}
+\caption{\textbf{Detailed legacy discovery audit for perturbation
+prioritization.}
 (a) Selector interface and audit scale: frozen \methodname{} response fields are decomposed into target utility and collateral burden and used to rank target-retaining, low-burden actions.
-(b) Three pre-specified biological cases show high target retention and lower collateral burden.
-(c) Burden decomposition across all three cases shows weighted, far-field, off-program, and pre-specified undesirable-program burden reductions.
+(b) Three exploratory biological cases show high target retention and lower collateral burden.
+(c) Burden decomposition across all three cases shows weighted, far-field,
+off-program, and validation-defined undesirable-program burden reductions.
 (d) Spatial Perturb-seq operating points show the trade-off between target-qualified rate and burden reduction, with the observed-field oracle as an upper reference.
 (e) Perturb-FISH provides module-level external support under a different action pool and readout panel.
-(f) Predicted target utility stratifies observed target qualification, but absolute calibration remains incomplete under both main-block and strict-guide splits.}
+(f) Predicted target utility stratifies observed target qualification, but
+absolute calibration remains imperfect under both main-block and strict-guide
+splits.}
 \label{fig:app_selector_prioritization}
 \end{figure*}
 
-Three pre-specified biological cases give the most interpretable view of the audit (Table~\ref{tab:app_selector_cases}). The selected alternatives retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. For TGF-$\beta$/stroma near-down, the selector replaced \texttt{sgrna\_rraga} with \texttt{sgrna\_oligo2}, preserving target score from 5.074 to 4.968 while reducing weighted burden from 1.188 to 0.597. The same case reduced far-field burden from 1.213 to 0.604, off-program burden from 1.228 to 0.615, and pre-specified undesirable-program burden from 1.457 to 0.778 (Table~\ref{tab:app_selector_burden_decomposition}). Vascular-stress near-down and myeloid-activation far-up show the same target-retaining, lower-burden pattern.
+Three exploratory biological cases give the most interpretable view of the
+legacy audit (Table~\ref{tab:app_selector_cases}). The selected alternatives
+retained 89.3--99.8\% of target utility while reducing collateral burden by
+24.4--49.7\%. For TGF-$\beta$/stroma near-down, the selector replaced
+\texttt{sgrna\_rraga} with \texttt{sgrna\_oligo2}, preserving target score
+from 5.074 to 4.968 while reducing weighted burden from 1.188 to 0.597. The
+same case reduced far-field burden from 1.213 to 0.604, off-program burden
+from 1.228 to 0.615, and validation-defined undesirable-program burden from 1.457
+to 0.778 (Table~\ref{tab:app_selector_burden_decomposition}).
+Vascular-stress near-down and myeloid-activation far-up show the same
+target-retaining, lower-burden pattern; these examples illustrate biological
+interpretability and are not used to estimate out-of-sample effect size.
 
 \begin{table}[t]
 \centering
 \scriptsize
-\caption{Pre-specified response-field prioritization cases.}
+\caption{Exploratory response-field prioritization cases from the legacy
+discovery audit.}
 \label{tab:app_selector_cases}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lllrr@{}}
@@ -1704,7 +1729,17 @@ Observed oracle & 5,286 & 36 & 1.000 & 0.672 \\
 \end{tabular}
 \end{table}
 
-Perturb-FISH provides external support for the direction of these response-field prioritization cases, but we interpret it as module-level support rather than full selector replication. The action pool and readout panel differ from Spatial Perturb-seq, so the external assay tests whether the same module-level target and burden directions are plausible rather than whether the identical guide-level selector transfers unchanged. On 39 reliable Perturb-FISH specifications, the full predicted-utility/predicted-burden selector reached TQR 0.718, burden reduction 0.151, observed-utility/predicted-burden reduction 0.207, and pairwise lower-burden agreement 0.874 (Table~\ref{tab:app_selector_perturb_fish}).
+Perturb-FISH provides external support for the direction of these
+response-field prioritization cases, but we interpret it as module-level
+support rather than full selector replication. The action pool and readout
+panel differ from Spatial Perturb-seq, so the external assay tests whether the
+same module-level target and burden directions are plausible rather than
+whether the identical guide-level selector transfers unchanged. On 39
+validation-defined reliable Perturb-FISH specifications, the full
+predicted-utility/predicted-burden selector reached TQR 0.718, burden reduction
+0.151, observed-utility/predicted-burden reduction 0.207, and global
+pairwise lower-burden agreement 0.851
+(Table~\ref{tab:app_selector_perturb_fish}).
 
 \begin{table}[t]
 \centering
@@ -1722,12 +1757,20 @@ All specifications & 64 & 0.641 & 0.137 & 0.218 & 0.851 \\
 \end{tabular}
 \end{table}
 
-Finally, the audit has a calibration limitation. Predicted utility deciles do stratify observed target qualification, but absolute reliability is incomplete: the main block split rises from TQR 0.043 in the bottom predicted-utility decile to 0.575 in the top decile, while strict guide holdout rises from 0.053 to 0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report the selector as a response-field prioritization audit and not as a calibrated controller for prospective intervention design.
+Finally, the audit has a calibration limitation. Predicted utility deciles
+stratify observed target qualification, but absolute reliability is imperfect:
+the main block split rises from TQR 0.043 in the bottom predicted-utility decile
+to 0.575 in the top decile, while strict guide holdout rises from 0.053 to
+0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report this as a
+retrospective response-field prioritization audit rather than a calibrated
+controller for prospective intervention design.
 
 \begin{table}[t]
 \centering
 \small
-\caption{Target-utility calibration limitation. Target-qualified rate (TQR) increases from the lowest to highest predicted-utility decile, but absolute calibration remains incomplete, especially under strict guide holdout.}
+\caption{Target-utility calibration limitation. Target-qualified rate (TQR)
+increases from the lowest to highest predicted-utility decile, but absolute
+calibration remains imperfect, especially under strict guide holdout.}
 \label{tab:app_selector_calibration}
 \begin{tabular}{lrrr}
 \toprule
@@ -1755,7 +1798,15 @@ Unless otherwise stated, \methodname{} experiments use 64-cell graph patches. Th
 \paragraph{Main \methodname{} experiment.}
 Dataset construction uses patch size 64, a spatial-block split, training blocks \texttt{top\_right} and \texttt{bottom\_left}, test block \texttt{bottom\_right}, consensus target aggregation, and 3 matched controls per anchor. The niche module uses hidden dimension 256, 3 encoder layers, 3 propagation layers, batch size 16, 30 epochs, and learning rate $3\times10^{-4}$. The residual direct-effect-to-neighbor model uses hidden dimension 256, 3 propagation layers, batch size 16, 10 epochs, and learning rate $3\times10^{-4}$.
 
-The reference-ST niche prior model uses patch size 64, edge $k=8$, local CCC top-$k=5$, 4096/512/512 train/validation/test samples, hidden dimension 128, batch size 32, 20 epochs, and learning rate $10^{-3}$. The organ-ring refinement uses batch size 16: the organ-adapter stage runs for 10 epochs at $5\times10^{-4}$, the response-refine stage for 6 epochs at $2\times10^{-4}$, the ring-refine stage for 6 epochs at $10^{-4}$, and the final organ-ring stage for 6 epochs at $7.5\times10^{-5}$. Best-model evaluation uses batch size 16 and sweeps $\alpha\in\{0.0,0.25,0.5,0.55,0.6,0.65,0.7,0.75,1.0\}$.
+For reproducibility of the optional negative diagnostic, the reference-ST
+adapter uses patch size 64, edge $k=8$, local CCC top-$k=5$, 4096/512/512
+train/validation/test samples, hidden dimension 128, batch size 32, 20 epochs,
+and learning rate $10^{-3}$. The historical organ-ring refinement uses batch
+size 16: the organ-adapter stage runs for 10 epochs at $5\times10^{-4}$, the
+response-refine stage for 6 epochs at $2\times10^{-4}$, the ring-refine stage
+for 6 epochs at $10^{-4}$, and the final organ-ring stage for 6 epochs at
+$7.5\times10^{-5}$. The development blend sweep uses batch size 16 and
+$\alpha\in\{0.0,0.25,0.5,0.55,0.6,0.65,0.7,0.75,1.0\}$.
 
 \paragraph{Ablations and baselines.}
 OrganRingBlend ablations use the same residual graph model with hidden dimension 256, 3 propagation layers, batch size 16, and 6--10 epochs depending on the ablation. Seed and shortcut controls use batch size 16 and random seed 0. The shallow MLP baseline uses hidden dimension 512, batch size 8192, 20 epochs, and learning rate $10^{-3}$. Source/radial and summary baselines are CPU-light evaluation jobs.

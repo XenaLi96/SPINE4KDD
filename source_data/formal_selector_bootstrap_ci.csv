@@ -1,0 +1,64 @@
+method,display_method,bootstrap_unit,metric,point,ci_low,ci_high,n_units,one_sided_sign_flip_p_greater_than_zero
+target_only_utility_source,Target-only (MLP-context U),target_spec,target_qualified_float,0.6944444444444444,0.5277777777777778,0.8333333333333334,36,
+target_only_utility_source,Target-only (MLP-context U),target_spec,tqr_delta_vs_target_only,0.0,0.0,0.0,36,1.0
+target_only_utility_source,Target-only (MLP-context U),target_spec,s_reduction_vs_target_only,0.0,0.0,0.0,36,1.0
+target_only_utility_source,Target-only (MLP-context U),target_spec,burden_delta,0.0,0.0,0.0,36,1.0
+target_only_utility_source,Target-only (MLP-context U),target_spec,spillover_regret,0.466828554454777,0.36290716784488825,0.5755741340315176,36,
+target_only_utility_source,Target-only (MLP-context U),program,s_reduction_vs_target_only,0.0,0.0,0.0,6,
+target_only_utility_source,Target-only (MLP-context U),program,burden_delta,0.0,0.0,0.0,6,
+target_only_utility_source,Target-only (MLP-context U),program_ring,s_reduction_vs_target_only,0.0,0.0,0.0,18,
+target_only_utility_source,Target-only (MLP-context U),program_ring,burden_delta,0.0,0.0,0.0,18,
+random_observed_target_qualified,Random observed target-qualified,target_spec,target_qualified_float,1.0,1.0,1.0,36,
+random_observed_target_qualified,Random observed target-qualified,target_spec,tqr_delta_vs_target_only,0.3055555555555556,0.16666666666666666,0.4722222222222222,36,0.00034998250087495624
+random_observed_target_qualified,Random observed target-qualified,target_spec,s_reduction_vs_target_only,-0.09830895941927459,-0.2709240081267568,0.06328198327519702,36,0.8695565221738913
+random_observed_target_qualified,Random observed target-qualified,target_spec,burden_delta,0.08193781723578769,-0.021415406506922526,0.18648488262875165,36,0.0679466026698665
+random_observed_target_qualified,Random observed target-qualified,target_spec,spillover_regret,0.38489073721898925,0.37277584542623826,0.3966459609361158,36,
+random_observed_target_qualified,Random observed target-qualified,program,s_reduction_vs_target_only,-0.09830895941927459,-0.21151667327596438,0.011010109567841323,6,
+random_observed_target_qualified,Random observed target-qualified,program,burden_delta,0.0819378172357877,0.012235077718893672,0.1349838367766804,6,
+random_observed_target_qualified,Random observed target-qualified,program_ring,s_reduction_vs_target_only,-0.09830895941927456,-0.2649827498419702,0.06561847218851254,18,
+random_observed_target_qualified,Random observed target-qualified,program_ring,burden_delta,0.0819378172357877,-0.02034195618083082,0.18803443987336424,18,
+aggregation_constrained,Path2 aggregation,target_spec,target_qualified_float,0.6666666666666666,0.5,0.8055555555555556,36,
+aggregation_constrained,Path2 aggregation,target_spec,tqr_delta_vs_target_only,-0.027777777777777776,-0.25,0.19444444444444445,36,0.688565571721414
+aggregation_constrained,Path2 aggregation,target_spec,s_reduction_vs_target_only,-0.1637918336195897,-0.3535777358532657,0.018307376451829113,36,0.9489025548722564
+aggregation_constrained,Path2 aggregation,target_spec,burden_delta,-0.005775487257374673,-0.11915199394441313,0.10931521817627876,36,0.5367731613419329
+aggregation_constrained,Path2 aggregation,target_spec,spillover_regret,0.47260404171215165,0.36985399960022836,0.5823598311179212,36,
+aggregation_constrained,Path2 aggregation,program,s_reduction_vs_target_only,-0.16379183361958968,-0.3887970445918079,-0.0029579252129957184,6,
+aggregation_constrained,Path2 aggregation,program,burden_delta,-0.00577548725737466,-0.12204876293738683,0.07512628700998096,6,
+aggregation_constrained,Path2 aggregation,program_ring,s_reduction_vs_target_only,-0.16379183361958968,-0.38948595882639325,0.04647094563586135,18,
+aggregation_constrained,Path2 aggregation,program_ring,burden_delta,-0.005775487257374657,-0.13376482081496052,0.11513012051582326,18,
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,target_spec,target_qualified_float,0.6666666666666666,0.5,0.8055555555555556,36,
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,target_spec,tqr_delta_vs_target_only,-0.027777777777777776,-0.19444444444444445,0.1388888888888889,36,0.7492125393730313
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,target_spec,s_reduction_vs_target_only,0.1291403056641721,0.009923389093003342,0.233798091012176,36,0.014449277536123194
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,target_spec,burden_delta,0.12343913316726685,0.05846319943666457,0.18963755356768763,36,0.0005499725013749313
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,target_spec,spillover_regret,0.34338942128751015,0.251906326578723,0.43948061590393384,36,
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,program,s_reduction_vs_target_only,0.1291403056641721,0.035155736945912626,0.21211170244147903,6,
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,program,burden_delta,0.12343913316726683,0.09268814076979955,0.1563315631614791,6,
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,program_ring,s_reduction_vs_target_only,0.1291403056641721,-0.0066496311368089474,0.2441958463042812,18,
+dual_aggU_headS_constrained,Dual selector: MLP-U + SPINE-S,program_ring,burden_delta,0.12343913316726685,0.050963397365477336,0.19412571077959395,18,
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,target_spec,target_qualified_float,0.6944444444444444,0.5277777777777778,0.8333333333333334,36,
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,target_spec,tqr_delta_vs_target_only,0.0,-0.16666666666666666,0.16666666666666666,36,0.6222688865556723
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,target_spec,s_reduction_vs_target_only,0.11998602540207311,-0.0017986076937959105,0.22889418091593064,36,0.024198790060496977
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,target_spec,burden_delta,0.12443925688664119,0.05592594813141558,0.19260489801979724,36,0.0005499725013749313
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,target_spec,spillover_regret,0.3423892975681358,0.25804254706535074,0.4317821572224299,36,
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,program,s_reduction_vs_target_only,0.11998602540207311,0.01024441988608804,0.22408304115428393,6,
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,program,burden_delta,0.12443925688664116,0.08093464954031838,0.17278785589668486,6,
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,program_ring,s_reduction_vs_target_only,0.11998602540207311,-0.0164589229922073,0.23999642134765423,18,
+dual_aggU_headConsensusS_w0p75_constrained,Validation-selected consensus,program_ring,burden_delta,0.12443925688664119,0.047336982625226155,0.1997990948044591,18,
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),target_spec,target_qualified_float,0.7222222222222222,0.5833333333333334,0.8611111111111112,36,
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),target_spec,tqr_delta_vs_target_only,0.027777777777777776,-0.1388888888888889,0.19444444444444445,36,0.49547522623868806
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),target_spec,s_reduction_vs_target_only,0.12651068369156382,0.006126619155976785,0.23616429822570403,36,0.020748962551872405
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),target_spec,burden_delta,0.13498878313435447,0.06595393253697289,0.20373766283608136,36,0.00034998250087495624
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),target_spec,spillover_regret,0.33183977132042247,0.25121250115334987,0.4177063902115656,36,
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),program,s_reduction_vs_target_only,0.1265106836915638,0.020654732145058096,0.23236663523806944,6,
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),program,burden_delta,0.13498878313435447,0.09212618238396116,0.1796447659532229,6,
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),program_ring,s_reduction_vs_target_only,0.1265106836915638,-0.012850436597549256,0.2513930977812309,18,
+dual_aggU_nonlinearConsensusS_w0p75_constrained,Nonlinear consensus (sensitivity),program_ring,burden_delta,0.13498878313435447,0.053596378676593295,0.214738439851337,18,
+oracle_obs_u_obs_s,Observed U/S oracle,target_spec,target_qualified_float,1.0,1.0,1.0,36,
+oracle_obs_u_obs_s,Observed U/S oracle,target_spec,tqr_delta_vs_target_only,0.3055555555555556,0.16666666666666666,0.4722222222222222,36,0.000599970001499925
+oracle_obs_u_obs_s,Observed U/S oracle,target_spec,s_reduction_vs_target_only,0.6058083089301597,0.5426231051889364,0.6673179489364173,36,4.999750012499375e-05
+oracle_obs_u_obs_s,Observed U/S oracle,target_spec,burden_delta,0.466828554454777,0.363706908447461,0.5731915070778791,36,4.999750012499375e-05
+oracle_obs_u_obs_s,Observed U/S oracle,target_spec,spillover_regret,0.0,0.0,0.0,36,
+oracle_obs_u_obs_s,Observed U/S oracle,program,s_reduction_vs_target_only,0.6058083089301597,0.5715449044816397,0.6553668419050653,6,
+oracle_obs_u_obs_s,Observed U/S oracle,program,burden_delta,0.466828554454777,0.39643240637249416,0.5252924114465715,6,
+oracle_obs_u_obs_s,Observed U/S oracle,program_ring,s_reduction_vs_target_only,0.6058083089301598,0.552586784934034,0.6614979709486738,18,
+oracle_obs_u_obs_s,Observed U/S oracle,program_ring,burden_delta,0.466828554454777,0.36650287019502786,0.5700404504624503,18,

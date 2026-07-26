@@ -154,6 +154,16 @@ def calibration_df() -> pd.DataFrame:
     )
 
 
+def formal_selector_df() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            ("target-only", 0.6944, 0.0000, np.nan, np.nan),
+            ("selector", 0.6944, 0.1244, 0.0559, 0.1926),
+        ],
+        columns=["method", "tqr", "burden_decrease", "ci_low", "ci_high"],
+    )
+
+
 def write_source_data(out_dir: Path) -> None:
     source_dir = out_dir / "source_data"
     source_dir.mkdir(parents=True, exist_ok=True)
@@ -163,10 +173,12 @@ def write_source_data(out_dir: Path) -> None:
     operating_df().to_csv(source_dir / "selector_operating_points.csv", index=False)
     perturb_fish_df().to_csv(source_dir / "selector_perturb_fish_support.csv", index=False)
     calibration_df().to_csv(source_dir / "selector_calibration_deciles.csv", index=False)
+    formal_selector_df().to_csv(source_dir / "selector_formal_three_way.csv", index=False)
 
 
-def panel_title(ax: plt.Axes, letter: str, title: str) -> None:
-    ax.set_title(f"{letter}. {title}", loc="left", pad=4, color=TEXT)
+def panel_title(ax: plt.Axes, letter: str, title: str, fontsize: float | None = None) -> None:
+    kwargs = {"fontsize": fontsize} if fontsize is not None else {}
+    ax.set_title(f"{letter}. {title}", loc="left", pad=4, color=TEXT, **kwargs)
 
 
 def draw_box(
@@ -234,7 +246,7 @@ def plot_case_arrows(ax: plt.Axes) -> None:
     ax.set_xlabel("Burden reduction (%)")
     ax.set_ylabel("Target retention (%)")
     ax.grid(axis="both", color=GRID, lw=0.45, alpha=0.7)
-    panel_title(ax, "B", "Target kept, burden reduced")
+    panel_title(ax, "B", "Exploratory post-hoc cases")
 
 
 def plot_burden_dumbbell(ax: plt.Axes) -> None:
@@ -254,33 +266,46 @@ def plot_burden_dumbbell(ax: plt.Axes) -> None:
     ax.grid(axis="x", color=GRID, lw=0.45, alpha=0.7)
     ax.text(1.15, 3.34, "target-only", color=TARGET, fontsize=5.2, ha="left", va="center")
     ax.text(0.46, 3.34, "selector", color=SELECTOR, fontsize=5.2, ha="left", va="center")
-    panel_title(ax, "C", "TGF$\\beta$/stroma burden split")
+    panel_title(ax, "C", "Exploratory case decomposition", fontsize=6.0)
 
 
-def plot_checks(ax: plt.Axes) -> None:
+def plot_formal_selector(ax: plt.Axes) -> None:
     ax.set_box_aspect(1)
-    cal = calibration_df()
-    for split, color in [("main block", SELECTOR), ("strict guide", STRICT)]:
-        subset = cal[cal["split"] == split]
-        ax.plot(subset["pred_decile"], subset["observed_tqr"], marker="o", lw=1.4, ms=2.8, color=color, label=split)
-    ax.set_xlim(1, 10.8)
-    ax.set_ylim(0, 0.63)
-    ax.set_xticks([1, 5, 10])
-    ax.set_xlabel("Predicted utility decile")
-    ax.set_ylabel("Observed TQR")
-    ax.grid(axis="y", color=GRID, lw=0.45, alpha=0.7)
-    ax.legend(loc="lower right", fontsize=4.9, handlelength=1.2, borderpad=0.1)
-    ax.text(
-        0.04,
-        0.95,
-        "Spatial selector:\nTQR 0.64 / burden -35%\nPerturb-FISH:\nTQR 0.72 / agreement 0.87",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=4.8,
-        color="#59636E",
-    )
-    panel_title(ax, "D", "Support and calibration boundary")
+    ax.axis("off")
+    panel_title(ax, "D", "Formal held-out result", fontsize=6.0)
+
+    ax.text(0.03, 0.83, "Target-qualified rate", transform=ax.transAxes, fontsize=5.2, color=TEXT)
+    x0, x1 = 0.08, 0.44
+    bar_w = 0.23
+    scale = 0.25
+    for x, label, color in [(x0, "target-only", TARGET), (x1, "selector", SELECTOR)]:
+        rect = mpl.patches.Rectangle(
+            (x, 0.55),
+            bar_w,
+            scale * 0.6944,
+            transform=ax.transAxes,
+            facecolor=color,
+            edgecolor="none",
+        )
+        ax.add_patch(rect)
+        ax.text(x + bar_w / 2, 0.525, label, transform=ax.transAxes, ha="center", va="top", fontsize=4.8)
+        ax.text(x + bar_w / 2, 0.55 + scale * 0.6944 + 0.012, "0.6944", transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, fontweight="bold")
+
+    ax.text(0.82, 0.75, "Mean spillover\nreduction", transform=ax.transAxes, ha="center", va="top", fontsize=4.8, color=TEXT)
+    ax.text(0.82, 0.59, "12.0%", transform=ax.transAxes, ha="center", va="center", fontsize=7.5, fontweight="bold", color=SELECTOR)
+
+    ax.text(0.03, 0.42, "Absolute burden decrease", transform=ax.transAxes, fontsize=5.2, color=TEXT)
+    bx0, bx1 = 0.03, 0.97
+    bmin, bmax = 0.0, 0.22
+    y = 0.30
+    map_x = lambda value: bx0 + (value - bmin) / (bmax - bmin) * (bx1 - bx0)
+    ax.plot([map_x(0.0559), map_x(0.1926)], [y, y], transform=ax.transAxes, color=SELECTOR, lw=1.7)
+    ax.plot([map_x(0.0559), map_x(0.0559)], [y - 0.025, y + 0.025], transform=ax.transAxes, color=SELECTOR, lw=0.9)
+    ax.plot([map_x(0.1926), map_x(0.1926)], [y - 0.025, y + 0.025], transform=ax.transAxes, color=SELECTOR, lw=0.9)
+    ax.scatter([map_x(0.1244)], [y], transform=ax.transAxes, s=27, color=SELECTOR, edgecolor="white", linewidth=0.4, zorder=3)
+    ax.text(map_x(0.1244), y + 0.045, "0.1244", transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, fontweight="bold")
+    ax.text(0.50, 0.19, "95% CI [0.0559, 0.1926]", transform=ax.transAxes, ha="center", va="center", fontsize=4.8, color="#59636E")
+    ax.text(0.50, 0.075, "burden-order agreement\n0.6250 [0.6108, 0.6393]", transform=ax.transAxes, ha="center", va="center", fontsize=4.55, color=TEXT)
 
 
 def plot_appendix_overview(ax: plt.Axes) -> None:
@@ -321,7 +346,7 @@ def plot_appendix_cases(ax: plt.Axes) -> None:
     ax.grid(axis="x", color=GRID, lw=0.45, alpha=0.7)
     ax.text(0.03, 0.94, "target retention", transform=ax.transAxes, ha="left", va="center", fontsize=5.2, color=TARGET)
     ax.text(0.03, 0.86, "burden reduction", transform=ax.transAxes, ha="left", va="center", fontsize=5.2, color=SELECTOR)
-    panel_title(ax, "B", "Pre-specified target-retaining cases")
+    panel_title(ax, "B", "Exploratory post-hoc cases")
 
 
 def plot_appendix_burden_heatmap(ax: plt.Axes) -> None:
@@ -418,7 +443,7 @@ def make_compact_figure(out_png: Path, out_pdf: Path | None, source_out_dir: Pat
     plot_selector_workflow(fig.add_subplot(gs[0, 0]))
     plot_case_arrows(fig.add_subplot(gs[0, 1]))
     plot_burden_dumbbell(fig.add_subplot(gs[1, 0]))
-    plot_checks(fig.add_subplot(gs[1, 1]))
+    plot_formal_selector(fig.add_subplot(gs[1, 1]))
     out_png.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_png, dpi=450, bbox_inches="tight")
     if out_pdf is not None:

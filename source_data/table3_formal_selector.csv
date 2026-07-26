@@ -1,0 +1,4 @@
+panel,method,tqr,mean_spillover_reduction,absolute_burden_decrease,ci,pairwise_burden_order,source
+A,Target-only,0.6944,0.0000,0.0000,,,three_way_selector_audit/bootstrap_ci.csv
+A,Constrained selector,0.6944,0.1200,0.1244,"[0.0559, 0.1926]",,three_way_selector_audit/bootstrap_ci.csv
+B,SPINE standalone spillover head,,,,,"0.6250 [0.6108, 0.6393]",three_way_selector_audit/pairwise_audit.csv

@@ -1,0 +1,15 @@
+group,method,neighbor,centered,ring,mae,source
+Trivial,Zero-delta,0.00000,0.00000,0.00000,0.45344,system_baselines.csv
+Statistical,Guide x cell-type x ring mean,0.00714,-0.00045,0.01731,0.46752,system_baselines.csv
+Retrieval,Nearest patch transfer,0.00012,-0.00104,0.00960,0.61186,system_baselines.csv
+Direct/radial,Direct-effect diffusion,0.00616,0.00028,0.01434,0.45912,system_baselines.csv
+Direct/radial,CCC-gated linear, -0.00191,0.00316,0.00052,0.50968,system_baselines.csv
+Direct/radial,Direct-effect broadcast,0.01572,-0.00000,0.05311,0.83524,path2_reviewer_baselines_table.csv
+Direct/radial,Fixed-decay broadcast,0.01526,0.00320,0.05306,0.59406,path2_reviewer_baselines_table.csv
+Direct/radial,Learned radial ridge,0.02293,-0.00150,0.06547,0.52651,path2_reviewer_baselines_table.csv
+Supervised,Elastic-net,0.56953,0.59375,0.39101,0.42737,shallow_regression_metrics.csv
+Supervised,Patch MLP,0.27241,0.44395,0.08649,0.67715,path2_reviewer_baselines_table.csv
+Supervised,Graph Transformer,0.54306,0.56345,0.39277,0.45970,path2_reviewer_baselines_table.csv
+Supervised,Neural CCC-GNN,0.54343,0.56475,0.39249,0.46392,path2_reviewer_baselines_table.csv
+SPINE,SPINE-Core,0.68410,0.71701,0.45204,0.40939,Appendix S16 verified model summary
+SPINE,SPINE-Refine,0.68443,0.71566,0.45722,0.40762,Appendix S16 verified model summary

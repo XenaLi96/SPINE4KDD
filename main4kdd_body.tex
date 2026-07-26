@@ -1,30 +1,29 @@
 \begin{abstract}
-Spatial perturbation assays preserve tissue architecture, but their observed
-neighbor responses conflate endogenous niche variation with
-perturbation-specific propagation. We ask how much of a spatial response field
-is context-explainable, where perturbation-conditioned signal remains, and
-whether the remaining structure can support lower-burden intervention
-prioritization. We construct Pre--Post Perturbation Pairing (\ppp), an audited
-matched-control benchmark from Spatial Perturb-seq, and explicitly treat its
-responses as guide-consistent pseudo-targets rather than observed causal
-counterfactuals. Our analysis shows that tissue context and source-region
-geometry explain most flat neighbor correlation, whereas correct direct-effect
-profiles primarily improve radial organization: on block-held-out data,
-context-only, shuffled-profile, and measured-profile models obtain neighbor/ring
-Pearson correlations of $0.610/0.405$, $0.679/0.405$, and $0.684/0.457$.
-\methodname{} models this separation with a context-explainable branch and a
-directed perturbation-conditioned residual branch. It reaches $0.684/0.457$ on
-Spatial Perturb-seq, $0.596/0.451$ under grouped guide holdout with measured
-seeds, and program-level agreement up to $0.853$ on Perturb-map. Finally,
-frozen held-out response fields support retrospective intervention
-prioritization. Across 36 target specifications, a target-retaining operating
-point achieves target-qualified rate $0.639$ while reducing collateral burden
-by $0.354$ (95\% CI $0.222$--$0.476$); three pre-specified examples retain
-$89.3$--$99.8\%$ of target utility while reducing burden by $24.4$--$49.7\%$.
-Perturb-FISH provides directionally consistent native-panel support. These
-results position spatial perturbation modeling as context-aware response-field
-decomposition and experimental prioritization, not causal or clinical
-prediction.
+Spatial perturbation assays preserve tissue architecture, but observed
+neighbor responses conflate stable tissue context with
+perturbation-conditioned effects. We construct Pre--Post Perturbation Pairing
+(\ppp), an audited matched-control pseudo-target benchmark, and \methodname{},
+a predictive decomposition that first estimates context-explainable response
+and then models the residual conditioned on a direct-effect profile and sender
+region. On a fully disjoint 1,342/837/928-graph train/validation/test split,
+\methodname{} increases pooled Ring Pearson from 0.3626 to 0.4111; the mean
+graph-paired lift is $+0.0532$ (95\% CI, 0.0474--0.0586). Context-only and full
+models attain predictive $R^2$ values of 0.3712 and 0.4669, corresponding to an
+incremental partial $R^2$ of 0.1521 (0.1476--0.1559). Gene-disjoint and
+no-expression matching retain positive Ring lift, whereas removing spatial
+matching does not, indicating that the signal is not explained solely by
+expression overlap but depends on spatially matched controls. Factorial
+controls show contributions from both direct-effect profile identity and sender
+location, while randomized communication scores have no measurable effect.
+Across five guide-OOD folds, assay-matched spatial seeds improve Ring Pearson
+from 0.4400 to 0.4619, whereas external scRNA-derived seeds underperform the
+zero-seed baseline, identifying cross-assay seed transfer as the current
+end-to-end bottleneck. On a formal three-way selector split, \methodname{}
+preserves target-qualified rate at 0.6944 while reducing mean spillover by
+12.0\% and absolute burden by 0.1244 (0.0559--0.1926). These results support
+context-dominated global fields, perturbation-structured local organization,
+and modest retrospective lower-burden prioritization rather than causal or
+clinical prediction.
 \end{abstract}
 
 \begin{CCSXML}
@@ -44,50 +43,9 @@ prediction.
 \ccsdesc[500]{Computing methodologies~Machine learning}
 \ccsdesc[300]{Mathematics of computing~Graph algorithms}
 \keywords{spatial functional genomics, perturbation response, spatial
-transcriptomics, graph neural networks, intervention prioritization}
+transcriptomics, graph neural networks, perturbation prioritization}
 
 \maketitle
-
-\begin{figure*}[t]
-\centering
-\fbox{\parbox[t][1.22in][t]{0.298\textwidth}{
-\textbf{A. Observed field is mixed}\par\smallskip
-An intact-tissue neighbor response contains stable anatomy, cell-state
-composition, and a weaker perturbation-conditioned component.\par\medskip
-\centering
-$\Delta^{\mathrm{obs}}\approx C_{\mathrm{context}}+
-P_{\mathrm{perturbation}}$
-}}
-\hfill
-\fbox{\parbox[t][1.22in][t]{0.298\textwidth}{
-\textbf{B. Predictive separation}\par\smallskip
-\methodname{} first predicts the context-explainable field with perturbation
-inputs masked, then routes a direct-effect profile through the tissue graph to
-predict the residual.\par\medskip
-\centering
-$G,X \rightarrow \widehat C$\quad;\quad
-$G,s \rightarrow \widehat P$
-}}
-\hfill
-\fbox{\parbox[t][1.22in][t]{0.298\textwidth}{
-\textbf{C. Scientific use}\par\smallskip
-Predicted fields define local target utility $U$ and collateral spatial burden
-$S$. Candidate perturbations are compared under a target-retention
-constraint.\par\medskip
-\centering
-$\min_a\widehat S(a)$ s.t.\ $\widehat U(a)\geq\tau$
-}}
-\caption{\textbf{Scientific problem and analysis framework.}
-The central problem is not only predicting the full observed delta, but
-separating context-explainable variation from perturbation-conditioned spatial
-organization and using the latter for constrained perturbation prioritization.
-The separation is predictive, not an identifiable causal decomposition.}
-\label{fig:main_framework}
-\Description{Three-panel conceptual diagram showing an observed spatial response
-as the sum of context-explainable and perturbation-conditioned components,
-followed by predictive separation and target-constrained perturbation
-prioritization.}
-\end{figure*}
 
 \section{Introduction}
 Spatial functional genomics places genetic perturbations within intact tissue
@@ -97,46 +55,43 @@ Unlike dissociated Perturb-seq, these assays can reveal whether a local
 intervention remains confined to its intended niche or reorganizes distant and
 off-program responses. Their cost and sparsity, however, make it impractical to
 measure every perturbation in every tissue context. Predictive models could
-help prioritize experiments, but only if their spatial signal is genuinely
-perturbation-specific.
+help prioritize experiments, but only if the spatial signal they use is
+genuinely perturbation-conditioned.
 
-This requirement creates a fundamental evaluation problem. A high correlation
-between predicted and observed neighbor expression can arise from reconstructing
-stable anatomy, cell identity, or local composition rather than learning
-propagation. Spatial variance and multiview models have established that
-intrinsic and environmental components explain substantial spatial expression
-variation \citep{arnol2019svca,tanevski2022misty,fischer2023ncem}. In a
-perturbation assay, the measured neighbor field therefore mixes at least two
-sources: a context-explainable component and a perturbation-conditioned
-residual. Flat cell--gene Pearson correlation can obscure this distinction,
-especially when stable or high-variance genes dominate the average.
+This requirement creates an evaluation problem. High correlation between
+predicted and observed neighbor expression can arise from reconstructing stable
+anatomy, cell state, or local composition rather than learning perturbation
+propagation. Spatial variance and multiview models already show that intrinsic
+and environmental components explain substantial spatial expression variation
+\citep{arnol2019svca,tanevski2022misty,fischer2023ncem}. In a perturbation
+assay, the measured neighbor field therefore mixes a context-explainable
+component with a weaker perturbation-conditioned component, and flat
+cell--gene correlation can obscure their distinction.
 
-We organize the study around four questions. \textbf{RQ1:} How much of the
-observed neighbor response is explained by tissue context and source-region
-geometry? \textbf{RQ2:} Where does perturbation-specific signal remain after
-conditioning on context? \textbf{RQ3:} Can that residual structure be predicted
-across held-out regions, perturbations, and assays? \textbf{RQ4:} Can predicted
-fields prioritize perturbations that preserve a requested local response while
-reducing far-field and off-program burden?
+We ask four linked scientific questions: how much observed neighbor response is
+predictable from tissue context; where perturbation-conditioned signal remains
+after accounting for context; whether that residual transfers across regions,
+guides, and assays; and whether predicted fields can prioritize perturbations
+that preserve a requested local response while reducing collateral burden.
+On the fully separated spatial split, context-only and full models reach pooled
+Ring Pearson 0.3626 and 0.4111, with mean graph-paired lift $+0.0532$.
+Predictive $R^2$ increases from 0.3712 to 0.4669, corresponding to partial
+$R^2=0.1521$ conditional on context. Matching-decoupling experiments preserve
+positive lift after removing expression overlap, but not after removing spatial
+matching. Across five held-out-guide folds, assay-matched spatial seeds provide
+a modest positive lift, whereas external scRNA seeds fail to transfer. A
+validation-frozen selector finally preserves target qualification and reduces
+held-out burden by 12.0\%.
 
-Our results support a more specific scientific conclusion than ``the full field
-is predictable'': spatial perturbation fields are
-\emph{context-dominated globally but perturbation-structured locally}.
-Context-only prediction reaches neighbor/ring Pearson $0.610/0.405$ on
-block-held-out Spatial Perturb-seq. Providing the correct measured direct-effect
-profile changes flat neighbor correlation only from $0.679$ for a shuffled
-profile to $0.684$, but changes ring correlation from $0.405$ to $0.457$.
-Thus, perturbation identity contributes most clearly through radial and
-program-selective organization rather than the bulk neighbor average.
-
-This study contributes: (1) a quantitative characterization of
-context-explainable and perturbation-conditioned spatial response fields; (2)
-\ppp, an audited pseudo-counterfactual benchmark whose provenance and
-limitations are explicit; (3) \methodname{}, a parsimonious predictive
-decomposition with a context branch and a directed residual branch; and (4) a
-retrospective, spatially constrained intervention-prioritization task showing
-that perturbations with similar local utility can have different collateral
-burdens.
+These results support a narrower conclusion than ``the full field is
+predictable'': spatial perturbation fields are \emph{globally
+context-dominated but locally perturbation-structured}. We contribute
+(1) an independently validated predictive decomposition with effect-size and
+partial-$R^2$ estimates; (2) an audited \ppp benchmark with matching-decoupling
+and spatial-scale analyses; (3) a parsimonious response-field model with
+conditional propagation-transfer and cross-assay failure analyses; and
+(4) a formal retrospective perturbation-prioritization task that separates
+confirmatory effects from exploratory cases.
 
 \section{Related Work}
 \textbf{Context in spatial molecular data.}
@@ -145,54 +100,87 @@ cell--cell interaction components \citep{arnol2019svca}; MISTy models
 intraview, juxtaview, and paraview effects
 \citep{tanevski2022misty}; and NCEM predicts gene expression from a spatial
 graph and niche composition \citep{fischer2023ncem}. These methods motivate our
-context audit, but do not condition a cell-resolved response field on a direct
-perturbation profile.
+context audit, but do not condition a cell-resolved perturbation-response field
+on a direct-effect profile.
 
 \textbf{Perturbation models.}
-Dissociated-cell methods learn conditional translations, transport maps,
-gene graphs, or disentangled representations
+Dissociated-cell methods learn conditional translations, transport maps, gene
+graphs, or disentangled representations
 \citep{lotfollahi2019scgen,Lotfollahi2023,bunne2023cellot,roohani2023gears,piran2024biolord}.
-They provide useful direct-effect priors but remove the tissue graph. Spatial
-functional assays recover that graph
+They provide candidate direct-effect profiles but remove the tissue graph.
+Spatial functional assays restore that graph
 \citep{dhainaut2022spatialcrispr,binan2025perturbfish,shen2026spatialperturbseq}.
-Recent methods such as SpatialProp, Celcomen, and CONCERT connect perturbations
-to spatial context \citep{spatialprop2025,celcomen2026,concert2025}.
-\methodname{} focuses on a complementary interface: given a measured or
-predicted direct-effect profile and region, estimate signed receiver fields and
-audit how much performance exceeds context and seed nulls.
+SpatialProp, Celcomen, and CONCERT connect perturbations to spatial context
+\citep{spatialprop2025,celcomen2026,concert2025}. \methodname{} targets a
+specific interface: given a sender region and measured or predicted
+direct-effect profile, estimate a signed receiver field and quantify lift over
+context and seed nulls.
+
+\begin{figure*}[t]
+\centering
+\fbox{\parbox[t][1.20in][t]{0.298\textwidth}{
+\textbf{A. Observed field is mixed}\par\smallskip
+An intact-tissue response contains stable anatomy and local composition
+together with a weaker perturbation-conditioned component.\par\medskip
+\centering
+$\Delta^{\mathrm{PPP}}\approx C_{\mathrm{context}}+
+R_{\mathrm{perturbation}}$
+}}
+\hfill
+\fbox{\parbox[t][1.20in][t]{0.298\textwidth}{
+\textbf{B. Predictive separation}\par\smallskip
+\methodname{} first predicts context-explainable response, then routes a
+direct-effect profile from sender cells to receivers.\par\medskip
+\centering
+$G,X,c,p\rightarrow\widehat C$\par
+$G,X,a,d,e\rightarrow\widehat R$\par
+$\widehat\Delta=\widehat C+\widehat R$
+}}
+\hfill
+\fbox{\parbox[t][1.20in][t]{0.298\textwidth}{
+\textbf{C. Scientific use}\par\smallskip
+Predicted fields define local target utility $U$ and collateral spatial burden
+$S$. Candidate perturbations are compared under target retention.\par\medskip
+\centering
+$\min_a\widehat S(a)$ s.t.\ $\widehat U(a)\geq\tau$
+}}
+\caption{\textbf{Scientific problem and analysis framework.}
+The core model uses context prediction and direct-effect-conditioned residual
+routing. The separation is predictive, not an identifiable causal
+decomposition. Reference-ST and cached communication priors are evaluated only
+as optional diagnostics.}
+\label{fig:main_framework}
+\Description{Three-panel conceptual diagram showing a mixed spatial response,
+predictive context and perturbation-conditioned components, and
+target-constrained perturbation prioritization.}
+\end{figure*}
 
 \section{Problem and Benchmark}
 \label{sec:data_construction}
-\subsection{Spatial response fields}
-Let $G=(V,E)$ be a local tissue graph, $X^{\mathrm{pre}}$ its estimated
-pre-perturbation expression, $m_i$ an indicator of direct-effect membership,
-and $s_i$ the measured or predicted direct-effect profile. The target is a
-signed response field
+\subsection{Spatial Response-Field Task}
+Let $G=(V,E)$ be a local tissue graph, $X$ its matched pre-perturbation
+expression, $a_i$ a direct-effect-cell indicator, and $d_i$ a measured or
+predicted direct-effect profile. The task is to predict the signed
+post-minus-pre response for every cell:
 \[
-\Delta_i=X_i^{\mathrm{post}}-X_i^{\mathrm{pre}},\qquad i\in V.
+\Delta_i=X_i^{\mathrm{post}}-X_i,\qquad i\in V.
 \]
-We model
-\begin{equation}
-\widehat\Delta_i=\widehat C_i+\widehat P_i,
-\label{eq:predictive_decomposition}
-\end{equation}
-Here, $\widehat C_i$ is context-explainable variation. The term
-$\widehat P_i$ is a perturbation-conditioned residual.
-Equation~\eqref{eq:predictive_decomposition} is a predictive decomposition. It
-does not identify a causal communication pathway or establish that every
-residual change was transmitted from the direct-effect cells.
+We distinguish direct-effect cells ($a_i=1$) from receiver cells ($a_i=0$),
+and evaluate receiver responses both over all cell--gene pairs and after
+aggregation into three distance-ranked rings. The task is predictive: neither
+the target nor the model identifies a causal intercellular communication path.
 
 \subsection{Pre--Post Perturbation Pairing}
 \label{sec:ppp_construction}
 Spatial Perturb-seq does not observe the same cell before and after
-perturbation. \ppp therefore constructs a pseudo-pre-state. For each perturbed
-anchor, we form a 64-cell post patch and rank control-like anchors using spatial
-distance, center-expression similarity, patch-expression similarity, and
-cell-type composition. The top $K=3$ control patches are softly aligned into
-the post-patch coordinate frame, converted to post-minus-pre deltas, and
-aggregated with matching-score weights. Spatial partitions are assigned before
-matching so that post anchors, controls, and derived targets do not cross
-train/validation/test boundaries.
+perturbation. \ppp constructs a pseudo-pre-state for each perturbed anchor.
+It forms a 64-cell post patch, ranks control-like anchors using spatial
+distance, center-expression similarity, and patch-expression similarity,
+softly aligns the top $K=3$ controls to the post coordinate frame, and
+aggregates their post-minus-pre deltas with matching-score weights. A nominal
+cell-type-composition channel is present in the implementation, but all coarse
+labels in the reported cache map to one effective ID and the channel is
+constant.
 
 \begin{figure*}[t]
 \centering
@@ -201,353 +189,367 @@ train/validation/test boundaries.
 (a) Each 64-cell post-perturbation patch is matched to $K=3$ control patches,
 softly aligned, and aggregated into a consensus response pseudo-target.
 (b) Example matched patches. (c--e) Multi-control stability and guide-aware
-nulls. Consensus/ring correlations are $0.944/0.923$; own-guide alignment
-exceeds wrong-guide and target-shuffled alignment at direct-effect and receiver
-cells. Matching and model inputs partly overlap, so these audits establish
-stability and guide consistency, not causal target independence.}
+nulls. Consensus/ring correlations are 0.944/0.923; own-guide alignment exceeds
+wrong-guide and target-shuffled alignment at direct-effect and receiver cells.
+Expression-decoupled, gene-disjoint, channel-removal, and no-spatial audits are
+reported in \Cref{tab:confirmatory_analysis}. They support robustness to
+expression overlap, while the no-spatial variant shows that \ppp still depends
+on spatially matched controls.}
 \label{fig:data_pair}
 \Description{Five-panel PPP diagram showing matched-control construction,
-aligned control and post patches, multi-control stability, guide-aware nulls,
-and representative perturbation trend checks.}
+aligned control and post patches, target stability, and guide-aware nulls.}
 \end{figure*}
 
-The final primary split contains 2,179 training, 2,179 validation, and 928 test
-patches, with 512 predicted genes, six coarse cell types, and 23 edge features.
-Multi-control consensus and ring consistency are
-$0.944/0.923$. Across 512 genes, own-guide versus wrong-guide alignment is
-$0.317$ versus $0.129$ at the center, $0.022$ versus $0.004$ in
-high-confidence receivers, and $0.029$ versus $0.001$ over all receivers.
-Because expression and composition are used both for matching and as model
-inputs, \ppp is a guide-consistent pseudo-target rather than causal ground
-truth. Gene-disjoint and no-expression matching variants remain required to
-fully decouple target construction from prediction inputs.
+Spatial partitions are assigned before matching, preventing held-out post
+anchors or matched controls from entering training. Consensus and ring
+consistency are 0.944 and 0.923. Across 512 genes, own-guide versus wrong-guide
+alignment is 0.317 versus 0.129 at the center, 0.022 versus 0.004 in
+high-confidence receivers, and 0.029 versus 0.001 over all receivers. Because
+matching and model inputs partly overlap, \ppp is treated as a stable,
+guide-consistent pseudo-target rather than a causal counterfactual.
+
+\subsection{Splits, Metrics, and Scope}
+We use two evaluation regimes. The original exact-task comparison uses all
+development graphs and 928 block-held-out test graphs so that fourteen
+implemented alternatives can be compared on the same task. The strict
+confirmatory split uses 1,342 training, 837 validation, and 928 test graphs from
+fully separated spatial regions. All scientific effect sizes, robustness
+audits, and formal selector results use the strict split.
+
+We report Neighbor Pearson over receiver cell--gene pairs, receiver-centered
+Pearson after subtracting each receiver profile mean, Ring Pearson over
+distance-ring gene summaries, and receiver MAE. Pooled Ring Pearson concatenates
+ring summaries across test graphs. Graph-paired Ring lift first computes
+full-minus-context change within each graph and then averages; it is therefore
+not the difference of pooled correlations. Predictive $R^2$ is computed from
+held-out squared error, and incremental partial
+$R^2=1-\mathrm{SSE}_{\mathrm{full}}/\mathrm{SSE}_{\mathrm{context}}$.
+Guide-cluster bootstrap retains all graphs from each sampled guide;
+spatial-cluster bootstrap retains all values from sampled test clusters.
+Selector intervals resample the 36 target specifications.
 
 \section{Method}
 \label{sec:method}
-\subsection{\methodname{} core}
-The context branch receives baseline expression, cell state, position, and
-local edges, while direct-effect indicators and profiles are masked:
-\begin{align*}
-h_i^{(0)}
-&=\phi_x(X_i^{\mathrm{pre}})+\phi_c(c_i)+\phi_p(p_i),\\
-\widehat C_i
-&=\psi_C\!\left(\operatorname{GNN}_C(G,h^{(0)})_i\right).
-\end{align*}
-It is cross-fitted by split and then frozen. The residual target is
-$R_i=\Delta_i-\widehat C_i$. The perturbation branch initializes each node from
-its context embedding, direct-effect membership, and direct-effect profile,
-\[
-u_i^{(0)}=\phi_h(h_i)+\phi_m(m_i)+m_i\phi_s(s_i),
-\]
-and performs edge-aware message passing restricted first to
-direct-effect-to-receiver edges and then to receiver-to-receiver paths:
-\[
-\widehat P_i=\psi_P\!\left(
-\operatorname{GNN}_P(G,u^{(0)},e_{ij})_i\right).
-\]
-Distance/ring encodings, cell-state pairs, and communication features are edge
-attributes. This routing is designed to retain the direction and radial
-organization of the seed rather than applying unrestricted graph smoothing.
-The final field is given by \Cref{eq:predictive_decomposition}.
-
-The core objective combines robust node regression, radial summaries,
-receiver-centered profiles, seed consistency, and residual regularization:
-\begin{align*}
-\mathcal L
-={}&\lambda_{\mathrm{node}}\mathcal L_{\mathrm{node}}
-+\lambda_{\mathrm{ring}}\mathcal L_{\mathrm{ring}}
-+\lambda_{\mathrm{ctr}}\mathcal L_{\mathrm{centered}}\\
-&+\lambda_{\mathrm{seed}}\mathcal L_{\mathrm{seed}}
-+\lambda_{\mathrm{reg}}\|\widehat P\|_2^2.
-\end{align*}
-An optional reference-ST encoder and bounded radial refinement are used only in
-the refined model. They are pretrained from $392{,}962$ unperturbed mouse-brain
-cells ($1{,}619$ anchors; $9{,}316$ local pairs) and improve ring Pearson from
-$0.452$ to $0.457$ while leaving neighbor Pearson essentially unchanged. We
-therefore treat them as modest refinements, not the main source of performance.
-Full equations and optimization details are in the appendix.
-
-\subsection{Spatially constrained perturbation prioritization}
-\label{sec:intervention_method}
-For candidate action $a$, target program $t$, and requested ring $r$, target
-utility is the signed target-program response $U(a;t,r)$. Collateral burden
-combines pre-specified components:
+\subsection{Task and Predictive Decomposition}
+\label{sec:method_task}
+Each graph has matched-control expression $x_i\in\mathbb R^G$, nominal cell
+state $c_i$, relative position $p_i$, sender-relative geometry $g_i$,
+direct-effect indicator $a_i$, and direct-effect profile $d_i$ when $a_i=1$.
+Edge features $e_{ij}$ encode relative geometry, nominal state pairs, and an
+optional communication-compatibility score. \methodname{} predicts
 \begin{equation}
-S(a;t,r)=
-\lambda_{\mathrm{far}}S_{\mathrm{far}}+
-\lambda_{\mathrm{off}}S_{\mathrm{off}}+
-\lambda_{\mathrm{undes}}S_{\mathrm{undes}},
+\widehat\Delta_i=\widehat C_i+\widehat R_i,\qquad
+\widehat X_i^{\mathrm{post}}=x_i+\widehat\Delta_i ,
+\label{eq:predictive_decomposition}
+\end{equation}
+Here $\widehat C_i$ is context-explainable response. The second term,
+$\widehat R_i$, is the perturbation-conditioned residual. This predictive
+decomposition does not identify a causal communication pathway or imply that
+every residual response was transmitted from the direct-effect cells.
+
+\subsection{Context-Explainable Component}
+\label{sec:method_context}
+The context model is trained with direct-effect indicators and profiles masked:
+\begin{equation}
+\widehat C_i=f_{\mathrm{context}}(x,c,p,e;\,a=0,d=0),
+\qquad
+R_i^\star=\Delta_i^{\mathrm{PPP}}-\widehat C_i .
+\label{eq:context_residual}
+\end{equation}
+It is trained first and frozen before residual-model optimization. The residual
+target $R_i^\star$ therefore asks the second stage to model response remaining
+after the implemented context predictor, rather than the full
+context-dominated field.
+
+\subsection{Direct-Effect-Conditioned Residual Routing}
+\label{sec:method_residual}
+The model embeds baseline and spatial features, then initializes separate
+receiver and direct-effect states:
+\begin{equation}
+\begin{aligned}
+h_i&=\phi_x(x_i)+\phi_c(c_i)+\phi_p(p_i)+\phi_g(g_i),\\
+b_i&=\phi_N(h_i),\qquad n_i^0=0,\\
+u_i&=a_i\phi_D([h_i,d_i,g_i]).
+\end{aligned}
+\label{eq:state_initialization}
+\end{equation}
+Thus $u_i$ is nonzero only at direct-effect cells, and receivers never directly
+observe $d_i$. For each implemented propagation layer, the code retains only
+edges whose source is a direct-effect cell and destination is a receiver:
+\begin{equation}
+\begin{aligned}
+z_{ij}^{\ell}
+&=\sigma\!\left(
+\phi_a([u_i,b_j,n_j^\ell,e_{ij}])+w_{\mathrm{comm}}q_{ij}
+\right),\\
+\mu_{ij}^{\ell}
+&=z_{ij}^{\ell}\phi_\mu([u_i,b_j,e_{ij}]),\\
+n_j^{\ell+1}
+&=\operatorname{LN}\!\left(n_j^\ell+
+\sum_{\substack{i:(i,j)\in E\\a_i=1}}\mu_{ij}^{\ell}\right)
++\phi_u([n_j^\ell,b_j]).
+\end{aligned}
+\label{eq:directed_message_passing}
+\end{equation}
+Direct-effect states remain fixed; there is no receiver-to-receiver message
+path in the core implementation. A receiver head decodes $\widehat R_j$ from
+$b_j$, $n_j^L$, and the graph-level sender summary. Communication scores are
+optional gate biases. Randomizing cached scores leaves Ring Pearson unchanged
+(0.4574 versus 0.4575), so we do not attribute the measured lift to this prior.
+
+\subsection{Training and Inference}
+\label{sec:training_inference}
+The residual model is optimized with the implemented objective
+\begin{equation}
+\mathcal L_{\mathrm{prop}}
+=\mathcal L_{\mathrm{neighbor}}
++0.3\mathcal L_{\mathrm{ring}}
++0.3\mathcal L_{\mathrm{post}}
++0.1\mathcal L_{\mathrm{rank}} .
+\label{eq:training_objective}
+\end{equation}
+$\mathcal L_{\mathrm{neighbor}}$ is Huber loss over high-confidence receivers;
+$\mathcal L_{\mathrm{ring}}$ supervises three ring-level response summaries;
+$\mathcal L_{\mathrm{post}}$ reconstructs post-state expression; and
+$\mathcal L_{\mathrm{rank}}$ preserves within-graph gene-response ordering.
+Direct-effect-cell loss has weight zero in the reported propagation setting so
+that the easier sender task does not dominate receiver learning. At inference,
+$d_i$ is either measured in the spatial assay or supplied by an external
+direct-effect assay, then routed through the frozen graph model.
+
+The exact-task comparison also evaluates an optional distance-aware response
+refinement, reported as \methodname{}-Refine. An unperturbed reference-ST
+adapter yields paired Ring gains of only $+0.0009$, $+0.0002$, and $+0.0032$
+at 10\%, 25\%, and 50\% paired-data fractions, with approximately $+0.0005$ at
+full data. We exclude it from the core definition and report it only as a
+negative appendix diagnostic.
+
+\subsection{Spatially Constrained Perturbation Prioritization}
+\label{sec:intervention_method}
+For action $a$, target program $t$, and requested ring $r$, utility
+$U(a;t,r)$ is the signed target-program response. Collateral burden is
+\begin{equation}
+S(a;t,r)=\lambda_{\mathrm{far}}S_{\mathrm{far}}
++\lambda_{\mathrm{off}}S_{\mathrm{off}}
++\lambda_{\mathrm{undes}}S_{\mathrm{undes}},
 \label{eq:burden}
 \end{equation}
-where the terms measure far-field target response, off-program response, and
-response in pre-specified undesirable programs. Program definitions, weights,
-and operating points are selected on validation data and frozen for test
-evaluation. The constrained selector solves
+combining far-field target response, off-program response, and response in
+validation-defined undesirable programs. The selector is
 \begin{equation}
-a^\star=\arg\min_a \operatorname{UCB}\!\left[\widehat S(a)\right]
-\quad\text{s.t.}\quad
-\operatorname{LCB}\!\left[\widehat U(a)\right]\geq\tau_q.
+a^\star=\arg\min_{a:\widehat U(a)\geq\tau}\widehat S(a).
 \label{eq:selector}
 \end{equation}
-We also evaluate clean-score and rank-consensus variants because absolute
-target calibration is incomplete. This is retrospective experimental
-prioritization: it neither estimates clinical safety nor recommends treatment.
+Program definitions, weights, utility threshold, and operating point are
+selected on validation data and frozen. Observed test fields are used only for
+evaluation. This formal analysis is separate from the exploratory post-hoc
+case discovery.
 
 \section{Experiments}
 \label{sec:experiments}
-\subsection{Evaluation design}
-The primary benchmark is mouse-brain Spatial Perturb-seq with held-out spatial
-blocks. A grouped guide-out split jointly holds out \textit{fasn},
-\textit{stk39}, and \textit{trem2}; measured-seed evaluation in this split tests
-propagation transfer, whereas predicted-seed evaluation is the end-to-end task.
-A controlled synthetic ligand--receptor benchmark uses 432 graphs from external
-in vivo Perturb-seq signatures and NicheNet priors. Perturb-map supplies
-spot/lesion-level external program readouts, and Perturb-FISH supplies a
-panel-based external prioritization audit.
+\subsection{Evaluation Design}
+The primary benchmark is mouse-brain Spatial Perturb-seq. The complete
+exact-task suite is implemented on the original full-development comparison
+split; all perturbation-specific effect estimates are independently
+re-estimated on the stricter three-way spatial split. Five grouped guide-out
+folds assign every guide to test once. Observed spatial seeds evaluate
+conditional propagation transfer, while companion scRNA seeds test the
+end-to-end cross-assay interface. Supporting analyses use a controlled
+ligand--receptor benchmark, Perturb-map, and Perturb-FISH. Metrics and
+resampling units follow \Cref{sec:data_construction}; detailed source tables,
+per-fold results, and complete gene distributions are in the appendix.
 
-We report neighbor and ring Pearson, receiver-centered Pearson, and MAE for
-response fields. For prioritization, we report target-qualified rate (TQR),
-observed burden reduction relative to target-only, regret to the observed-field
-oracle, low-burden success among five candidates (LB@5), and pairwise
-lower-burden agreement. Confidence intervals resample target specifications;
-the null probability is computed by 2,000 target-specification bootstrap
-comparisons. Complete gene distributions, baseline definitions, split
-manifests, synthetic tests, and external-assay details are in the appendix.
-
-\subsection{RQ1: Context dominates flat neighbor variation}
-\label{sec:rq1}
-\begin{table}[t]
-\centering
-\small
-\caption{\textbf{Direct-effect controls on block-held-out Spatial
-Perturb-seq.} The correct profile adds little flat neighbor correlation over a
-shuffled profile but contributes $+0.052$ ring correlation.}
-\label{tab:context_perturbation}
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{lccc}
-\toprule
-Input/model & Neighbor $r$ & Ring $r$ & $\Delta$Ring \\
-\midrule
-Context only & 0.610 & 0.405 & -- \\
-Shuffled profile & 0.679 & 0.405 & 0.000 \\
-Predicted profile & 0.680 & 0.417 & +0.012 \\
-Measured profile & \textbf{0.684} & \textbf{0.457} & \textbf{+0.052} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\Cref{tab:context_perturbation} changes the interpretation of the benchmark.
-Context alone already explains most of the ordinary neighbor correlation.
-Retaining the direct-effect region but shuffling its gene profile increases
-neighbor correlation to $0.679$ without improving ring organization. The
-correct measured profile reaches only $0.684$ neighbor correlation, yet raises
-ring correlation from $0.405$ to $0.457$. Thus, source location and tissue
-context dominate the flat metric, whereas perturbation identity is expressed
-more clearly in radial structure. The same pattern appears under grouped guide
-holdout: zero and observed seeds both yield neighbor $r=0.596$, while ring $r$
-changes from $0.437$ to $0.451$.
-
-This finding also explains why removing context residualization collapses the
-model to $0.165/0.153$: the residual branch is not a replacement for modeling
-the tissue state. Removing edge attributes gives $0.606/0.418$, and removing
-direct-effect input gives $0.614/0.441$. The result is therefore a separation
-of responsibilities: context reconstructs global variation, while
-perturbation-conditioned, edge-aware routing contributes the spatially
-organized residual.
-
-\subsection{RQ2--RQ3: Residual fields are learnable but OOD remains hard}
-\label{sec:rq23}
+\subsection{Main Spatial Response-Field Prediction}
+\label{sec:main_prediction}
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.94\linewidth]{main_exp.png}
-\caption{\textbf{Held-out cell-resolved response fields.}
-Rows show representative block-held-out patches; columns compare \ppp
-pseudo-targets with \methodname{} predictions for \textit{Trem2},
-\textit{Gfap}, and \textit{C1qa}. Color encodes signed expression change and
-outlined nodes identify direct-effect cells. These examples visualize local
-magnitude and radial organization; quantitative conclusions use all 928 test
-patches and all 512 genes.}
+\caption{\textbf{Qualitative response-field predictions on the held-out Spatial
+Perturb-seq test region.}
+The left panel compares the whole-region \ppp pseudo-target and \methodname{}
+prediction. The remaining panels show representative 64-cell neighborhoods for
+\textit{Gpr37} under sgRNA-\textit{Lrrk2} and \textit{C1qa} under
+sgRNA-\textit{Trem2}. Colors denote signed response deltas and stars mark
+direct-effect cells. Quantitative conclusions use all 928 test graphs and all
+512 genes.}
 \label{fig:main_exp_kdd}
-\Description{Spatial node maps comparing held-out pseudo-target and predicted
-gene-response fields for three representative mouse-brain patches.}
+\Description{Whole-region and local spatial maps comparing PPP pseudo-targets
+with SPINE predictions for Gpr37 under Lrrk2 perturbation and C1qa under Trem2
+perturbation.}
 \end{figure*}
 
-\begin{table*}[t]
-\centering
-\small
-\caption{\textbf{Prediction and external response-field validation.}
-The block split evaluates full held-out fields; grouped guide-out rows with
-measured seeds evaluate propagation transfer, not end-to-end unseen-guide
-prediction. Synthetic LR is controlled simulation; Perturb-map is coarser
-external program agreement.}
-\label{tab:prediction_summary}
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{llccc}
-\toprule
-Setting & Method/readout & Neighbor/spot $r$ & Ring/lesion & MAE \\
-\midrule
-\multirow{4}{*}{Spatial block}
- & Statistical guide mean & 0.182 & 0.094 & 0.621 \\
- & Retrieval, matched guide & 0.236 & 0.154 & 0.589 \\
- & Generic graph transformer & 0.611 & 0.432 & 0.449 \\
- & \methodname{} core / refine & \textbf{0.684} & 0.452 / \textbf{0.457} & \textbf{0.408} \\
-\midrule
-\multirow{5}{*}{Grouped guide-out}
- & Elastic net & 0.334 & 0.142 & -- \\
- & Generic graph transformer & 0.497 & 0.395 & -- \\
- & SpatialProp patch adapter & -0.001 & -0.003 & 0.473 \\
- & \methodname{}, zero seed & 0.596 & 0.437 & 0.454 \\
- & \methodname{}, measured seed & \textbf{0.596} & \textbf{0.451} & -- \\
-\midrule
-Synthetic LR & fine-tuned / held-out perturbation & 0.619 / 0.274 & 0.815 / 0.550 & -- \\
-Perturb-map & \textit{Ifngr2} spot / \textit{Jak2} lesion & \textbf{0.853} & \textbf{0.929} & -- \\
-\bottomrule
-\end{tabular}
-\end{table*}
+\input{generated/table1_exact_task}
 
-On the held-out spatial block, \methodname{} reaches neighbor/ring
-$0.684/0.457$ and improves over statistical, retrieval, radial, and generic
-graph baselines. Aggregate gene-space Pearson is $0.670$ over receiver
-node--gene pairs; performance varies strongly with response magnitude, which
-is why all 512-gene distributions and sign metrics are reported in the
-appendix rather than only selected markers.
+\Cref{fig:main_exp_kdd} shows that the model produces signed local and
+whole-region fields rather than only patch summaries. On the original
+exact-task comparison split, \methodname{}-Core reaches Neighbor/Ring Pearson
+0.684/0.452, and optional refinement changes Ring Pearson to 0.457 while
+leaving Neighbor Pearson unchanged (\Cref{tab:exact_task_main}). It outperforms
+the implemented statistical, retrieval, radial, linear, patch, and generic
+graph alternatives on this common output. Because this split uses the full
+development set, it is a model-comparison result only; perturbation-specific
+effect size is evaluated on the strict split below.
 
-The grouped guide-out result requires a narrower interpretation. With measured
-direct-effect profiles, \methodname{} reaches $0.596/0.451$, showing that the
-propagation module transfers when the unseen guide's direct effect is supplied.
-The zero-seed control already reaches $0.596/0.437$, so end-to-end
-perturbation-specific lift is confined to the ring metric. A SpatialProp patch
-adapter is near zero in this local target coordinate system; because its native
-output and training objective differ, we report this as an adapter comparison
-rather than a definitive ranking of the original method.
+\subsection{Signal Decomposition and Benchmark Robustness}
+\label{sec:signal_robustness}
+\input{generated/table2_confirmatory}
 
-Controlled synthetic LR propagation separates context from signal more
-cleanly: niche-only prediction is $0.003/0.006$, while fine-tuning reaches
-$0.619/0.815$. Held-out geometry, strength, and host-patch splits remain above
-$0.52/0.80$; held-out perturbation is harder at $0.274/0.550$. Perturb-map
-provides independent but coarser support: \textit{Ifngr2}, \textit{Jak2}, and
-\textit{Tgfbr2} spot-level programs reach Pearson $0.853$, $0.757$, and
-$0.714$, and \textit{Jak2} lesion ranking reaches Spearman $0.929$. These
-results support learnable program/radial structure, while also identifying
-unseen perturbation identity as the main generalization bottleneck.
+\textbf{Independent validation.}
+With train/validation/test regions fully separated, context and full models
+reach pooled Ring Pearson 0.3626 and 0.4111. The mean graph-paired lift is
+$+0.0532$ (guide-cluster bootstrap 95\% CI, 0.0474--0.0586). The pooled
+difference and paired lift are not algebraically identical because they
+aggregate at different levels.
 
-\subsection{RQ4: Matched utility can hide different spatial burden}
-\label{sec:rq4}
+\textbf{Predictive variance decomposition.}
+Context and full models explain $R^2=0.3712$ and 0.4669 of receiver variation,
+respectively. The resulting partial $R^2=0.1521$ (spatial-cluster bootstrap
+95\% CI, 0.1476--0.1559) means that perturbation conditioning explains 15.2\%
+of the squared-error variance remaining after context prediction. This is a
+predictive, not causal, variance decomposition.
+
+\textbf{\ppp matching decoupling.}
+Positive paired Ring lift survives disjoint matching and output genes
+($+0.0257$), removal of center expression ($+0.0281$), removal of
+patch expression ($+0.0263$), and strict no-expression matching
+($+0.0128$). Removing spatial matching reduces lift to $+0.0025$, with a CI
+crossing zero. Expression overlap is therefore not sufficient to explain the
+radial signal, but spatially matched controls are necessary for the current
+\ppp construction.
+
+\textbf{Profile and location controls.}
+Correct profile and region reach Ring Pearson 0.4574. Shuffling the profile
+reduces this to 0.4056; relocating the correct profile gives 0.4314; and
+randomizing both profile and region gives 0.4135. Profile identity and sender
+placement therefore provide complementary information. Randomized cached
+communication scores give 0.4575, showing no measurable additional
+contribution.
+
+\textbf{Spatial scale.}
+The 32-, 64-, 100-, and 128-cell settings correspond to median physical radii
+67.83, 98.18, 125.79, and 144.60\,$\mu$m. Their paired lifts are $+0.0430$,
+$+0.0532$, $-0.0077$, and $-0.0246$. Larger patches have higher absolute
+context predictability but not stronger perturbation-conditioned signal:
+128-cell absolute Ring remains high, yet adding the residual decreases
+performance. Thus 64 cells, approximately 98\,$\mu$m here, maximizes paired
+lift for this mouse-brain assay; it is not a universal interaction radius.
+
+\subsection{Generalization Across Guides and Assays}
+\label{sec:generalization}
+\textbf{Guide-OOD conditional transfer.}
+Across five guide-held-out folds, an assay-matched observed spatial seed
+improves Ring Pearson from 0.4400 to 0.4619. The mean gain is $+0.0220$ and is
+positive in all five folds. This establishes conditional propagation transfer
+given an assay-matched direct-effect profile, but the magnitude is modest.
+
+\textbf{Cross-assay seed failure.}
+The end-to-end setting is substantially harder. Replacing the spatial seed
+with a companion external scRNA-derived profile reduces Ring Pearson from
+0.4400 for zero seed to 0.4130, with all five folds below zero seed. The current
+bottleneck is therefore not spatial routing alone, but cross-assay transfer of
+the direct-effect profile.
+
+\textbf{Related-method diagnostic.}
+Using the official CONCERT implementation, native reconstruction is strong,
+with median cell Pearson 0.795 and 0.820 on two slides. Perturbation
+pseudo-delta recovery is nevertheless below a guide-mean baseline in all four
+evaluated guide--slide contrasts. We interpret this as an objective mismatch,
+not a definitive ranking: accurate context reconstruction does not necessarily
+imply perturbation-response prediction.
+
+\textbf{Supporting assays.}
+Controlled synthetic ligand--receptor propagation separates context from signal
+more cleanly. Niche-only Neighbor and Ring scores are 0.003 and 0.006.
+Fine-tuning raises them to 0.619 and 0.815. Held-out perturbations remain harder,
+at 0.274 and 0.550. Perturb-map
+provides coarser external support: \textit{Ifngr2}, \textit{Jak2}, and
+\textit{Tgfbr2} spot-level program Pearson values are 0.853, 0.757, and 0.714,
+and \textit{Jak2} lesion ranking reaches Spearman 0.929. These are supporting
+program-level results rather than exact-task rows.
+
+\subsection{Spatially Constrained Perturbation Prioritization}
+\label{sec:prioritization_results}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{selector_application_main.pdf}
-\caption{\textbf{Response-field-based intervention prioritization.}
-(a) Field-to-decision workflow. (b) Three pre-specified examples retain target
-utility while reducing burden. (c) TGF-$\beta$/stroma burden decomposition.
-(d) Spatial Perturb-seq and Perturb-FISH support, together with the remaining
-target-calibration boundary.}
+\caption{\textbf{Response-field-based perturbation prioritization.}
+(a) Formal field-to-decision interface. (b--c) Exploratory post-hoc cases
+illustrating how matched target utility can coexist with different spatial
+burden. (d) Confirmatory evaluation on the fully separated
+train/validation/test selector split: the selector preserves target-qualified
+rate 0.6944 while reducing mean spillover by 12.0\%; absolute held-out burden
+decreases by 0.1244 [0.0559, 0.1926]. The post-hoc cases are illustrative and
+are not used as confirmatory effect estimates.}
 \label{fig:selector_application_kdd}
-\Description{Four-panel summary of constrained perturbation prioritization,
-including the workflow, three matched-utility cases, burden decomposition, and
-calibration curves.}
+\Description{Four-panel perturbation-prioritization figure showing the decision
+interface, exploratory matched-utility cases, an exploratory burden
+decomposition, and formal held-out selector estimates.}
 \end{figure}
 
-\begin{table*}[t]
-\centering
-\scriptsize
-\caption{\textbf{Frozen Spatial Perturb-seq prioritization benchmark
-($n=36$ target specifications).} CIs resample target specifications. Burden
-reduction is relative to target-only; lower regret is better. LB@5 denotes
-low-burden success among five candidate actions.}
-\label{tab:selector_main}
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lccccc}
-\toprule
-Method & TQR $\uparrow$ & Burden reduction $\uparrow$ & Regret $\downarrow$ & LB@5 $\uparrow$ & Pairwise agreement $\uparrow$ \\
-\midrule
-Target-only & 0.722 [0.583, 0.861] & 0.000 & 0.551 & 0.139 & -- \\
-Random target-qualified & 1.000 & 0.021 [-0.100, 0.154] & 0.412 & 0.000 & -- \\
-Forward aggregation & 0.639 [0.472, 0.778] & 0.225 [0.083, 0.355] & 0.282 & 0.556 & 0.593 \\
-Spillover head, constrained & 0.528 [0.361, 0.694] & \textbf{0.481} [0.362, 0.586] & \textbf{0.150} & 0.444 & 0.606 \\
-Rank-consensus & 0.620 [0.454, 0.778] & 0.418 [0.308, 0.516] & 0.193 & 0.528 & \textbf{0.606} \\
-LCB/UCB constrained & 0.537 [0.398, 0.676] & 0.425 [0.310, 0.521] & 0.195 & 0.491 & 0.605 \\
-Clean operating point & \textbf{0.639} [0.499, 0.806] & 0.354 [0.222, 0.476] & 0.235 & 0.472 & 0.606 \\
-Observed-field oracle & 1.000 & 0.672 [0.630, 0.713] & 0.000 & 1.000 & -- \\
-\bottomrule
-\end{tabular}
-\end{table*}
+\input{generated/table3_formal_selector}
 
-The decision problem contains 5,286 candidate actions and 36 target
-specifications. The clean operating point retains TQR $0.639$ while reducing
-observed burden by $0.354$ (95\% CI $0.222$--$0.476$); its improvement over
-target-only has bootstrap null probability $0.0005$. Rank-consensus trades a
-slightly lower TQR ($0.620$) for reduction $0.418$. The unconstrained tendency
-of the spillover head to reduce target retention is visible in its TQR
-$0.528$, motivating the hard target-retention formulation rather than a raw
-$\widehat U-\lambda\widehat S$ score. The oracle reduction $0.672$ shows both
-that substantial lower-burden alternatives exist and that prediction remains
-the limiting factor.
+On the fully separated selector split, the constrained selector preserves the
+observed target-qualified rate of target-only (0.6944 versus 0.6944) while
+reducing mean spillover by 12.0\%. Absolute burden decreases by 0.1244
+[0.0559, 0.1926]. A standalone \methodname{} spillover head reaches pairwise
+burden-order agreement 0.6250 [0.6108, 0.6393], supporting learnable ranking
+signal. The effect is positive but moderate, and the observed-field oracle
+shows substantial remaining room.
 
-Three pre-specified examples make the trade-off concrete. For a
-TGF-$\beta$/stroma near-down objective, \texttt{sgrna\_oligo2} retains
-$97.9\%$ of the target-only utility ($4.968$ versus $5.074$) while reducing
-weighted burden from $1.188$ to $0.597$ ($49.7\%$). Vascular-stress near-down
-and myeloid-activation far-up retain $99.8\%$ and $89.3\%$ of utility while
-reducing burden by $24.4\%$ each. Full far-field, off-program, and
-pre-specified-undesirable-program decompositions are in the appendix.
+The previously reported 35.4\% aggregate reduction and the
+TGF-$\beta$/stroma, vascular-stress, and myeloid-activation examples were
+identified in the discovery analysis. We retain them only as exploratory
+illustrations of the utility--burden mechanism and do not use them as
+confirmatory effect estimates. Perturb-FISH calibration and module-level
+support are likewise reported in the appendix.
 
-Perturb-FISH tests whether the prioritization signal survives a different,
-panel-limited spatial assay. On 39 validation-defined reliable
-perturbation--context specifications, predicted utility plus predicted burden
-gives TQR $0.718$, observed burden reduction $0.151$, and pairwise
-lower-burden agreement $0.874$. Holding observed utility fixed and ranking only
-by predicted burden raises reduction to $0.207$, locating the remaining
-bottleneck in target-retention prediction rather than burden ranking.
-
-The limitation is clearest under strict unseen-guide selection: TQR falls to
-$0.333$ and burden reduction to $0.068$ despite pairwise agreement up to
-$0.621$. We therefore claim retrospective lower-burden prioritization on
-held-out spatial fields, not a solved end-to-end controller for unseen
-perturbations.
-
+\clearpage
 \section{Discussion}
 \label{sec:discussion_conclusion}
-The main scientific result is a decomposition of where predictive signal
-comes from. In Spatial Perturb-seq, tissue context and source-region geometry
-explain most flat neighbor variation. Perturbation-specific information is
-weaker but reproducible in radial organization, selected programs, and
-matched-utility burden differences. This reconciles the strong context-only
-baseline with the non-zero correct-profile ring lift: the two results describe
-different parts of the response field rather than contradicting each other.
+The principal finding is a decomposition of predictive signal. Tissue context
+accounts for most global field structure, while perturbation conditioning adds
+a smaller but reproducible radial component. Matching-decoupling and
+profile/location controls narrow the interpretation further: expression
+overlap alone does not explain the lift, spatially local pseudo-controls remain
+necessary, and both the sender profile and its location matter. This resolves
+the apparent tension between strong context reconstruction and non-zero
+perturbation lift: they describe different estimands.
 
-\methodname{} is useful because it operationalizes this separation. The core
-model is deliberately limited to a masked context branch and a directed
-residual branch. Reference-ST pretraining and ring refinement provide a modest
-incremental gain and are optional. The prioritization analysis then converts
-predicted fields into a scientific decision problem: among actions expected to
-meet a local objective, which one has lower far-field and off-program burden?
-The positive block-held-out and Perturb-FISH results justify further
-development, while the strict guide-out result identifies target calibration
-as the next technical priority.
+\methodname{} operationalizes this distinction with a frozen context predictor
+and direct-effect-to-receiver residual routing. Its conditional guide-OOD
+result supports reuse when an assay-matched spatial seed is available, but the
+external scRNA failure shows that end-to-end perturbation transfer is not
+solved. The formal selector converts the predicted field into a practical
+experimental decision: among actions expected to meet a local objective, which
+one has lower far-field and off-program burden? Its 12.0\% held-out reduction is
+modest but credible, and motivates better direct-effect transfer and target
+calibration rather than a more elaborate routing prior.
 
 \section{Limitations and Ethical Considerations}
 \label{sec:limitations_ethical_considerations}
-\ppp responses are stable, guide-consistent pseudo-targets, not observed
-counterfactual outcomes for the same cells. Its matching channels overlap
-model inputs; no-expression and gene-disjoint pairing audits are still needed.
-The present patch size (64 cells) and $K=3$ matched controls are fixed design
-choices whose 32/64/128 and $K=1/3/5$ sensitivities have not yet been completed.
-Grouped guide holdout with measured seeds establishes propagation transfer, not
-end-to-end prediction of unseen perturbations; predicted-seed calibration and
-multi-fold guide OOD remain incomplete. Perturb-map and Perturb-FISH provide
-program- or panel-level external support rather than cell-resolved replication.
-The IFN-$\gamma$ deployment study in the appendix is a plausibility check
-without paired spatial ground truth.
+\ppp remains a matched pseudo-counterfactual rather than an observed pre/post
+measurement of the same cells. Positive lift survives gene-disjoint and
+no-expression matching but disappears without spatial matching, so conclusions
+depend on local control states. The reported cache collapses nominal coarse
+cell-state labels to one mapped ID, preventing cell-type-stratified claims.
+The 64-cell setting maximizes paired lift in this mouse-brain assay, but its
+approximately 98\,$\mu$m scale may not transfer across tissues, platforms, or
+cell densities. Guide-OOD gain from assay-matched spatial seeds is modest, and
+companion scRNA seeds underperform zero seed. Cached communication scores and
+the reference-ST adapter provide no robust measured gain and are not core
+components. The formal selector effect is positive but moderate; larger
+discovery-set reductions and individual biological cases are post-hoc
+illustrations. No result has prospective spatial perturbation validation.
 
 \methodname{} and its prioritization outputs are for experimental hypothesis
 generation, not clinical decision making, treatment recommendation, or
 therapeutic safety assessment. Public or de-identified molecular data can
-still contain sensitive tissue, disease, and donor information; downstream
-use must follow the original consent, IRB, and data-use terms. Current
-benchmarks overrepresent mouse brain, abundant cell states, selected guides,
-and public assays. Prospective validation, broader tissues and species, and
-domain-expert review are required before an intervention is acted upon.
+retain sensitive tissue, disease, and donor information; reuse must follow
+original consent, IRB, and data-use terms. Broader tissues and species,
+prospective intervention tests, and domain-expert review are required before
+acting on a prioritized perturbation.
 
+\clearpage
 \section{Generative AI Usage}
 Generative AI tools assisted language editing and code development. The authors
 independently checked all designs, results, figures, and interpretations. No
@@ -555,11 +557,22 @@ generative AI model constructed benchmark targets or experimental labels.
 
 \section{Code and Data Availability}
 \label{sec:code_release}
-We will release code, configurations, split manifests, benchmark scripts,
-source tables, and evaluation scripts in a public repository; the archival URL
-will be added before submission. All datasets are public and remain subject to
-their original terms.
+We will release code, configurations, split manifests, machine-readable source
+tables, and evaluation scripts in a public repository; the archival URL will be
+added before submission. All datasets are public and remain subject to their
+original terms.
+
+\section{Reproducibility Statement}
+The submission bundle separates strict confirmatory, original exact-task, and
+exploratory post-hoc results in a machine-readable claims registry. Tables
+1--3 are generated from versioned CSV files rather than manually duplicated
+values. The release will include spatial and grouped-guide split manifests,
+model and selector configurations, bootstrap units, figure-generation scripts,
+and result-provenance records that map each reported estimate to its source
+file. Exact-task and strict-split results are stored separately to prevent
+cross-split comparison.
 
 \typeout{SPINE-MAIN-END-PAGE=\thepage}
+\clearpage
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}

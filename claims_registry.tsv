@@ -1,0 +1,20 @@
+claim	value	metric	split	resampling unit	source file
+Context and full models reach pooled Ring Pearson 0.3626 and 0.4111	0.3626/0.4111	Pooled Ring Pearson	strict three-way spatial test	none	source_data/table2_confirmatory.csv
+The residual model adds mean graph-paired Ring lift 0.0532	+0.0532 [0.0474, 0.0586]	Mean graph-paired Ring lift	strict three-way spatial test	guide-cluster bootstrap	source_data/table2_confirmatory.csv
+Context and full predictive R2 are 0.3712 and 0.4669	0.3712/0.4669	Predictive R2	strict three-way spatial test	spatial-cluster bootstrap	source_data/table2_confirmatory.csv
+Incremental partial R2 conditional on context is 0.1521	0.1521 [0.1476, 0.1559]	Partial R2 = 1-SSE_full/SSE_context	strict three-way spatial test	spatial-cluster bootstrap	source_data/table2_confirmatory.csv
+Expression-decoupled PPP variants retain positive paired Ring lift	+0.0257/+0.0281/+0.0263/+0.0128	Within-variant paired Ring lift	strict PPP variant tests	guide-cluster bootstrap	source_data/table2_confirmatory.csv
+Removing spatial matching collapses the PPP paired lift	+0.0025 [-0.0022, 0.0066]	Within-variant paired Ring lift	strict no-spatial PPP test	guide-cluster bootstrap	source_data/table2_confirmatory.csv
+Both direct-effect profile and sender location contribute to Ring prediction	0.4574/0.4056/0.4314/0.4135	Ring Pearson	original exact-task held-out test	none	source_data/direct_effect_factorial.csv
+Randomizing cached CCC scores has no measurable effect	0.4574 vs 0.4575	Ring Pearson	original exact-task held-out test	none	source_data/direct_effect_factorial.csv
+Assay-matched spatial seeds improve all five guide-OOD folds	0.4400 to 0.4619; +0.0220	Ring Pearson	five grouped guide-OOD folds	fold direction	source_data/guide_ood_fivefold.csv
+External scRNA seeds underperform zero seed in all five folds	0.4400 to 0.4130; -0.0270	Ring Pearson	five grouped guide-OOD folds	fold direction	source_data/external_seed_propagation.csv
+The 64-cell patch maximizes paired perturbation-conditioned lift in this assay	+0.0532 at median radius 98.18 um	Mean graph-paired Ring lift	strict patch-scale tests	guide-cluster bootstrap	source_data/table2_confirmatory.csv
+The formal constrained selector preserves target-qualified rate	0.6944 vs 0.6944	Target-qualified rate	formal three-way selector test	target-specification bootstrap	source_data/table3_formal_selector.csv
+The formal constrained selector reduces held-out spillover	0.1200 relative; 0.1244 [0.0559, 0.1926] absolute	Mean spillover reduction and absolute burden decrease	formal three-way selector test	target-specification bootstrap	source_data/table3_formal_selector.csv
+The standalone spillover head predicts pairwise burden ordering	0.6250 [0.6108, 0.6393]	Pairwise burden-order agreement	formal three-way selector test	target-specification bootstrap	source_data/table3_formal_selector.csv
+SPINE-Core and SPINE-Refine lead the original exact-task comparison	0.68410/0.45204 and 0.68443/0.45722	Neighbor/Ring Pearson	original full-development block holdout	none	source_data/table1_exact_task.csv
+CONCERT pseudo-delta recovery is below the guide-mean baseline in four contrasts	4/4 contrasts	Aggregate gene Pearson	Perturb-map native holdouts	cell bootstrap	source_data/concert_pseudodelta.csv
+The optional reference-ST adapter has near-zero paired Ring gain	+0.0009/+0.0002/+0.0032/+0.0005	Paired Ring gain	10/25/50/100 percent paired-data fractions	none	source_data/reference_st_low_data.csv
+The larger discovery-selector reductions are exploratory	0.354/0.418/0.672	Relative burden reduction	legacy discovery analysis	none	source_data/selector_operating_points.csv
+The three biological selector cases are exploratory	24.4-49.7 percent	Burden reduction	legacy discovery analysis	none	source_data/selector_case_summary.csv

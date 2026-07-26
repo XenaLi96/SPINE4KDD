@@ -1,0 +1,20 @@
+panel,item,context,full,effect,ci,source
+A,Pooled Ring Pearson,0.3626,0.4111,,,path2_gap_experiment_results.csv
+A,Mean graph-paired Ring lift,,,+0.0532,"[0.0474, 0.0586]",path2_gap_incremental_residual_comparisons.csv
+A,Predictive R2,0.3712,0.4669,partial R2 = 0.1521,"[0.1476, 0.1559]",decomposition_metrics.csv; decomposition_bootstrap_ci.csv
+B,Correct profile + correct region,,0.4574,,,missing_direct_effect_controls.csv
+B,Shuffled profile + correct region,,0.4056,,,missing_direct_effect_controls.csv
+B,Correct profile + relocated region,,0.4314,,,missing_direct_effect_controls.csv
+B,Random profile + random region,,0.4135,,,missing_direct_effect_controls.csv
+B,Correct profile + randomized CCC,,0.4575,,,missing_direct_effect_controls.csv
+C,Gene-disjoint matching/output genes,,,+0.0257,"[0.0215, 0.0302]",path2_gap_paired_graph_comparisons.csv
+C,No center-expression matching,,,+0.0281,"[0.0244, 0.0319]",path2_gap_paired_graph_comparisons.csv
+C,No patch-expression matching,,,+0.0263,"[0.0226, 0.0300]",path2_gap_paired_graph_comparisons.csv
+C,Strict no-expression matching,,,+0.0128,"[0.0088, 0.0166]",path2_gap_paired_graph_comparisons.csv
+C,No spatial matching,,,+0.0025,"[-0.0022, 0.0066]",path2_gap_paired_graph_comparisons.csv
+D,Assay-matched spatial seed,0.4400,0.4619,+0.0220,5/5 positive,guide_ood_fivefold.csv
+D,External scRNA seed,0.4400,0.4130,-0.0270,5/5 below zero-seed,external_seed_propagation.csv
+E,32 cells; median radius 67.83 um,0.2775,0.3142,+0.0430,,patch_radius_summary.csv; path2_gap_paired_graph_comparisons.csv
+E,64 cells; median radius 98.18 um,0.3626,0.4111,+0.0532,,patch_radius_summary.csv; path2_gap_paired_graph_comparisons.csv
+E,100 cells; median radius 125.79 um,0.4826,0.4722,-0.0077,,patch_radius_summary.csv; path2_gap_paired_graph_comparisons.csv
+E,128 cells; median radius 144.60 um,0.4739,0.4470,-0.0246,,patch_radius_summary.csv; path2_gap_paired_graph_comparisons.csv

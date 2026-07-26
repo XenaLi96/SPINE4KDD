@@ -1,0 +1,127 @@
+\subsection{Strict Three-Way Spatial Split and Confirmatory Estimands}
+\label{app:strict_three_way}
+The confirmatory cache contains 1,342 \texttt{top\_right} training graphs, 837 \texttt{bottom\_left} validation graphs, and 928 \texttt{bottom\_right} test graphs. Spatial partitioning precedes matching, and checkpoint selection uses only validation. Pooled Ring Pearson concatenates test summaries, whereas graph-paired lift averages within-graph full-minus-context changes. Confidence intervals for paired lift resample guides. Predictive partial $R^2$ is $1-\mathrm{SSE}_{\mathrm{full}}/\mathrm{SSE}_{\mathrm{context}}$ and its interval resamples spatial clusters.
+
+\subsection{PPP Matching-Decoupling Audits}
+\label{app:ppp_decoupling_generated}
+\begin{table}[h]
+\centering\scriptsize
+\caption{Within-variant full-minus-context Ring lift. Each residual model is paired with its own context checkpoint on identical graphs and targets; CIs resample guides.}
+\label{tab:app_ppp_decoupling}
+\begin{tabular}{lrr}
+\toprule
+PPP construction & Paired lift & 95\% CI \\
+\midrule
+Gene-disjoint matching/output genes & +0.0257 & [0.0215, 0.0302] \\
+No center-expression matching & +0.0281 & [0.0244, 0.0319] \\
+No patch-expression matching & +0.0263 & [0.0226, 0.0300] \\
+Strict no-expression matching & +0.0128 & [0.0088, 0.0166] \\
+No spatial matching & +0.0025 & [-0.0022, 0.0066] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Profile--Location Factorial Controls}
+\label{app:profile_location_factorial}
+\begin{table}[h]
+\centering\scriptsize
+\caption{Frozen exact-task direct-effect controls. The sender profile or region is changed without retraining.}
+\label{tab:app_profile_location}
+\begin{tabular}{lrrr}
+\toprule
+Control & Neighbor & Centered & Ring \\
+\midrule
+Correct profile + correct region & 0.6841 & 0.7152 & 0.4574 \\
+Train-guide mean profile + correct region & 0.6802 & 0.7137 & 0.4177 \\
+Wrong-guide profile + correct region & 0.6789 & 0.7152 & 0.4092 \\
+Correct profile + relocated near region & 0.6608 & 0.6892 & 0.4314 \\
+Shuffled profile + correct region & 0.6783 & 0.7152 & 0.4056 \\
+Norm-matched noise profile + correct region & 0.6803 & 0.7153 & 0.4152 \\
+Correct profile + randomized coordinates & 0.6834 & 0.7147 & 0.4560 \\
+Correct profile + randomized CCC & 0.6842 & 0.7152 & 0.4575 \\
+Global-mean profile + correct region & 0.6782 & 0.7134 & 0.4056 \\
+Random profile + random region & 0.6559 & 0.6884 & 0.4135 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Patch-Scale Sensitivity}
+\label{app:patch_scale}
+\begin{table}[h]
+\centering\scriptsize
+\caption{Patch scale on the strict spatial split. Radius is the all-split median; lift is graph-paired full minus context.}
+\label{tab:app_patch_scale}
+\begin{tabular}{lrrr}
+\toprule
+Patch and median radius & Context Ring & Full Ring & Paired lift \\
+\midrule
+32 cells; median radius 67.83\,$\mu$m & 0.2775 & 0.3142 & +0.0430 \\
+64 cells; median radius 98.18\,$\mu$m & 0.3626 & 0.4111 & +0.0532 \\
+100 cells; median radius 125.79\,$\mu$m & 0.4826 & 0.4722 & -0.0077 \\
+128 cells; median radius 144.60\,$\mu$m & 0.4739 & 0.4470 & -0.0246 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Five-Fold Guide OOD and External scRNA Transfer}
+\label{app:fivefold_seed_transfer}
+\begin{table*}[h]
+\centering\scriptsize
+\caption{Per-fold conditional propagation and cross-assay seed transfer. Observed seeds are measured in the spatial assay; external seeds are estimated from companion dissociated scRNA-seq.}
+\label{tab:app_fivefold_seed_transfer}
+\begin{tabular}{clrrrrrr}
+\toprule
+Fold & Held-out guides & Graphs & Zero Ring & Spatial Ring & $\Delta$ spatial & External Ring & $\Delta$ external \\
+\midrule
+0 & fasn, stk39, trem2 & 992 & 0.4374 & 0.4514 & +0.0140 & 0.3861 & -0.0513 \\
+1 & clu, oligo2, sh3gl2 & 973 & 0.4608 & 0.4784 & +0.0176 & 0.4576 & -0.0031 \\
+2 & flcn, gfap, rraga & 486 & 0.4493 & 0.4692 & +0.0199 & 0.4282 & -0.0211 \\
+3 & ndufaf, rbfox, tbk1, dpp5 & 372 & 0.4289 & 0.4633 & +0.0344 & 0.4007 & -0.0282 \\
+4 & Cfap410, C9orf72, srf, lrrk2 & 284 & 0.4234 & 0.4474 & +0.0240 & 0.3924 & -0.0310 \\
+\midrule
+Macro & all held-out guides & -- & 0.4400 & 0.4619 & +0.0220 & 0.4130 & -0.0270 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Official CONCERT Diagnostic}
+\label{app:concert_diagnostic}
+The public CONCERT implementation is evaluated on native spatial-tile holdouts. It predicts expression or counterfactual cell state at new coordinates, not the same sender-conditioned cell-resolved field as \methodname{}; the comparison therefore diagnoses objective alignment rather than defining a common leaderboard.
+\begin{table}[h]
+\centering\scriptsize
+\caption{Guide-versus-control pseudo-delta recovery. CONCERT is below the training-guide mean in all four evaluated contrasts despite strong native reconstruction.}
+\label{tab:app_concert_diagnostic}
+\begin{tabular}{llrr}
+\toprule
+Slide & Perturbation & CONCERT & Guide mean \\
+\midrule
+GSM5808054 & Jak2 & 0.2593 & 0.5147 \\
+GSM5808054 & Tgfbr2 & 0.3467 & 0.5650 \\
+GSM5808055 & Tgfbr2 & 0.5849 & 0.8835 \\
+GSM5808055 & Ifngr2 & 0.2868 & 0.8083 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reference-ST Low-Data Negative Result}
+\label{app:reference_st_lowdata}
+\begin{table}[h]
+\centering\scriptsize
+\caption{Paired Ring gain from the optional unperturbed reference-ST adapter. The anomalous full-data absolute training run is excluded; only paired gains are interpreted.}
+\label{tab:app_reference_st_lowdata}
+\begin{tabular}{lrr}
+\toprule
+Paired-data fraction & Training graphs & Paired Ring gain \\
+\midrule
+10\% & 135 & +0.0009 \\
+25\% & 335 & +0.0002 \\
+50\% & 670 & +0.0032 \\
+100\% & 1342 & +0.0005 \\
+\bottomrule
+\end{tabular}
+\end{table}
+No positive architectural claim is made from these near-zero paired changes.
+
+\subsection{Formal Selector Evaluation}
+\label{app:formal_selector}
+The formal selector freezes the utility model, burden model family, rank-consensus weight, target-retention rule, and top-$k$ operating point using validation. Observed test fields are used only to compute TQR and burden. Target-only and the constrained selector both reach TQR 0.6944; mean relative reduction is 0.1200 and absolute burden decrease is 0.1244 [0.0559, 0.1926] across 36 target specifications. The standalone \methodname{} context spillover head reaches pairwise burden-order agreement 0.6250 [0.6108, 0.6393].

@@ -1,0 +1,20 @@
+\begin{table}[t]
+\centering
+\scriptsize
+\caption{\textbf{Formal three-way-split perturbation prioritization.} Train, validation, and test partitions are fully separated; target qualification is unchanged relative to target-only. Larger discovery-set reductions and biological examples are exploratory post-hoc analyses in the appendix.}
+\label{tab:selector_main}
+\setlength{\tabcolsep}{2.5pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+Method & TQR $\uparrow$ & Spill. red. $\uparrow$ & Abs. burden decrease $\uparrow$ \\
+\midrule
+Target-only & 0.6944 & 0.0000 & 0.0000 \\
+Constrained selector & 0.6944 & 0.1200 & 0.1244 [0.0559, 0.1926] \\
+\midrule
+\multicolumn{4}{l}{\textit{Burden-ranking diagnostic}} \\
+SPINE standalone spillover head & \multicolumn{3}{r}{0.6250 [0.6108, 0.6393]} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

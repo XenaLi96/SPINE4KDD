@@ -1,0 +1,10 @@
+display_method,source_dir,method,n_specs,n_pairs,pairwise_accuracy,ci_low,ci_high
+MLP-context,three_way_selector_mlp_context_v1_topk,head,36,720000,0.4908666666666667,0.47073302083333335,0.5091916666666667
+MLP-full,three_way_selector_mlp_full_v1_topk,head,36,720000,0.5064902777777778,0.4907485416666667,0.5222528819444444
+SPINE-context aggregation,three_way_selector_spine_context_v1_topk,aggregation,36,711490,0.5818620078989164,0.5651489847978407,0.5988763024214799
+SPINE-context head,three_way_selector_spine_context_v1_topk,head,36,720000,0.6250194444444445,0.6107788194444445,0.6393116319444444
+SPINE-full aggregation,three_way_selector_spine_v1_topk,aggregation,36,720000,0.5811152777777778,0.5672136805555555,0.5947392013888889
+SPINE-full head,three_way_selector_spine_v1_topk,head,36,720000,0.5630361111111111,0.549484375,0.5763211111111111
+Dual MLP-U + SPINE-S,three_way_selector_dual_mlpU_spineConsensusS_v1_topk,dual_aggU_headS,36,720000,0.5629430555555556,0.5495110416666666,0.5763334722222222
+Consensus w=0.25,three_way_selector_dual_mlpU_spineConsensusS_v1_topk,dual_aggU_headConsensusS_w0p25,36,719947,0.6182552326768498,0.6038102852453852,0.6329579674473778
+Consensus w=0.75,three_way_selector_dual_mlpU_spineConsensusS_v1_topk,dual_aggU_headConsensusS_w0p75,36,719949,0.5828148938327576,0.5688849164119081,0.5974374787503612
