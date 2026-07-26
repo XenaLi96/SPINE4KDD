@@ -660,10 +660,12 @@ supporting results are not pooled with the strict mouse-brain effect estimates.
 \label{sec:signal_decomposition}
 The strict three-way split separates absolute field prediction from the
 increment attributable to perturbation conditioning. \Cref{tab:confirmatory_analysis}
-collects the corresponding variance, matching, input-control, transfer, and
+collects the corresponding variance, matching, input-control, and
 scale diagnostics.
 
-\begin{table}[t]
+\begin{table*}[t]
+\centering
+\begin{minipage}[t]{0.49\linewidth}
 \centering
 \caption{Main benchmark against exact-task alternative models.}
 \label{tab:main_baseline_comparison}
@@ -703,36 +705,100 @@ Neural CCC-GNN & 0.543 & 0.565 & 0.393 & 0.464 \\
 \bottomrule
 \end{tabular}%
 }
-\end{table}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\caption{Input-effect and structural diagnostics on controlled synthetic and real benchmarks.}
+\label{tab:seed_shortcut_controls}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.03}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Diagnostic & Neighbor $\uparrow$ & Ring $\uparrow$ & Lift \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{4}{l}{\textbf{\textit{Controlled synthetic LR ablation.}}} \\
+Niche module only & 0.003 & 0.006 & \textemdash \\
+Shuffle direct effect & 0.069 & 0.089 & $+0.000$ \\
+Predicted direct effect & 0.611 & 0.803 & $+0.714$ \\
+\rowcolor{cyan!10}
+Final, measured direct effect & \textbf{0.619} & \textbf{0.815} & \textbf{$+0.726$} \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{4}{l}{\textbf{\textit{Spatial Perturb-Seq ablation.}}} \\
+Niche module only & 0.610 & 0.405 & \textemdash \\
+Shuffle direct effect & 0.679 & 0.405 & $+0.000$ \\
+Predicted direct effect & 0.680 & 0.417 & $+0.012$ \\
+\rowcolor{cyan!10}
+Final, measured direct effect & \textbf{0.684} & \textbf{0.457} & \textbf{$+0.052$} \\
+\midrule
+No niche-impact residualization & 0.165 & 0.153 & \textemdash \\
+No edge attributes & 0.606 & 0.418 & $+0.013$ \\
+No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{minipage}
+\end{table*}
 
 \begin{table*}[t]
 \centering
 \caption{\textbf{Confirmatory signal decomposition, benchmark decoupling, and
-transfer diagnostics.} Panels A, C, and E use the strict three-way spatial
+robustness diagnostics.} Panels A, C, and D use the strict three-way spatial
 split. Pooled Ring correlation and graph-paired lift are different estimands.
 Partial $R^2=1-\mathrm{SSE}_{\mathrm{full}}/
 \mathrm{SSE}_{\mathrm{context}}$.}
 \label{tab:confirmatory_analysis}
 \vspace{2pt}
-\begin{minipage}[t][6.1cm][s]{0.49\linewidth}
+\begin{minipage}[t]{0.49\linewidth}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.2pt}
 \renewcommand{\arraystretch}{0.96}
 \textbf{A. Independent spatial split and predictive variance}
 \vspace{1pt}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrrr}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \toprule
 Metric & Context & Full & Effect & 95\% CI \\
 \midrule
 Pooled Ring Pearson & 0.3626 & 0.4111 & -- & -- \\
-Mean graph-paired Ring lift & -- & -- & $+0.0532$ & [0.0474, 0.0586] \\
-Predictive $R^2$ & 0.3712 & 0.4669 & partial $R^2=0.1521$ & [0.1476, 0.1559] \\
+Graph-paired Ring lift & -- & -- & $+0.0532$ & [0.0474, 0.0586] \\
+Predictive $R^2$ & 0.3712 & 0.4669 & 0.1521 & [0.1476, 0.1559] \\
+\multicolumn{5}{l}{\rule{0pt}{0.96em}} \\[-2.4pt]
+\multicolumn{5}{l}{\rule{0pt}{0.96em}} \\[-2.4pt]
 \bottomrule
-\end{tabular}}
+\end{tabular*}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{0.96}
+\textbf{C. PPP decoupling}
+\vspace{1pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrr@{}}
+\toprule
+PPP construction & Paired lift & 95\% CI \\
+\midrule
+Gene-disjoint match/output genes & $+0.0257$ & [0.0215, 0.0302] \\
+No center-expression match & $+0.0281$ & [0.0244, 0.0319] \\
+No patch-expression match & $+0.0263$ & [0.0226, 0.0300] \\
+Strict no-expression match & $+0.0128$ & [0.0088, 0.0166] \\
+No spatial match & $+0.0025$ & [$-0.0022$, 0.0066] \\
+\bottomrule
+\end{tabular*}
+\end{minipage}
 
-\vfill
+\vspace{5pt}
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{0.96}
 \textbf{B. Direct-effect profile/location factorial}
 \vspace{1pt}
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lr@{}}
@@ -748,41 +814,12 @@ Correct profile + randomized CCC & 0.4575 \\
 \end{tabular*}
 \end{minipage}
 \hfill
-\begin{minipage}[t][6.1cm][s]{0.49\linewidth}
+\begin{minipage}[t]{0.49\linewidth}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.2pt}
 \renewcommand{\arraystretch}{0.96}
-\textbf{C. PPP decoupling}
-\vspace{1pt}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrr}
-\toprule
-PPP construction & Paired lift & 95\% CI \\
-\midrule
-Gene-disjoint matching/output genes & $+0.0257$ & [0.0215, 0.0302] \\
-No center-expression matching & $+0.0281$ & [0.0244, 0.0319] \\
-No patch-expression matching & $+0.0263$ & [0.0226, 0.0300] \\
-Strict no-expression matching & $+0.0128$ & [0.0088, 0.0166] \\
-No spatial matching & $+0.0025$ & [$-0.0022$, 0.0066] \\
-\bottomrule
-\end{tabular}}
-
-\vfill
-\textbf{D. Five-fold guide-OOD seed transfer}
-\vspace{1pt}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrrr}
-\toprule
-Seed source & Zero & Seed & Difference & Direction \\
-\midrule
-Assay-matched spatial seed & 0.4400 & 0.4619 & $+0.0220$ & 5/5 positive \\
-External scRNA seed & 0.4400 & 0.4130 & $-0.0270$ & 5/5 below zero \\
-\bottomrule
-\end{tabular}}
-
-\vfill
-\textbf{E. Patch-scale sensitivity}
+\textbf{D. Patch-scale sensitivity}
 \vspace{1pt}
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrr@{}}
 \toprule
@@ -792,16 +829,16 @@ Patch and median radius & Context & Full & Paired lift \\
 64 cells; 98.18\,$\mu$m & 0.3626 & 0.4111 & $+0.0532$ \\
 100 cells; 125.79\,$\mu$m & 0.4826 & 0.4722 & $-0.0077$ \\
 128 cells; 144.60\,$\mu$m & 0.4739 & 0.4470 & $-0.0246$ \\
+\multicolumn{4}{l}{\rule{0pt}{0.96em}} \\[-2pt]
 \bottomrule
 \end{tabular*}
 \end{minipage}
 \vspace{3pt}
 \parbox{0.98\linewidth}{\scriptsize\textit{Reading.}
 Expression-decoupled variants retain positive lift, whereas no-spatial
-matching does not. Assay-matched spatial seeds improve all five guide-OOD
-folds; external scRNA seeds underperform zero seed in all five. Larger patches
-have higher context predictability but not stronger perturbation-conditioned
-signal.}
+matching does not. Both direct-effect profile and location contribute, while
+larger patches have higher context predictability but not stronger
+perturbation-conditioned signal.}
 \end{table*}
 
 \textbf{Independent spatial validation and predictive variance.}
@@ -2351,41 +2388,6 @@ The frozen reference encoder is trained only on unperturbed reference ST. These 
 \label{app:development_ablations}
 
 The following tables retain the original development evidence but replace internal run names with compact labels. In \Cref{tab:app_ablation_modules}, rows marked ``block'' use the final spatial block-holdout setting, whereas rows marked ``coord'' come from earlier coordinate-split development runs. The early structural ablations show that explicit direct-effect-to-neighbor propagation is more effective than generic patch regression or purely semantic pairwise prediction. The recipe ablations show that longer optimization, three-control consensus targets, and post-state supervision improve earlier baselines, while strict same-type pseudo-pre targets are too noisy for the current local benchmark.
-
-\begin{table*}[t]
-\centering
-\caption{Input-effect and structural diagnostics on controlled synthetic and
-real benchmarks.}
-\label{tab:seed_shortcut_controls}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.03}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
-\toprule
-Diagnostic & Neighbor $\uparrow$ & Ring $\uparrow$ & Lift \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{4}{l}{\textbf{\textit{Controlled synthetic LR ablation.}}} \\
-Niche module only & 0.003 & 0.006 & \textemdash \\
-Shuffle direct effect & 0.069 & 0.089 & $+0.000$ \\
-Predicted direct effect & 0.611 & 0.803 & $+0.714$ \\
-\rowcolor{cyan!10}
-Final, measured direct effect & \textbf{0.619} & \textbf{0.815} & \textbf{$+0.726$} \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{4}{l}{\textbf{\textit{Spatial Perturb-Seq ablation.}}} \\
-Niche module only & 0.610 & 0.405 & \textemdash \\
-Shuffle direct effect & 0.679 & 0.405 & $+0.000$ \\
-Predicted direct effect & 0.680 & 0.417 & $+0.012$ \\
-\rowcolor{cyan!10}
-Final, measured direct effect & \textbf{0.684} & \textbf{0.457} & \textbf{$+0.052$} \\
-\midrule
-No niche-impact residualization & 0.165 & 0.153 & \textemdash \\
-No edge attributes & 0.606 & 0.418 & $+0.013$ \\
-No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
-\bottomrule
-\end{tabular*}
-\end{table*}
 
 \begin{table}[t]
 \centering
