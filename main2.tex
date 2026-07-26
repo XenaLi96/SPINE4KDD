@@ -513,10 +513,9 @@ used to increase the effective sample size of the primary benchmark.
 
 % If not already defined:
 % \newcommand{\pmv}[2]{#1\,{\scriptsize$\pm$}\,#2}
-\clearpage
-\begin{figure*}[p]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.86\linewidth]{main_exp.png}
+\includegraphics[width=0.90\linewidth]{main_exp.png}
 \caption{\textbf{Qualitative response-field predictions on the held-out Spatial
 Perturb-seq test region.}
 The left panel compares the whole-region PPP pseudo-target and \methodname{}
@@ -526,8 +525,11 @@ sgRNA-\textit{Trem2}. Colors denote signed response deltas and stars mark
 direct-effect cells. Quantitative conclusions use all 928 test graphs and all
 512 genes.}
 \label{fig:main_exp}
-\vspace{4pt}
-\captionof{table}{\textbf{Validation across exact, controlled synthetic, and Spot level spatial perturbation datasets.}
+\end{figure*}
+
+\begin{table*}[t]
+\centering
+\caption{\textbf{Validation across exact, controlled synthetic, and Spot level spatial perturbation datasets.}
 (a) Gene-centric neighbor-cell performance on the exact cell-resolved Spatial Perturb-Seq benchmark.
 (b) Controlled synthetic LR-propagation validation using external in vivo Perturb-seq direct-effect signatures.
 (c) Spot/lesion-level external validation on Perturb-map.}
@@ -626,8 +628,7 @@ IFN response            & 0.628 & -- & -- \\
 Panel (b) reports receiver- and ring-level correlations for controlled LR-propagation tests, including held-out perturbation, interface, strength, and host-patch settings. Panel (c) reports spot-level Pearson and lesion-level Spearman agreement after aggregating predicted response fields to Perturb-map spots.}
 \end{minipage}
 \vspace{-2pt}
-\end{figure*}
-\clearpage
+\end{table*}
 
 \begin{table*}[t]
 \centering
