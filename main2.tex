@@ -476,6 +476,17 @@ selected on validation data and then frozen. Observed test fields are used only
 for evaluation. This formal analysis is separate from exploratory post-hoc
 case discovery.
 
+The confirmatory pipeline separates target qualification from burden ranking.
+Predicted utility first defines the eligible action set; a burden head then
+ranks only eligible actions, and the lowest predicted-burden candidate is
+selected. Candidate burden scores and the number of retained candidates are
+compared on the validation region only. The frozen test analysis uses 36 target
+specifications and reports target-qualified rate (TQR), observed burden
+reduction relative to target-only selection, absolute burden change, pairwise
+burden-order agreement, and coverage. This constrained evaluation prevents a
+method from appearing successful merely by selecting weak interventions with
+small responses everywhere.
+
 \section{Experiments}
 \label{sec:experiments}
 \subsection{Evaluation Design}
@@ -490,6 +501,27 @@ cross-assay interface. Supporting analyses use a controlled ligand--receptor
 benchmark, Perturb-map, and Perturb-FISH. We report Neighbor, centered, and
 Ring Pearson together with Neighbor MAE. Unless noted, runs use 64-cell patches
 on one RTX A6000; full settings and resampling units are in the appendix.
+
+\textbf{Estimands and statistical units.}
+The exact-task comparison asks how accurately a model reconstructs the complete
+signed receiver field on a common held-out output. Neighbor correlation is
+sensitive to stable anatomical and cell-state structure; centered correlation
+discounts graph-level offsets; and Ring correlation tests whether response
+magnitude is organized correctly with distance from the direct-effect region.
+For mechanistic claims, we therefore compare perturbation-conditioned and
+context predictions on the same held-out graph rather than subtracting two
+pooled correlations. Uncertainty for graph-paired effects is computed by
+resampling spatial blocks or guides, as appropriate. Cells within a graph are
+not treated as independent biological replicates.
+
+\textbf{Evidence hierarchy.}
+The mouse-brain assay is the only exact, cell-resolved benchmark and determines
+the confirmatory claims. The synthetic ligand--receptor benchmark tests whether
+the architecture can recover a known propagation rule under controlled shifts.
+Perturb-map tests program-level transfer after aggregation to spots and lesions,
+whereas Perturb-FISH tests native-panel burden ranking under a different action
+pool. These supporting assays address complementary failure modes and are not
+used to increase the effective sample size of the primary benchmark.
 
 
 
@@ -633,6 +665,87 @@ scale diagnostics.
 
 \begin{table*}[t]
 \centering
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\caption{Main benchmark against exact-task alternative models.}
+\label{tab:main_baseline_comparison}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.00}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Baseline & Neighbor $\uparrow$ & Centered $\uparrow$ & Ring $\uparrow$ & MAE $\downarrow$ \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{5}{l}{\textbf{\textit{Trivial, statistical, and retrieval baselines.}}} \\
+Zero-delta & 0.000 & 0.000 & 0.000 & 0.453 \\
+Guide$\times$type$\times$ring mean & 0.007 & -0.000 & 0.017 & 0.468 \\
+Nearest patch transfer & 0.000 & -0.001 & 0.010 & 0.612 \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{5}{l}{\textbf{\textit{Direct-effect and radial alternatives.}}} \\
+Direct-effect diffusion & 0.006 & 0.000 & 0.014 & 0.459 \\
+CCC-gated linear & -0.002 & 0.003 & 0.001 & 0.510 \\
+Direct-effect broadcast & 0.016 & -0.000 & 0.053 & 0.835 \\
+Direct-effect broadcast, fixed decay & 0.015 & 0.003 & 0.053 & 0.594 \\
+Learned radial ridge & 0.023 & -0.002 & 0.066 & 0.527 \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{5}{l}{\textbf{\textit{Supervised patch and graph alternatives.}}} \\
+Elastic-net regression & 0.570 & 0.594 & 0.391 & 0.427 \\
+Patch MLP & 0.272 & 0.444 & 0.087 & 0.677 \\
+Graph Transformer patch model & 0.543 & 0.564 & 0.393 & 0.460 \\
+Neural CCC-GNN & 0.543 & 0.565 & 0.393 & 0.464 \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{5}{l}{\textbf{\textit{Niche--propagation model.}}} \\
+\rowcolor{cyan!10}
+\methodname{} final & \textbf{0.684} & \textbf{0.715} & \textbf{0.457} & \textbf{0.408} \\
+\bottomrule
+\end{tabular}%
+}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\caption{Input-effect and structural diagnostics on controlled synthetic and real benchmarks.}
+\label{tab:seed_shortcut_controls}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.03}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Diagnostic & Neighbor $\uparrow$ & Ring $\uparrow$ & Lift \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{4}{l}{\textbf{\textit{Controlled synthetic LR ablation.}}} \\
+Niche module only & 0.003 & 0.006 & \textemdash \\
+Shuffle direct effect & 0.069 & 0.089 & $+0.000$ \\
+Predicted direct effect & 0.611 & 0.803 & $+0.714$ \\
+\rowcolor{cyan!10}
+Final, measured direct effect & \textbf{0.619} & \textbf{0.815} & \textbf{$+0.726$} \\
+\midrule
+\rowcolor{gray!18}
+\multicolumn{4}{l}{\textbf{\textit{Spatial Perturb-Seq ablation.}}} \\
+Niche module only & 0.610 & 0.405 & \textemdash \\
+Shuffle direct effect & 0.679 & 0.405 & $+0.000$ \\
+Predicted direct effect & 0.680 & 0.417 & $+0.012$ \\
+\rowcolor{cyan!10}
+Final, measured direct effect & \textbf{0.684} & \textbf{0.457} & \textbf{$+0.052$} \\
+\midrule
+No niche-impact residualization & 0.165 & 0.153 & \textemdash \\
+No edge attributes & 0.606 & 0.418 & $+0.013$ \\
+No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{minipage}
+\end{table*}
+
+\begin{table*}[t]
+\centering
 \caption{\textbf{Confirmatory signal decomposition, benchmark decoupling, and
 transfer diagnostics.} Panels A, C, and E use the strict three-way spatial
 split. Pooled Ring correlation and graph-paired lift are different estimands.
@@ -732,87 +845,42 @@ have higher context predictability but not stronger perturbation-conditioned
 signal.}
 \end{table*}
 
+\textbf{Independent spatial validation and predictive variance.}
+On the fully separated train/validation/test split, adding the
+perturbation-conditioned branch raises pooled Ring Pearson from 0.3626 to
+0.4111. More importantly, graph-paired evaluation gives a mean Ring lift of
+$0.0532$ with a spatial-block bootstrap interval that excludes zero. The same
+comparison increases predictive $R^2$ from 0.3712 to 0.4669, corresponding to
+a partial $R^2$ of 0.1521 relative to the context model. Thus, tissue context
+accounts for most predictable variation, while perturbation conditioning adds
+a smaller but reproducible component concentrated in radial organization.
 
-\begin{table*}[t]
-\centering
-\begin{minipage}[t]{0.49\linewidth}
-\centering
-\caption{Main benchmark against exact-task alternative models.}
-\label{tab:main_baseline_comparison}
-\scriptsize
-\setlength{\tabcolsep}{2.5pt}
-\renewcommand{\arraystretch}{1.00}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lcccc}
-\toprule
-Baseline & Neighbor $\uparrow$ & Centered $\uparrow$ & Ring $\uparrow$ & MAE $\downarrow$ \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{5}{l}{\textbf{\textit{Trivial, statistical, and retrieval baselines.}}} \\
-Zero-delta & 0.000 & 0.000 & 0.000 & 0.453 \\
-Guide$\times$type$\times$ring mean & 0.007 & -0.000 & 0.017 & 0.468 \\
-Nearest patch transfer & 0.000 & -0.001 & 0.010 & 0.612 \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{5}{l}{\textbf{\textit{Direct-effect and radial alternatives.}}} \\
-Direct-effect diffusion & 0.006 & 0.000 & 0.014 & 0.459 \\
-CCC-gated linear & -0.002 & 0.003 & 0.001 & 0.510 \\
-Direct-effect broadcast & 0.016 & -0.000 & 0.053 & 0.835 \\
-Direct-effect broadcast, fixed decay & 0.015 & 0.003 & 0.053 & 0.594 \\
-Learned radial ridge & 0.023 & -0.002 & 0.066 & 0.527 \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{5}{l}{\textbf{\textit{Supervised patch and graph alternatives.}}} \\
-Elastic-net regression & 0.570 & 0.594 & 0.391 & 0.427 \\
-Patch MLP & 0.272 & 0.444 & 0.087 & 0.677 \\
-Graph Transformer patch model & 0.543 & 0.564 & 0.393 & 0.460 \\
-Neural CCC-GNN & 0.543 & 0.565 & 0.393 & 0.464 \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{5}{l}{\textbf{\textit{Niche--propagation model.}}} \\
-\rowcolor{cyan!10}
-\methodname{} final & \textbf{0.684} & \textbf{0.715} & \textbf{0.457} & \textbf{0.408} \\
-\bottomrule
-\end{tabular}%
-}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.49\linewidth}
-\centering
-\caption{Input-effect and structural diagnostics on controlled synthetic and real benchmarks.}
-\label{tab:seed_shortcut_controls}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.03}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lccc}
-\toprule
-Diagnostic & Neighbor $\uparrow$ & Ring $\uparrow$ & Lift \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{4}{l}{\textbf{\textit{Controlled synthetic LR ablation.}}} \\
-Niche module only & 0.003 & 0.006 & \textemdash \\
-Shuffle direct effect & 0.069 & 0.089 & $+0.000$ \\
-Predicted direct effect & 0.611 & 0.803 & $+0.714$ \\
-\rowcolor{cyan!10}
-Final, measured direct effect & \textbf{0.619} & \textbf{0.815} & \textbf{$+0.726$} \\
-\midrule
-\rowcolor{gray!18}
-\multicolumn{4}{l}{\textbf{\textit{Spatial Perturb-Seq ablation.}}} \\
-Niche module only & 0.610 & 0.405 & \textemdash \\
-Shuffle direct effect & 0.679 & 0.405 & $+0.000$ \\
-Predicted direct effect & 0.680 & 0.417 & $+0.012$ \\
-\rowcolor{cyan!10}
-Final, measured direct effect & \textbf{0.684} & \textbf{0.457} & \textbf{$+0.052$} \\
-\midrule
-No niche-impact residualization & 0.165 & 0.153 & \textemdash \\
-No edge attributes & 0.606 & 0.418 & $+0.013$ \\
-No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
-\bottomrule
-\end{tabular}%
-}
-\end{minipage}
-\end{table*}
+\textbf{Benchmark decoupling.}
+Positive graph-paired Ring lift remains when the genes used for matching are
+disjoint from the 512 prediction genes, when either center or patch expression
+is removed from matching, and under strict matching without expression. The
+effect is attenuated as matching information is removed, and the no-spatial
+variant is indistinguishable from zero. This pattern argues against direct
+matching/output leakage as the sole explanation, while showing that spatially
+local controls are essential for constructing an informative pseudo-target.
+
+\textbf{Profile and location.}
+The profile/location factorial separates two sources of conditioning.
+Shuffling the direct-effect profile at the correct region reduces Ring
+correlation from 0.4574 to 0.4056, whereas relocating the correct profile
+reduces it to 0.4314. Both molecular identity and spatial placement therefore
+contribute. Randomizing the communication prior leaves the score essentially
+unchanged (0.4575), so the present evidence supports a learned response-field
+dependency but does not support attributing the gain specifically to the
+hand-specified communication prior.
+
+\textbf{Spatial scale.}
+The perturbation-conditioned lift is positive for 32- and 64-cell patches,
+with the largest estimate at 64 cells (median radius 98.18\,$\mu$m), but becomes
+negative for 100- and 128-cell patches. Larger patches are easier for the
+context model in absolute correlation, yet they dilute the local
+perturbation-specific organization. We therefore use 64 cells as an empirical
+operating scale for this assay rather than as a universal biological radius.
 
 
 
@@ -839,7 +907,7 @@ than a definitive method ranking: accurate context reconstruction does not
 necessarily imply perturbation-response prediction. The original exact-task
 input controls remain in \Cref{tab:seed_shortcut_controls}; full per-fold and
 related-method values are reported in the appendix.
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{novo.png}
 \caption{
@@ -848,7 +916,7 @@ Left: whole-tissue maps for representative IFN/MHC-I-associated and structural g
 Middle: six high-response regions with patch-averaged deltas overlaid on the spatial graph.
 Right: local 64-cell neighborhoods, where highlighted target cells show the strongest response and nearby neighbors show structured propagation.}
 \label{fig:ifng_response_field}
-\end{figure*}
+\end{figure}
 \subsection{De novo IFN-\texorpdfstring{$\gamma$}{gamma} Mouse-Brain Hypothesis}
 \label{sec:ifng_case_study}
 We retain the original IFN-$\gamma$ deployment as a hypothesis-generation
@@ -888,11 +956,31 @@ reducing mean spillover by 12.0\%. Absolute burden decreases by 0.1244
 burden-order agreement 0.6250 [0.6108, 0.6393], supporting a learnable ranking
 signal. The effect is positive but moderate.
 
+The selected action has lower observed burden for 24 of 36 target
+specifications and higher burden for seven. The bootstrap interval for the
+absolute decrease excludes zero, whereas the relative-reduction interval
+($-0.0018$ to 0.2289) crosses zero because specifications with small baseline
+burden yield unstable ratios. We therefore use absolute burden change as the
+primary confirmatory effect and report the 12.0\% relative reduction as an
+interpretable secondary summary. Pairwise agreement is stronger than the final
+selection effect, indicating that spillover ordering is learnable but utility
+qualification and top-action calibration still limit end-to-end decisions.
+
 The previously reported 35.4\% aggregate reduction and the
 TGF-$\beta$/stroma, vascular-stress, and myeloid-activation examples were
 identified in the discovery analysis. We retain them only as exploratory
 post-hoc illustrations and do not use them as confirmatory effect estimates.
 Perturb-FISH calibration and module-level support remain in the appendix.
+
+In Perturb-FISH, whose targeted panel and context-binned actions differ from the
+primary benchmark, the same decision question is tested at module level. On 39
+reliability-filtered specifications, full predicted-utility/predicted-burden
+selection reaches TQR 0.718 and observed burden reduction 0.151. Holding target
+qualification to observed utility and ranking only by predicted burden raises
+the reduction to 0.207, while pairwise burden-order agreement is 0.851. Results
+over all 64 specifications remain directionally positive but weaker. We treat
+this as external support for burden ranking, not as evidence that a
+cell-resolved site selector transfers unchanged to a panel-based assay.
 \FloatBarrier
 \section{Discussion and Conclusion}
 \label{sec:discussion_conclusion}
@@ -907,6 +995,58 @@ residual routing. Conditional guide-OOD transfer is positive when an
 assay-matched spatial seed is available, but external scRNA seed failure shows
 that end-to-end transfer remains unresolved. The formal selector converts the
 predicted field into a modest, validation-frozen lower-burden decision benefit.
+
+These results also clarify which evaluations answer which scientific question.
+The original exact-task benchmark measures whether the complete response field
+can be reconstructed under the same output definition used by all implemented
+alternatives. The strict decomposition asks the narrower question of whether
+the correct direct-effect input improves radial organization beyond context.
+The guide-OOD experiment asks whether that conditional mapping transfers to
+unseen perturbations, and the selector asks whether the remaining signal is
+decision-relevant. Agreement across these estimands is more informative than a
+single pooled Pearson score, while disagreement identifies the current
+bottleneck rather than being hidden by an aggregate benchmark.
+
+The spatial-scale result provides a concrete biological and modeling
+interpretation. Absolute context predictability rises in larger neighborhoods,
+but perturbation-conditioned lift peaks near the 64-cell, 98-$\mu$m setting and
+then reverses. The model is therefore most informative over a local field in
+which sender identity can still organize receiver responses; expanding the
+patch eventually adds anatomy faster than perturbation-specific signal. This
+observation motivates reporting physical radius together with cell count and
+testing scale anew for every assay.
+
+Finally, the intervention analysis is a ranking result rather than a treatment
+recommendation. It shows that predicted fields contain enough ordering
+information to preserve the target-qualified rate while reducing held-out
+absolute burden under one validation-frozen operating point. The moderate
+effect, failed external-scRNA seed transfer, and imperfect relative-reduction
+interval all argue for the same next step: prospective spatial experiments in
+which candidate actions are chosen before measurement and both target response
+and collateral field are assayed independently.
+
+The confirmatory controls define clear failure conditions for the proposed
+interpretation. If positive lift had vanished under gene-disjoint or
+no-expression matching, the result would have been compatible with matching
+leakage. If the no-spatial construction had retained the same lift, local
+counterfactual matching would not have been necessary. If randomized
+communication scores had reduced performance, the curated edge prior could
+have been credited as a mechanism; it did not. Finally, if external scRNA seeds
+had matched assay-derived seeds, the present system could have supported
+end-to-end unseen-perturbation claims; instead they underperform zero seed.
+Together, these outcomes support the narrower claim of assay-conditioned local
+response-field prediction and identify direct-effect transfer as a separate,
+unsolved problem.
+
+For practical use, the current interface should begin with an
+assay-compatible direct-effect measurement, not perturbation identity alone.
+Candidate actions should be compared within the same tissue and acquisition
+regime, with target qualification enforced before burden ranking. Actions for
+which utility or burden is poorly calibrated should be deferred rather than
+forced into a ranking. This scope still supports retrospective experiment
+prioritization: it can identify matched-utility actions whose measured spatial
+fields warrant prospective comparison, while avoiding unsupported claims about
+synthetic interventions or unmeasured tissues.
 
 \section{Limitations and Ethical Considerations}
 \label{sec:limitations_ethical_considerations}
@@ -924,6 +1064,13 @@ biological cases are post-hoc illustrations. All predictions and selector
 results are retrospective, not causal or clinical, and require prospective
 spatial perturbation validation. Public or de-identified molecular and spatial
 data should remain governed by their original consent and data-use terms.
+The primary effect estimates come from one mouse-brain platform and should not
+be read as evidence of organ-wide generalization. Graphs within a slide share
+anatomy and experimental history; spatial-block and guide-level resampling
+reduce, but do not eliminate, dependence. Program definitions and undesirable
+burden components also encode scientific choices that must be pre-specified for
+each new study. Perturb-FISH supports module-level ordering under a targeted
+panel, but cannot validate transcriptome-wide cell-level fields.
 
 \section{Generative AI Usage}
 Generative AI tools were used for language editing and code assistance during
@@ -936,9 +1083,14 @@ labels.
 \label{sec:code_release}
 We will release code, configurations, processed split manifests, benchmark
 construction scripts, machine-readable result tables, and evaluation scripts
-in a public repository, with the final URL added before submission. Raw data
-remain available from their original public repositories under the cited
-accession records.
+in a public repository, with the final URL added before submission. The release
+will include PPP control assignments, strict spatial and guide-held-out
+partitions, direct-effect input controls, patch-radius manifests, selector
+target specifications, frozen validation choices, and scripts that reproduce
+all confidence intervals in \Cref{tab:confirmatory_analysis}. Model checkpoints
+and derived response-field summaries will be provided where source-data terms
+permit. Raw data remain available from their original public repositories under
+the cited accession records.
 \clearpage
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
