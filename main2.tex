@@ -753,7 +753,7 @@ Partial $R^2=1-\mathrm{SSE}_{\mathrm{full}}/
 \mathrm{SSE}_{\mathrm{context}}$.}
 \label{tab:confirmatory_analysis}
 \vspace{2pt}
-\begin{minipage}[t]{0.49\linewidth}
+\begin{minipage}[t][6.1cm][s]{0.49\linewidth}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.2pt}
@@ -771,11 +771,10 @@ Predictive $R^2$ & 0.3712 & 0.4669 & partial $R^2=0.1521$ & [0.1476, 0.1559] \\
 \bottomrule
 \end{tabular}}
 
-\vspace{5pt}
+\vfill
 \textbf{B. Direct-effect profile/location factorial}
 \vspace{1pt}
-\resizebox{0.88\linewidth}{!}{%
-\begin{tabular}{lr}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lr@{}}
 \toprule
 Input control & Ring Pearson \\
 \midrule
@@ -785,17 +784,17 @@ Correct profile + relocated region & 0.4314 \\
 Random profile + random region & 0.4135 \\
 Correct profile + randomized CCC & 0.4575 \\
 \bottomrule
-\end{tabular}}
+\end{tabular*}
 \end{minipage}
 \hfill
-\begin{minipage}[t]{0.49\linewidth}
+\begin{minipage}[t][6.1cm][s]{0.49\linewidth}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.2pt}
 \renewcommand{\arraystretch}{0.96}
 \textbf{C. PPP decoupling}
 \vspace{1pt}
-\resizebox{0.93\linewidth}{!}{%
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lrr}
 \toprule
 PPP construction & Paired lift & 95\% CI \\
@@ -808,7 +807,7 @@ No spatial matching & $+0.0025$ & [$-0.0022$, 0.0066] \\
 \bottomrule
 \end{tabular}}
 
-\vspace{4pt}
+\vfill
 \textbf{D. Five-fold guide-OOD seed transfer}
 \vspace{1pt}
 \resizebox{\linewidth}{!}{%
@@ -821,11 +820,10 @@ External scRNA seed & 0.4400 & 0.4130 & $-0.0270$ & 5/5 below zero \\
 \bottomrule
 \end{tabular}}
 
-\vspace{4pt}
+\vfill
 \textbf{E. Patch-scale sensitivity}
 \vspace{1pt}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrr}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrr@{}}
 \toprule
 Patch and median radius & Context & Full & Paired lift \\
 \midrule
@@ -834,7 +832,7 @@ Patch and median radius & Context & Full & Paired lift \\
 100 cells; 125.79\,$\mu$m & 0.4826 & 0.4722 & $-0.0077$ \\
 128 cells; 144.60\,$\mu$m & 0.4739 & 0.4470 & $-0.0246$ \\
 \bottomrule
-\end{tabular}}
+\end{tabular*}
 \end{minipage}
 \vspace{3pt}
 \parbox{0.98\linewidth}{\scriptsize\textit{Reading.}
