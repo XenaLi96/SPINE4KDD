@@ -357,7 +357,7 @@ We report Neighbor Pearson, centered/high-confidence variants, ring Pearson, Nei
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3.0pt}
-\renewcommand{\arraystretch}{0.8}
+\renewcommand{\arraystretch}{0.72}
 \textbf{(a) Exact cell-resolved Spatial Perturb-Seq benchmark}
 \vspace{2pt}
 \resizebox{0.96\linewidth}{!}{%
@@ -552,7 +552,7 @@ Neural CCC-GNN & 0.543 & 0.565 & 0.393 & 0.464 \\
 \label{tab:seed_shortcut_controls}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.03}
+\renewcommand{\arraystretch}{1.06}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
@@ -592,7 +592,16 @@ No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
 \Cref{tab:seed_shortcut_controls} evaluates direct-effect controls on both the controlled synthetic LR benchmark and the real Spatial Perturb-Seq benchmark. In the synthetic setting, the niche module alone is near zero, shuffled direct effects remain weak, and measured or predicted direct effects recover strong neighbor/ring performance ($0.619/0.815$ and $0.611/0.803$). In Spatial Perturb-Seq, measured direct effects provide the strongest real-data propagation signal, reaching $0.684/0.457$ and improving ring Pearson by $+0.052$ over the shuffled-seed control.
 \noindent\textbf{Component ablations identify the structural sources of the gain.}
 Removing niche-impact residualization causes the largest collapse, dropping neighbor/ring Pearson to $0.165/0.153$; this reflects both loss of niche-impact subtraction and the restricted direct-effect-to-neighbor routing of the propagation branch. Removing edge attributes weakens performance to $0.606/0.418$, and removing direct-effect input gives $0.614/0.441$, showing that spatial/communication features and perturbation-specific input provide complementary gains. Additional ablations are provided in the appendix.
-\begin{figure*}[t]
+
+
+
+\subsection{De novo IFN-\texorpdfstring{$\gamma$}{gamma} mouse-brain response-field case study}
+\label{sec:ifng_case_study}
+We use the trained propagation model as a de novo perturbation-query engine on an intact mouse-brain spatial graph. This setting has no paired IFN-$\gamma$ spatial perturbation labels. To construct the direct-effect seed, we train/fine-tune CPA on PerturbSapiens cytokine data, using treatment status (PBS/control versus IFN-$\gamma$), cell type, and tissue/broad class as covariates. For each Sample2/pre4 spatial cell, CPA predicts the IFN-$\gamma$ state and the matched control state; their difference gives a per-cell direct delta, which is then fed to the \methodname{} propagation module. This is a hypothesis-generation demonstration, not matched validation.
+\Cref{fig:ifng_response_field} shows a heterogeneous response field across genes, regions, and local neighborhoods. \textbf{First, the model recovers the canonical IFN-$\gamma$/MHC-I program.} Target-cell deltas are positive for interferon and antigen-presentation genes, including \textit{B2m} $(+1.91)$, \textit{H2-D1} $(+1.57)$, and \textit{Ifitm3} $(+1.72)$, indicating a systematic IFN/MHC-I response across high-response targets. \textbf{Second, inferred IFN-$\gamma$ target cells are biased toward immune, vascular, and glial-associated states.} Microglia account for 11.91\% of top-pathway 5\% targets versus 7.98\% background frequency, a 1.49$\times$ enrichment. Endothelial and pericyte states are also mildly enriched, matching the expectation that IFN-$\gamma$ is sensed by immune, vascular, and glial microenvironments rather than arbitrary spatial locations. \textbf{Third, the perturbation is not only activating, it also suppresses structural and vascular-associated programs.} Target cells show down-regulation of \textit{Col1a2} $(-1.31)$, \textit{Vcan} $(-1.28)$, and \textit{Flt1} $(-1.82)$, suggesting a shift from homeostatic structural or vascular-like programs toward immune and antiviral programs. The response is spatially heterogeneous rather than a uniform slide shift: high-response patches show consistent IFN/MHC-I activation together with structural-gene suppression, and patch-level gradients reveal region-specific response direction and magnitude. Seed construction and full numerical readouts are reported in the appendix.
+
+
+\begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{novo.png}
 \caption{
@@ -601,19 +610,26 @@ Left: whole-tissue maps for representative IFN/MHC-I-associated and structural g
 Middle: six high-response regions with patch-averaged deltas overlaid on the spatial graph.
 Right: local 64-cell neighborhoods, where highlighted target cells show the strongest response and nearby neighbors show structured propagation.}
 \label{fig:ifng_response_field}
-\end{figure*}
-\subsection{De novo IFN-\texorpdfstring{$\gamma$}{gamma} mouse-brain response-field case study}
-\label{sec:ifng_case_study}
-We use the trained propagation model as a de novo perturbation-query engine on an intact mouse-brain spatial graph. This setting has no paired IFN-$\gamma$ spatial perturbation labels. To construct the direct-effect seed, we train/fine-tune CPA on PerturbSapiens cytokine data, using treatment status (PBS/control versus IFN-$\gamma$), cell type, and tissue/broad class as covariates. For each Sample2/pre4 spatial cell, CPA predicts the IFN-$\gamma$ state and the matched control state; their difference gives a per-cell direct delta, which is then fed to the \methodname{} propagation module. This is a hypothesis-generation demonstration, not matched validation.
-\Cref{fig:ifng_response_field} shows a heterogeneous response field across genes, regions, and local neighborhoods. \textbf{First, the model recovers the canonical IFN-$\gamma$/MHC-I program.} Target-cell deltas are positive for interferon and antigen-presentation genes, including \textit{B2m} $(+1.91)$, \textit{H2-D1} $(+1.57)$, and \textit{Ifitm3} $(+1.72)$, indicating a systematic IFN/MHC-I response across high-response targets. \textbf{Second, inferred IFN-$\gamma$ target cells are biased toward immune, vascular, and glial-associated states.} Microglia account for 11.91\% of top-pathway 5\% targets versus 7.98\% background frequency, a 1.49$\times$ enrichment. Endothelial and pericyte states are also mildly enriched, matching the expectation that IFN-$\gamma$ is sensed by immune, vascular, and glial microenvironments rather than arbitrary spatial locations. \textbf{Third, the perturbation is not only activating, it also suppresses structural and vascular-associated programs.} Target cells show down-regulation of \textit{Col1a2} $(-1.31)$, \textit{Vcan} $(-1.28)$, and \textit{Flt1} $(-1.82)$, suggesting a shift from homeostatic structural or vascular-like programs toward immune and antiviral programs. The response is spatially heterogeneous rather than a uniform slide shift: high-response patches show consistent IFN/MHC-I activation together with structural-gene suppression, and patch-level gradients reveal region-specific response direction and magnitude. Seed construction and full numerical readouts are reported in the appendix.
+\end{figure}
+
+
 
 \subsection{Application: Using SPINE as a Drug Selector}
 \label{sec:drug_selector_application}
 Spatial response fields can also be used as a downstream drug/perturbation selector. Instead of evaluating only one perturbation query, we score each candidate action by a target utility \(U\), measuring whether the requested program response is retained in a specified spatial ring, and a collateral burden \(S\), measuring far-field, off-program, and harmful-program responses outside the target. The selector ranks only target-retaining actions and then prefers lower-burden alternatives. This use is a retrospective response-field audit rather than a prospective controller, because observed held-out fields are used only for evaluation.
 
+
+In the Spatial Perturb-seq audit, the selector screened 5,286 candidate actions across 36 target specifications. A clean weighted operating point reached TQR 0.639 with burden reduction 0.354, and an off-program-sensitive operating point reached TQR 0.667 with burden reduction 0.362. A rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. Three biological examples retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. The strongest example, TGF-$\beta$/stroma near-down, reduced weighted burden from 1.188 to 0.597 while preserving target score from 5.074 to 4.968. External Perturb-FISH support is directionally consistent at the module level: on 39 reliable specifications, the predicted-utility/predicted-burden selector reached TQR 0.718, burden reduction 0.151, and pairwise safety 0.851. These results suggest that \methodname{} response fields can help prioritize interventions that preserve a desired local target response while reducing spatial collateral effects. Full operating points, burden decompositions, Perturb-FISH support, and calibration limits are provided in \Cref{app:selector_audit,fig:app_selector_prioritization}.
+\FloatBarrier
+\section{Discussion and Conclusion}
+\label{sec:discussion_conclusion}
+Predicting perturbation responses inside intact tissue requires models that connect cell-intrinsic direct effects with secondary responses in neighboring cells and local niches. \methodname{} addresses this spatial layer by separating direct-effect estimation from direct-effect-to-neighbor propagation and by predicting a signed cell-by-gene response field on tissue graphs. The Spatial Perturb-Seq, controlled synthetic LR, and Perturb-map evaluations support this decomposition across matched cell-resolved, rule-controlled, and coarser external readouts. The ring-level and ablation results further indicate that niche-impact residualization, edge-aware routing, and direct-effect seeds contribute complementary signal rather than only increasing model capacity. Overall, \methodname{} provides a practical interface for converting measured or predicted direct-effect profiles into spatial response-field hypotheses for experimental follow-up.
+
+
+
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{selector_application_main.pdf}
+\includegraphics[width=\linewidth]{selector.png}
 \caption{\textbf{Using \methodname{} response fields as a drug selector.}
 (a) \methodname{} response fields are converted into target utility and collateral burden scores, then used to rank target-retaining, low-burden actions.
 (b) Three pre-specified biological cases keep target utility while moving away from the target-only baseline toward lower burden.
@@ -622,15 +638,13 @@ Spatial response fields can also be used as a downstream drug/perturbation selec
 \label{fig:drug_selector_application}
 \end{figure}
 
-In the Spatial Perturb-seq audit, the selector screened 5,286 candidate actions across 36 target specifications. A clean weighted operating point reached TQR 0.639 with burden reduction 0.354, and an off-program-sensitive operating point reached TQR 0.667 with burden reduction 0.362. A rank-consensus operating point increased burden reduction to 0.418 at TQR 0.620. Three biological examples retained 89.3--99.8\% of target utility while reducing collateral burden by 24.4--49.7\%. The strongest example, TGF-$\beta$/stroma near-down, reduced weighted burden from 1.188 to 0.597 while preserving target score from 5.074 to 4.968. External Perturb-FISH support is directionally consistent at the module level: on 39 reliable specifications, the predicted-utility/predicted-burden selector reached TQR 0.718, burden reduction 0.151, and pairwise safety 0.851. These results suggest that \methodname{} response fields can help prioritize interventions that preserve a desired local target response while reducing spatial collateral effects. Full operating points, burden decompositions, Perturb-FISH support, and calibration limits are provided in \Cref{app:selector_audit,fig:app_selector_prioritization}.
-\FloatBarrier
-\section{Discussion and Conclusion}
-\label{sec:discussion_conclusion}
-Predicting perturbation responses inside intact tissue requires models that connect cell-intrinsic direct effects with secondary responses in neighboring cells and local niches. \methodname{} addresses this spatial layer by separating direct-effect estimation from direct-effect-to-neighbor propagation and by predicting a signed cell-by-gene response field on tissue graphs. The Spatial Perturb-Seq, controlled synthetic LR, and Perturb-map evaluations support this decomposition across matched cell-resolved, rule-controlled, and coarser external readouts. The ring-level and ablation results further indicate that niche-impact residualization, edge-aware routing, and direct-effect seeds contribute complementary signal rather than only increasing model capacity. Overall, \methodname{} provides a practical interface for converting measured or predicted direct-effect profiles into spatial response-field hypotheses for experimental follow-up.
+
+
 
 \section{Limitations and Ethical Considerations}
 \label{sec:limitations_ethical_considerations}
-\methodname{} is intended for hypothesis generation and benchmarked propagation analysis, not for clinical decision making or unsupervised therapeutic deployment. The main technical limitation is that PPP targets are stable, guide-consistent pseudo-targets rather than directly observed causal pre/post measurements of the same cells. The de novo IFN-$\gamma$ case study is therefore a deployment example and requires direct experimental validation before any biological conclusion is acted on. Data privacy is a concern for spatial and single-cell perturbation data because molecular profiles, tissue locations, disease labels, and donor metadata can be sensitive even after routine de-identification. Our released artifacts will use public or de-identified data products and split manifests, and any future human-data extension should follow the consent, IRB, and data-use terms under which the original samples were collected. Consent is especially important for spatial perturbation modeling because predictions could be re-used to infer disease-, tissue-, or treatment-specific response patterns beyond the original study aim. The current benchmarks are biased toward mouse brain, selected perturbations, available cell states, and public spatial assays, so performance may not transfer to other organs, species, disease states, or rare cell populations. PPP matching and reference-ST mining may also bias the model toward abundant cell types and well-represented microenvironments. Potential misuse includes prioritizing genetic or drug perturbations without wet-lab validation, overinterpreting pseudo-targets as causal effects, or applying response-field predictions to sensitive disease contexts without appropriate oversight. These limitations motivate conservative interpretation, transparent code and manifest release, and prospective validation before using \methodname{} to guide intervention design.
+
+\methodname{} is intended for hypothesis generation and benchmarked propagation analysis, not for clinical decision making or unsupervised therapeutic deployment. A key technical limitation is that PPP targets are guide-consistent pseudo-targets rather than directly observed causal pre/post measurements of the same cells; therefore, the de novo IFN-$\gamma$ case study requires direct experimental validation before any biological conclusion is acted on. Spatial and single-cell perturbation data also raise privacy concerns, since molecular profiles, tissue locations, disease labels, and donor metadata can remain sensitive after de-identification. Released artifacts will use public or de-identified data products and split manifests, and any future human-data extension should follow the relevant consent, IRB, and data-use terms. Current benchmarks are biased toward mouse brain, selected perturbations, available cell states, and public spatial assays, so performance may not transfer to other organs, species, disease states, or rare cell populations. PPP matching and reference-ST mining may further bias the model toward abundant cell types and well-represented microenvironments. Potential misuse includes prioritizing perturbations without wet-lab validation, overinterpreting pseudo-targets as causal effects, or applying response-field predictions in sensitive disease contexts without oversight. These limitations motivate conservative interpretation, transparent release, and prospective validation before using \methodname{} to guide intervention design.
 \section{Code Release}
 \label{sec:code_release}
 We will release the code, configuration files, processed split manifests, benchmark construction scripts, and evaluation scripts in a public repository, with the final URL added before submission.
