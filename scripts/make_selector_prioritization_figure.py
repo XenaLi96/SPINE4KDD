@@ -29,7 +29,7 @@ GRID = "#D7DCE2"
 LIGHT = "#F2F5F7"
 SELECTOR_LIGHT = "#DDF2EC"
 CASE_ORDER = ["TGF$\\beta$/stroma", "Vascular stress", "Myeloid activation"]
-BURDEN_COMPONENTS = ["weighted", "far-field", "off-program", "harmful"]
+BURDEN_COMPONENTS = ["weighted", "far-field", "off-program", "undesirable"]
 PDF_METADATA = {
     "Creator": "SPINE4KDD/scripts/make_selector_prioritization_figure.py",
     "Producer": "Matplotlib",
@@ -84,7 +84,7 @@ def burden_df() -> pd.DataFrame:
             ("weighted", 1.187680, 0.597251),
             ("far-field", 1.212523, 0.604024),
             ("off-program", 1.228201, 0.614737),
-            ("harmful", 1.456936, 0.777966),
+            ("undesirable", 1.456936, 0.777966),
         ],
         columns=["component", "target_only", "selector"],
     )
@@ -100,7 +100,7 @@ def burden_full_df() -> pd.DataFrame:
             ("Myeloid activation", "target-only", 1.578, 0.717, 0.918, 0.742, 0.811),
             ("Myeloid activation", "selector", 1.409, 0.542, 0.651, 0.550, 0.657),
         ],
-        columns=["target", "role", "target_score", "weighted", "far-field", "off-program", "harmful"],
+        columns=["target", "role", "target_score", "weighted", "far-field", "off-program", "undesirable"],
     )
 
 
@@ -119,10 +119,10 @@ def operating_df() -> pd.DataFrame:
 def perturb_fish_df() -> pd.DataFrame:
     return pd.DataFrame(
         [
-            ("reliable", 39, 0.718, 0.151, 0.207, 0.851),
+            ("reliable", 39, 0.718, 0.151, 0.207, 0.874),
             ("all", 64, 0.641, 0.137, 0.218, 0.851),
         ],
-        columns=["subset", "specs", "tqr", "burden_reduction", "obs_u_pred_s_reduction", "pairwise_safety"],
+        columns=["subset", "specs", "tqr", "burden_reduction", "obs_u_pred_s_reduction", "lower_burden_agreement"],
     )
 
 
@@ -196,7 +196,7 @@ def draw_box(
 def plot_selector_workflow(ax: plt.Axes) -> None:
     ax.axis("off")
     ax.set_box_aspect(1)
-    panel_title(ax, "A", "SPINE drug selector")
+    panel_title(ax, "A", "Intervention prioritization")
     box_w = 0.72
     box_h = 0.18
     centers = [0.78, 0.50, 0.22]
@@ -273,7 +273,7 @@ def plot_checks(ax: plt.Axes) -> None:
     ax.text(
         0.04,
         0.95,
-        "Spatial selector:\nTQR 0.64 / burden -35%\nPerturb-FISH:\nTQR 0.72 / safety 0.85",
+        "Spatial selector:\nTQR 0.64 / burden -35%\nPerturb-FISH:\nTQR 0.72 / agreement 0.87",
         transform=ax.transAxes,
         ha="left",
         va="top",
@@ -288,7 +288,7 @@ def plot_appendix_overview(ax: plt.Axes) -> None:
     panel_title(ax, "A", "Selector interface and audit scale")
     draw_box(ax, (0.50, 0.74), "SPINE\nresponse fields", LIGHT, w=0.60, h=0.17, fontsize=6.0)
     draw_box(ax, (0.50, 0.51), "target utility U\nin requested ring", LIGHT, w=0.72, h=0.16, fontsize=5.7)
-    draw_box(ax, (0.50, 0.30), "collateral burden S\nfar-field / off-program / harmful", LIGHT, w=0.82, h=0.15, fontsize=5.1)
+    draw_box(ax, (0.50, 0.30), "collateral burden S\nfar-field / off-program / undesirable", LIGHT, w=0.82, h=0.15, fontsize=5.1)
     draw_box(ax, (0.50, 0.10), "rank target-retaining\nlow-burden actions", SELECTOR_LIGHT, w=0.76, h=0.15, fontsize=5.6)
     for start, end in [((0.50, 0.65), (0.50, 0.60)), ((0.50, 0.43), (0.50, 0.38)), ((0.50, 0.22), (0.50, 0.18))]:
         ax.annotate("", xy=end, xytext=start, xycoords=ax.transAxes, arrowprops={"arrowstyle": "->", "lw": 0.8, "color": TEXT})
@@ -376,7 +376,7 @@ def plot_appendix_perturb_fish(ax: plt.Axes) -> None:
         ("tqr", "TQR"),
         ("burden_reduction", "burden\nred."),
         ("obs_u_pred_s_reduction", "obs-U /\npred-S"),
-        ("pairwise_safety", "pairwise\nsafety"),
+        ("lower_burden_agreement", "pairwise\nagreement"),
     ]
     x = np.arange(len(metrics))
     width = 0.34
@@ -447,7 +447,7 @@ def make_appendix_figure(out_png: Path, out_pdf: Path | None, source_out_dir: Pa
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build the SPINE drug-selector main and appendix figures.")
+    parser = argparse.ArgumentParser(description="Build the SPINE intervention-prioritization main and appendix figures.")
     parser.add_argument(
         "--main-png",
         type=Path,

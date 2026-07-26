@@ -1,0 +1,13 @@
+assay,scope,method_display,n_specs,target_qualified_rate,target_qualified_rate_ci,burden_reduction,burden_reduction_ci,regret,safe_at5,pairwise_safety,delta_sred_vs_target_only_ci,p_not_improved_vs_target_only
+Spatial Perturb-seq,multi-seed main benchmark,Target-only,36,0.7222222222222222,"0.722 [0.583, 0.861]",0.0,"0.000 [0.000, 0.000]",0.5505196777068906,0.1388888888888889,0.606285564285506,,
+Spatial Perturb-seq,multi-seed main benchmark,Random target-qualified,36,1.0,"1.000 [1.000, 1.000]",0.0206153984710267,"0.021 [-0.100, 0.154]",0.412459064895908,0.0,,,
+Spatial Perturb-seq,multi-seed main benchmark,Forward aggregation,36,0.6388888888888888,"0.639 [0.472, 0.778]",0.2253557678471248,"0.225 [0.083, 0.355]",0.281611739554339,0.5555555555555556,0.5930458333333334,,
+Spatial Perturb-seq,multi-seed main benchmark,Spillover head constrained,36,0.5277777777777778,"0.528 [0.361, 0.694]",0.4814943127498857,"0.481 [0.362, 0.586]",0.1497039267172416,0.4444444444444444,0.606285564285506,,
+Spatial Perturb-seq,multi-seed main benchmark,NicheControl rank-consensus,36,0.6203703703703703,"0.620 [0.454, 0.778]",0.4182839619331229,"0.418 [0.308, 0.516]",0.192836418678915,0.5277777777777778,0.6064141795934813,"0.418 [0.311, 0.518]",0.0005
+Spatial Perturb-seq,multi-seed main benchmark,NicheControl LCB/UCB,36,0.5370370370370371,"0.537 [0.398, 0.676]",0.4254398056952855,"0.425 [0.310, 0.521]",0.1948754119652288,0.4907407407407407,0.6047535209359601,"0.425 [0.315, 0.518]",0.0005
+Spatial Perturb-seq,multi-seed main benchmark,Oracle observed U+S,36,1.0,"1.000 [1.000, 1.000]",0.6718190108095001,"0.672 [0.630, 0.713]",0.0,1.0,,,
+Spatial Perturb-seq,multi-seed main benchmark,NicheControl clean operating point,36,0.6388888888888888,"0.639 [0.499, 0.806]",0.3535184247407068,"0.354 [0.222, 0.476]",0.2352017890661955,0.4722222222222221,0.606285564285506,"0.354 [0.224, 0.475]",0.0005
+Perturb-FISH,reliable_val / perturbation_context_bin / harmful_program,full_pred_u_pred_s,39,0.717948717948718,,0.1506145897284762,,0.0418483794499666,1.0,0.874329958308517,,
+Perturb-FISH,reliable_val / perturbation_context_bin / harmful_program,obs_u_pred_s,39,1.0,,0.2069087168671294,,0.0104403029649685,1.0,0.874329958308517,,
+Perturb-FISH,reliable_val / perturbation_context_bin / harmful_program,oracle_obs_u_obs_s,39,1.0,,0.235896807047507,,0.0,1.0,0.874329958308517,,
+Perturb-FISH,reliable_val / perturbation_context_bin / harmful_program,target_only_pred_u,39,0.7948717948717948,,0.0,,0.1179480942396017,1.0,0.874329958308517,,
