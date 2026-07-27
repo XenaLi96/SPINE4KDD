@@ -627,24 +627,24 @@ Panel (b) reports receiver- and ring-level correlations for controlled LR-propag
 
 \section{Experiments}
 \label{sec:experiments}
-Experiments proceed from setup to response-field prediction, benchmark
-evaluation, ablation and robustness analysis, and two scientific use cases.
+Experiments cover response-field prediction, benchmark evaluation, robustness,
+and two scientific use cases.
 
 \subsection{Experimental Setup Separates Benchmarking from Confirmatory Effects}
 \label{sec:benchmark_metrics}
 Mouse-brain Spatial Perturb-seq is the primary benchmark. Exact-task comparisons
 use the development split; perturbation estimates use disjoint
 train/validation/test graph sets (1,342/837/928). Five grouped guide-out folds
-test every guide once. The spatial partitions are non-overlapping tissue blocks;
-no anchor, matched control, or pseudo-target crosses them. Spatial seeds test
+test every guide once. Non-overlapping tissue blocks prevent anchors, matched
+controls, or pseudo-targets from crossing partitions. Spatial seeds test
 conditional propagation; scRNA seeds test the end-to-end interface. Unless
 noted, runs use 64-cell patches on one RTX A6000.
 
 Neighbor Pearson measures the signed receiver field, centered Pearson removes
 graph offsets, Ring Pearson tests radial organization, and Neighbor MAE measures
 absolute error. Mechanistic analyses compare context and full predictions per
-graph; uncertainty resamples blocks or guides. Cells within a graph are never
-treated as independent biological replicates.
+graph; uncertainty resamples blocks or guides, never cells as independent
+replicates.
 
 
 
@@ -736,11 +736,10 @@ No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
 
 
 
-Spatial Perturb-seq determines cell-resolved claims; controlled
-LR propagation, Perturb-map, and Perturb-FISH test known-rule
-recovery, spot/lesion transfer, and native-panel burden ranking, respectively.
-Supporting assays probe distinct failure modes across assays and are not pooled;
-the appendix reports full settings and resampling units.
+Spatial Perturb-seq determines cell-resolved claims; controlled LR propagation,
+Perturb-map, and Perturb-FISH test known-rule recovery, spot/lesion transfer,
+and native-panel burden ranking. Supporting assays probe failure modes but are
+not pooled; the appendix reports full settings and resampling units.
 
 
 
@@ -751,16 +750,15 @@ the appendix reports full settings and resampling units.
 
 \subsection{\methodname{} Reconstructs Cell-Resolved Spatial Response Fields}
 \label{sec:validation_main_benchmark}
-On the exact-task comparison split, \methodname{} reconstructs cell-resolved
-response fields more accurately than the implemented statistical, retrieval,
-radial, linear, patch, and generic graph alternatives. It reaches
-Neighbor and Ring Pearson of 0.684 and 0.457, with Neighbor MAE 0.408
+On the exact-task split, \methodname{} outperforms the implemented statistical,
+retrieval, radial, linear, patch, and generic graph alternatives. It reaches
+Neighbor/Ring Pearson 0.684/0.457 and Neighbor MAE 0.408
 (\Cref{tab:main_baseline_comparison}).
 Whole-region and local-neighborhood maps recover heterogeneous signed responses,
 while gene-level accuracy is strongest for high-change and high-variance genes
 and remains heterogeneous for genes linked to perturbation
-(\Cref{fig:main_exp,tab:main_results}). Across all 928 test
-graphs and 512 genes, representative perturbation-related genes range from
+(\Cref{fig:main_exp,tab:main_results}). Across 928 test graphs and 512 genes,
+representative perturbation-related genes range from
 Pearson 0.835 for \textit{C1qa} and 0.788 for \textit{Gfap} to 0.266 for
 \textit{Trem2} and 0.184 for \textit{Olig2}; high-change genes reach
 0.826--0.882 (\Cref{tab:main_results}). The displayed sgRNA-\textit{Lrrk2}
