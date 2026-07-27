@@ -927,14 +927,12 @@ are not used as confirmatory effect estimates.}
 \textbf{\methodname{} turns response-field prediction into a
 target-retaining, lower-burden selection problem.} Target-only ranking cannot
 distinguish actions that produce comparable local utility but different
-far-field or off-program responses. We therefore retain actions that satisfy a
+far-field or off-program responses. We retain actions that satisfy a
 validated local-program threshold and minimize far-field, off-program, and
-undesirable-program burden. The hard utility constraint prevents an inactive
-action from appearing favorable merely because all its responses are small.
-When undesirable programs encode stress or apoptosis, this score is a
-toxicity-associated transcriptomic burden, not organismal toxicity. All
-thresholds, weights, and operating points are selected on validation data
-before test evaluation.
+undesirable-program burden. The utility constraint prevents inactive actions
+from appearing favorable because all responses are small. Stress or apoptosis
+terms represent toxicity-associated transcriptomic burden, not organismal
+toxicity. Validation fixes all thresholds, weights, and operating points.
 
 
 
@@ -954,11 +952,11 @@ Right: local 64-cell neighborhoods, where highlighted target cells show the stro
 
 
 \textbf{On the frozen spatial test block, the selector preserves target
-qualification while lowering collateral response burden.} The test set
-contains 3,107 spatially separated actions and 36 target specifications. A
-five-candidate consensus fixed on validation matches the target-only
-target-qualified rate (TQR; 0.6944 versus 0.6944) and reduces mean spillover by
-12.0\% (\Cref{fig:drug_selector_application}). Absolute burden decreases by
+qualification while lowering collateral response burden.} Across 3,107
+spatially separated actions and 36 target specifications, a validation-fixed
+five-candidate consensus matches target-only TQR (0.6944 versus 0.6944) and
+reduces mean spillover by 12.0\%
+(\Cref{fig:drug_selector_application}). Absolute burden decreases by
 0.1244 [0.0559, 0.1926], regret falls from 0.4668 to 0.3424, and Safe@5 rises
 from 0.1111 to 0.4167. Random observed-qualified selection and Path2
 aggregation instead yield mean reductions of $-9.8\%$ and $-16.4\%$, whereas
@@ -968,9 +966,9 @@ the dual utility/burden selector reaches $+12.9\%$
 \textbf{Task-specific \methodname{} burden ranking, rather than generic
 aggregation, drives the improvement.} The context spillover head reaches
 pairwise lower-burden agreement 0.6250 [0.6108, 0.6393], compared with 0.4909
-for a context MLP. Selected actions have lower burden for 24 specifications,
-higher burden for seven, and unchanged burden for five. The absolute-decrease
-interval excludes zero, whereas the relative-reduction interval
+for a context MLP. Burden falls for 24 specifications, rises for seven, and is
+unchanged for five. The absolute interval excludes zero, whereas the relative
+interval
 [$-0.0018$, 0.2289] crosses zero because ratios are unstable when target-only
 burden is small. The observed-field oracle reaches 60.6\% reduction. Thus,
 burden ranking is learnable, but utility qualification and extreme-rank
@@ -983,18 +981,16 @@ and myeloid-activation cases retain 99.8\% and 89.3\% of target utility while
 reducing burden by 24.4\% each
 (\Cref{fig:drug_selector_application}). These examples expose differences in
 far-field, off-program, and undesirable-program responses that target-only
-ranking cannot resolve. Because the operating family and cases were explored
-post hoc, they explain the decision mechanism but are not confirmatory effect
-estimates.
+ranking misses. Because these cases were explored post hoc, they explain the
+mechanism but are not confirmatory estimates.
 
 \textbf{Observed chemical-response resources support the same constrained
 interface for drug--dose--time selection.} Context-specific selection reaches
 TQR 1.000 with burden reductions of 9.88\%, 12.30\%, 5.50\%, and 1.19\% in
 LINCS Phase II, LINCS Phase I, the Tahoe-100M pseudobulk subset, and Sci-Plex,
-respectively (\Cref{tab:app_chemical_selector}). These audits use observed
-response profiles. They establish that target-retaining drug selection is a
-meaningful decision problem, but do not validate end-to-end spatial drug-field
-prediction, treatment efficacy, or clinical safety.
+respectively (\Cref{tab:app_chemical_selector}). These observed-response audits
+support the decision problem, not end-to-end spatial drug-field prediction,
+treatment efficacy, or clinical safety.
 \FloatBarrier
 
 
@@ -1007,15 +1003,13 @@ prediction, treatment efficacy, or clinical safety.
 \subsection{\methodname{}-Based IFN-\texorpdfstring{$\gamma$}{gamma} Deployment Produces a Spatially Heterogeneous Hypothesis}
 \label{sec:ifng_case_study}
 \textbf{\methodname{} supports de novo spatial perturbation queries when only a
-non-spatial direct-effect model is available.} We apply the trained propagation
-model to an intact mouse-brain spatial graph that has no paired IFN-$\gamma$
-spatial perturbation labels. CPA is trained or fine-tuned on PerturbSapiens
-cytokine data using treatment status (PBS/control versus IFN-$\gamma$), cell
-type, and tissue or broad class as covariates. For each Sample2/pre4 spatial
-cell, CPA predicts the IFN-$\gamma$ and matched control states. Their difference
-defines a per-cell direct-effect delta that is passed to the \methodname{}
-propagation module. This experiment demonstrates the query interface and
-generates hypotheses; it is not matched spatial validation.
+non-spatial direct-effect model is available.} On an intact mouse-brain graph
+without paired IFN-$\gamma$ labels, CPA trained or fine-tuned on PerturbSapiens
+predicts IFN-$\gamma$ and control states for each Sample2/pre4 spatial cell
+using treatment status (PBS/control versus IFN-$\gamma$), cell type, and tissue
+or broad class as covariates. Their difference defines a per-cell direct-effect
+delta passed to \methodname{} propagation. This demonstrates the query
+interface and generates hypotheses; it is not matched spatial validation.
 
 \textbf{The inferred field recovers a coherent canonical
 IFN-$\gamma$/MHC-I response.} Target-cell deltas are positive for interferon
@@ -1029,9 +1023,9 @@ IFN/MHC-I-like program rather than an isolated marker.
 and glial-associated niches rather than assigning a uniform tissue-wide
 effect.} Microglia account for 11.91\% of top-pathway 5\% targets versus
 7.98\% background frequency, corresponding to 1.49$\times$ enrichment.
-Endothelial and pericyte states are also mildly enriched. This distribution is
-consistent with an IFN-$\gamma$ response concentrated in immune, vascular, and
-glial microenvironments rather than arbitrary spatial locations.
+Endothelial and pericyte states are also mildly enriched, concentrating the
+hypothesis in immune, vascular, and glial microenvironments rather than
+arbitrary spatial locations.
 
 \textbf{The same query predicts spatially heterogeneous suppression of
 structural and vascular programs.} Target cells show decreased
@@ -1041,51 +1035,43 @@ $(-1.82)$ alongside IFN/MHC-I activation. Whole-tissue maps and local
 regions rather than forming a uniform slide-level shift
 (\Cref{fig:ifng_response_field}). Seed construction and full numerical
 readouts are reported in
-\Cref{tab:app_ifng_direct_effect_seed,app:ifng_extended_interpretation}; direct
-spatial perturbation remains necessary to validate these hypotheses.
+\Cref{tab:app_ifng_direct_effect_seed,app:ifng_extended_interpretation};
+spatial perturbation remains necessary for validation.
 \FloatBarrier
 \section{Discussion and Conclusion}
 \label{sec:discussion_conclusion}
 Tissue context explains most global response-field structure, whereas
 conditioning on the perturbation contributes a smaller, reproducible radial
-component. This lift persists when matching and output genes are separated,
-requires spatially local controls, and depends on both the direct-effect profile
-and sender location.
-It peaks near the 64-cell (98-$\mu$m) scale and transfers to unseen guides only
-when assay-matched spatial seeds are available; external scRNA seeds
-underperform zero seed. These controls support local response-field prediction
-within the assayed system, not causal communication inference.
+component. The lift survives gene-disjoint matching, requires local controls,
+depends on direct-effect profile and sender location, and peaks near 64 cells
+(98\,$\mu$m). It transfers to unseen guides only with assay-matched spatial
+seeds; external scRNA seeds underperform zero seed. These controls support
+local response-field prediction, not causal communication inference.
 
-Separating absolute reconstruction from graph-paired lift is essential. Pooled
-correlation rewards stable anatomical structure, whereas paired Ring lift asks
-whether the correct seed reorganizes the local field beyond context. Their
-disagreement is therefore diagnostic rather than contradictory and identifies
-direct-effect transfer and top-action calibration as the main remaining
+Pooled correlation rewards stable anatomy; graph-paired Ring lift tests whether
+the correct seed reorganizes the local field beyond context. Their disagreement
+identifies direct-effect transfer and top-action calibration as the remaining
 bottlenecks.
 
 The validation-frozen selector shows that the remaining signal is
 decision-relevant: it preserves target qualification while modestly reducing
-held-out burden. The same constrained utility--burden interface also supports
-drug--dose--time ranking in observed LINCS, Tahoe-100M pseudobulk, and Sci-Plex
-response profiles. We therefore view \methodname{} as a response-field-based
-drug/perturbation selector for experimental prioritization. The current
-evidence is retrospective and the undesirable-program score is only a
-toxicity-associated transcriptomic proxy, not a treatment recommendation or
-clinical safety estimate. Prospective validation should select actions before
-measurement, use assay-compatible direct-effect profiles, and independently
-measure both target response and collateral spatial fields.
+held-out burden. The utility--burden interface ranks drug--dose--time
+actions in observed LINCS, Tahoe-100M, and Sci-Plex profiles. We therefore view
+\methodname{} as a response-field-based selector for experimental
+prioritization. Evidence remains retrospective; undesirable-program scores are
+transcriptomic proxies, not clinical safety estimates. Prospective studies
+require preselected actions, assay-compatible seeds, and independent target
+and collateral measurements.
 
 \section{Limitations and Ethical Considerations}
 \label{sec:limitations_ethical_considerations}
 \ppp is a matched pseudo-counterfactual, not paired pre/post measurement.
-Primary effect estimates come from one mouse-brain assay, and the selected
-spatial scale, program definitions, and calibration may not transfer across
-tissues or platforms. Guide-OOD gains are modest, external scRNA seeds fail,
-and selector results are retrospective. The chemical-response audits use
-observed profiles and validate the drug-selection formulation rather than
-end-to-end spatial drug-field prediction. Prospective spatial perturbation
-validation is required; public data remain subject to their original consent
-and use terms.
+Primary estimates come from one mouse-brain assay; scale, programs, and
+calibration may not transfer across tissues or platforms. Guide-OOD gains are
+modest; external scRNA seeds fail. Chemical-response audits validate the
+decision formulation with observed
+profiles, not end-to-end spatial prediction. Prospective validation is
+required; public data remain subject to their original terms.
 
 \section{Generative AI Usage}
 Generative AI tools were used for language editing and code assistance during
