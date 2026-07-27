@@ -1004,48 +1004,35 @@ Because this tissue has no paired spatial IFN-$\gamma$ ground truth, the case
 demonstrates the query interface only; seed construction and numerical readouts
 are reported in the appendix.
 \FloatBarrier
-\section{Discussion and Conclusion}
+\section{Discussion, Conclusion, Limitations, and Ethical Considerations}
 \label{sec:discussion_conclusion}
-Tissue context explains most global response-field structure, whereas
-conditioning on the perturbation contributes a smaller, reproducible radial
-component. This lift persists when matching and output genes are separated,
-requires spatially local controls, and depends on both the direct-effect profile
-and sender location.
-It peaks near the 64-cell (98-$\mu$m) scale and transfers to unseen guides only
-when assay-matched spatial seeds are available; external scRNA seeds
-underperform zero seed. These controls support local response-field prediction
-within the assayed system, not causal communication inference.
-
-Separating absolute reconstruction from graph-paired lift is essential. Pooled
-correlation rewards stable anatomical structure, whereas paired Ring lift asks
-whether the correct seed reorganizes the local field beyond context. Their
-disagreement is therefore diagnostic rather than contradictory and identifies
-direct-effect transfer and top-action calibration as the main remaining
-bottlenecks.
-
-The validation-frozen selector shows that the remaining signal is
-decision-relevant: it preserves target qualification while modestly reducing
-held-out burden. The same constrained utility--burden interface also supports
-drug--dose--time ranking in observed LINCS, Tahoe-100M pseudobulk, and Sci-Plex
-response profiles. We therefore view \methodname{} as a response-field-based
-drug/perturbation selector for experimental prioritization. The current
-evidence is retrospective and the undesirable-program score is only a
-toxicity-associated transcriptomic proxy, not a treatment recommendation or
-clinical safety estimate. Prospective validation should select actions before
-measurement, use assay-compatible direct-effect profiles, and independently
-measure both target response and collateral spatial fields.
-
-\section{Limitations and Ethical Considerations}
 \label{sec:limitations_ethical_considerations}
-\ppp is a matched pseudo-counterfactual, not paired pre/post measurement.
-Primary effect estimates come from one mouse-brain assay, and the selected
-spatial scale, program definitions, and calibration may not transfer across
-tissues or platforms. Guide-OOD gains are modest, external scRNA seeds fail,
-and selector results are retrospective. The chemical-response audits use
-observed profiles and validate the drug-selection formulation rather than
-end-to-end spatial drug-field prediction. Prospective spatial perturbation
-validation is required; public data remain subject to their original consent
-and use terms.
+Tissue context explains most global response-field structure, whereas
+perturbation conditioning contributes a smaller, reproducible radial component.
+The lift survives gene-disjoint matching, requires local controls, profile
+identity, and sender location, and peaks near 64 cells (98-$\mu$m). It
+transfers to unseen guides with assay-matched spatial
+seeds, but external scRNA seeds underperform zero seed. Thus, \methodname{}
+supports assayed response-field prediction, not causal communication inference.
+
+Pooled correlation rewards stable anatomy, whereas graph-paired Ring lift tests
+seed-dependent reorganization beyond context. Their disagreement highlights
+direct-effect transfer and top-action calibration as bottlenecks. The
+validation-frozen selector nevertheless preserves target
+qualification while modestly reducing held-out burden. The same constrained
+utility--burden interface supports retrospective drug--dose--time ranking in
+LINCS, Tahoe-100M pseudobulk, and Sci-Plex. We therefore view \methodname{} as a
+response-field-based drug and perturbation selector for experimental
+prioritization, not treatment recommendation or clinical safety estimation.
+
+Limitations include \ppp's matched pseudo-counterfactual, one primary
+mouse-brain assay, modest guide-OOD gains, failed cross-assay transfer, and
+retrospective selection. Spatial scale, program
+definitions, and calibration may not transfer across tissues or platforms;
+chemical audits validate the decision formulation, not end-to-end spatial
+drug-field prediction. Prospective studies should preselect actions, use
+assay-compatible seeds, and measure target and collateral fields independently.
+Public data remain subject to their original consent and use terms.
 
 \section{Generative AI Usage}
 Generative AI tools were used for language editing and code assistance during
@@ -1056,16 +1043,9 @@ labels.
 
 \section{Code and Data Availability}
 \label{sec:code_release}
-We will release code, configurations, processed split manifests, benchmark
-construction scripts, machine-readable result tables, and evaluation scripts
-in a public repository, with the final URL added before submission. The release
-will include PPP control assignments, strict spatial and guide-held-out
-partitions, direct-effect input controls, patch-radius manifests, selector
-target specifications, frozen validation choices, and scripts that reproduce
-all confidence intervals in \Cref{tab:confirmatory_analysis}. Model checkpoints
-and derived response-field summaries will be provided where source-data terms
-permit. Raw data remain available from their original public repositories under
-the cited accession records.
+We will release the anonymized code, configuration files, processed split
+manifests, benchmark construction scripts, and evaluation scripts in an
+\href{https://anonymous.4open.science/r/NICHETURB-F5E5/}{anonymous GitHub repository}.
 \clearpage
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
