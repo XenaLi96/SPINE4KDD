@@ -1004,35 +1004,48 @@ Because this tissue has no paired spatial IFN-$\gamma$ ground truth, the case
 demonstrates the query interface only; seed construction and numerical readouts
 are reported in the appendix.
 \FloatBarrier
-\section{Discussion, Conclusion, Limitations, and Ethical Considerations}
+\section{Discussion and Conclusion}
 \label{sec:discussion_conclusion}
-\label{sec:limitations_ethical_considerations}
 Tissue context explains most global response-field structure, whereas
-perturbation conditioning contributes a smaller, reproducible radial component.
-The lift survives gene-disjoint matching, requires local controls, profile
-identity, and sender location, and peaks near 64 cells (98-$\mu$m). It
-transfers to unseen guides with assay-matched spatial
-seeds, but external scRNA seeds underperform zero seed. Thus, \methodname{}
-supports assayed response-field prediction, not causal communication inference.
+conditioning on the perturbation contributes a smaller, reproducible radial
+component. This lift persists when matching and output genes are separated,
+requires spatially local controls, and depends on both the direct-effect profile
+and sender location.
+It peaks near the 64-cell (98-$\mu$m) scale and transfers to unseen guides only
+when assay-matched spatial seeds are available; external scRNA seeds
+underperform zero seed. These controls support local response-field prediction
+within the assayed system, not causal communication inference.
 
-Pooled correlation rewards stable anatomy, whereas graph-paired Ring lift tests
-seed-dependent reorganization beyond context. Their disagreement highlights
-direct-effect transfer and top-action calibration as bottlenecks. The
-validation-frozen selector nevertheless preserves target
-qualification while modestly reducing held-out burden. The same constrained
-utility--burden interface supports retrospective drug--dose--time ranking in
-LINCS, Tahoe-100M pseudobulk, and Sci-Plex. We therefore view \methodname{} as a
-response-field-based drug and perturbation selector for experimental
-prioritization, not treatment recommendation or clinical safety estimation.
+Separating absolute reconstruction from graph-paired lift is essential. Pooled
+correlation rewards stable anatomical structure, whereas paired Ring lift asks
+whether the correct seed reorganizes the local field beyond context. Their
+disagreement is therefore diagnostic rather than contradictory and identifies
+direct-effect transfer and top-action calibration as the main remaining
+bottlenecks.
 
-Limitations include \ppp's matched pseudo-counterfactual, one primary
-mouse-brain assay, modest guide-OOD gains, failed cross-assay transfer, and
-retrospective selection. Spatial scale, program
-definitions, and calibration may not transfer across tissues or platforms;
-chemical audits validate the decision formulation, not end-to-end spatial
-drug-field prediction. Prospective studies should preselect actions, use
-assay-compatible seeds, and measure target and collateral fields independently.
-Public data remain subject to their original consent and use terms.
+The validation-frozen selector shows that the remaining signal is
+decision-relevant: it preserves target qualification while modestly reducing
+held-out burden. The same constrained utility--burden interface also supports
+drug--dose--time ranking in observed LINCS, Tahoe-100M pseudobulk, and Sci-Plex
+response profiles. We therefore view \methodname{} as a response-field-based
+drug/perturbation selector for experimental prioritization. The current
+evidence is retrospective and the undesirable-program score is only a
+toxicity-associated transcriptomic proxy, not a treatment recommendation or
+clinical safety estimate. Prospective validation should select actions before
+measurement, use assay-compatible direct-effect profiles, and independently
+measure both target response and collateral spatial fields.
+
+\section{Limitations and Ethical Considerations}
+\label{sec:limitations_ethical_considerations}
+\ppp is a matched pseudo-counterfactual, not paired pre/post measurement.
+Primary effect estimates come from one mouse-brain assay, and the selected
+spatial scale, program definitions, and calibration may not transfer across
+tissues or platforms. Guide-OOD gains are modest, external scRNA seeds fail,
+and selector results are retrospective. The chemical-response audits use
+observed profiles and validate the drug-selection formulation rather than
+end-to-end spatial drug-field prediction. Prospective spatial perturbation
+validation is required; public data remain subject to their original consent
+and use terms.
 
 \section{Generative AI Usage}
 Generative AI tools were used for language editing and code assistance during
@@ -2192,12 +2205,9 @@ cell-resolved benchmark.
 
 
 
-\subsection{Complete system-level baseline comparison}
-\label{app:full_baseline_comparison}
-
 \begin{table*}[t]
 \centering
-\caption{Complete system-level baseline comparison on the block-holdout Spatial Perturb-seq benchmark. Neighbor, neighbor-centered, high-confidence neighbor, and ring metrics are Pearson correlations; higher is better. MAE is lower better.}
+\caption{Complete system-level baseline comparison on the block-holdout Spatial Perturb-seq benchmark. Neighbor, neighbor-centered, high-confidence neighbor, and ring metrics are Pearson correlations; higher is better. MAE is lower better. The niche-only row quantifies context-explainable response, whereas the two final rows separate perturbation-conditioned propagation from ring refinement.}
 \label{tab:app_full_baseline_comparison}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -2268,12 +2278,6 @@ measured direct effect + refinement &
 \end{tabularx}
 \end{table*}
 
-\paragraph{Baseline descriptions.}
-The zero-delta baseline predicts no neighbor response. The niche-module-only patch model removes the direct-effect seed and direct-effect indicator, measuring how much local tissue context alone explains the target. Statistical baselines use training-set guide means or guide--cell-type--ring means. The retrieval baseline transfers neighbor deltas from the nearest matched training patch. The elastic-net row is the strongest shallow linear predictor among ridge and elastic-net variants. The generic graph baseline uses the same graph inputs as \methodname{} but removes niche-impact residualization, direct-effect-to-neighbor restriction, and ring feedback. The single-cell adapted baseline predicts a cell-autonomous direct effect and diffuses it by distance or ring kernels. The CCC-gated baseline uses COMMOT/Spacia-style communication scores as fixed edge weights with a shallow propagation head. The two \methodname{} rows show the base niche--propagation direct-effect-to-neighbor model and the final propagation blend with ST-conditioned ring refinement.
-
-\subsection{Aggregate gene-space metrics}
-\label{app:gene_space_metrics}
-
 \begin{table*}[t]
 \centering
 \caption{Aggregate gene-delta metrics for the same real-data run reported in the main gene-centric evaluation.}
@@ -2293,7 +2297,139 @@ Per-cell mean, neighbor cells & 0.686 & --- & 0.683 & 0.440 & 0.419 & 0.843 & 0.
 \end{tabular}
 \end{table*}
 
-At the flat gene-space level, the same run reaches Pearson/Spearman/Cosine $0.679/0.336/0.679$ over all node--gene pairs and $0.670/0.336/0.669$ on neighbor pairs. Aggregating first over cells yields mean per-cell Pearson $0.690$ overall and $0.686$ on neighbor cells.
+\begin{table*}[t]
+\centering
+\caption{Core structural ablations on the held-out local benchmark. Deltas are relative to the final propagation blend. The main paper reports the compact diagnostic summary; this table preserves the full structural-ablation values. Residualization is the dominant structural contribution; edge and direct-effect inputs provide smaller additional gains.}
+\label{tab:app_core_structural_ablations}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xccccc@{}}
+\toprule
+Variant & Neighbor & Ring & MAE & $\Delta$Neighbor & $\Delta$Ring \\
+\midrule
+\rowcolor{cyan!10}
+\methodname{} final propagation blend &
+0.68443 & 0.45722 & 0.40762 & --- & --- \\
+
+No niche-impact residualization &
+0.16451 & 0.15320 & 0.69832 & $-0.51992$ & $-0.30402$ \\
+
+No edge attributes &
+0.60591 & 0.41819 & 0.43651 & $-0.07852$ & $-0.03903$ \\
+
+No direct-effect input &
+0.61405 & 0.44062 & 0.42917 & $-0.07038$ & $-0.01660$ \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Formal frozen-test drug/perturbation selector audit.}
+Relative spillover reduction is measured against target-only; higher is better.
+Regret is measured against the observed-field oracle; lower is better.
+``Random qualified'' samples from actions qualified by observed utility and is
+therefore not a deployable method.}
+\label{tab:app_selector_formal}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Method & TQR & Spillover red. & Regret & Safe@1 & Safe@5 \\
+\midrule
+Target-only (MLP-context utility) & 0.6944 & 0.0000 & 0.4668 & 0.1111 & 0.1111 \\
+Random observed-qualified & 1.0000 & $-0.0983$ & 0.3849 & 0.0000 & 0.0000 \\
+Path2 aggregation & 0.6667 & $-0.1638$ & 0.4726 & 0.0278 & 0.3333 \\
+Dual MLP-utility + SPINE-burden & 0.6667 & 0.1291 & 0.3434 & 0.1389 & 0.4167 \\
+\textbf{Validation-selected consensus} & \textbf{0.6944} & \textbf{0.1200} &
+\textbf{0.3424} & \textbf{0.1667} & \textbf{0.4167} \\
+Nonlinear consensus sensitivity & 0.7222 & 0.1265 & 0.3318 & 0.1667 & 0.4167 \\
+Observed utility/burden oracle & 1.0000 & 0.6058 & 0.0000 & 1.0000 & 1.0000 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Exploratory burden decomposition for the three post-hoc cases. Scores
+are observed field summaries. Lower burden is better.}
+\label{tab:app_selector_burden_decomposition}
+\begin{tabular}{llrrrrr}
+\toprule
+Target & Role & Target score & Weighted burden & Far-field & Off-program & Undesired \\
+\midrule
+TGF-$\beta$/stroma near-down & target-only & 5.074 & 1.188 & 1.213 & 1.228 & 1.457 \\
+TGF-$\beta$/stroma near-down & selector & 4.968 & 0.597 & 0.604 & 0.615 & 0.778 \\
+Vascular stress near-down & target-only & 2.734 & 1.278 & 1.213 & 1.347 & 1.655 \\
+Vascular stress near-down & selector & 2.729 & 0.965 & 0.892 & 1.024 & 1.380 \\
+Myeloid activation far-up & target-only & 1.578 & 0.717 & 0.918 & 0.742 & 0.811 \\
+Myeloid activation far-up & selector & 1.409 & 0.542 & 0.651 & 0.550 & 0.657 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Observed chemical-response audits of the drug-selector
+interface.} Actions are compound--dose--time conditions where dose and time
+are available. Context and global TQR are median target-qualified rates for
+context-specific and context-agnostic selection. Tahoe-100M uses a
+prespecified 128/1,026-pseudobulk-shard subset, not the full raw collection.}
+\label{tab:app_chemical_selector}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Assay & Actions & Contexts & Specs & Context TQR & Global TQR & Burden red. \\
+\midrule
+LINCS Phase II (GSE70138) & 11,039 & 30 & 18 & 1.000 & 0.567 & 0.0988 \\
+LINCS Phase I (GSE92742) & 44,696 & 71 & 18 & 1.000 & 0.600 & 0.1230 \\
+Tahoe-100M pseudobulk subset & 1,137 & 50 & 18 & 1.000 & 0.640 & 0.0550 \\
+Sci-Plex (GSE139944) & 151 & 2 & 18 & 1.000 & 1.000 & 0.0119 \\
+\bottomrule
+\end{tabular}
+\vspace{6pt}
+
+\begin{minipage}[t]{0.47\textwidth}
+\raggedright\footnotesize
+\textit{Confirmatory selector.}
+\Cref{tab:app_selector_formal} uses 3,107 actions and 36 target specifications
+from disjoint train, validation, and frozen-test blocks. Validation fixes the
+utility source, burden score, and five-candidate operating point. On test, the
+selected rule matches target-only TQR at 0.6944, reduces mean spillover by
+0.1200, and lowers absolute burden by 0.1244 (95\% CI,
+0.0559--0.1926). Burden decreases for 24 specifications, increases for seven,
+and is unchanged for five. The 0.6058 oracle reduction shows that substantial
+ranking headroom remains; the evidence supports a moderate target-retaining
+effect rather than the larger development estimate.
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.47\textwidth}
+\raggedright\footnotesize
+\textit{Exploratory and external scope.}
+\Cref{tab:app_selector_burden_decomposition} decomposes three post-hoc cases
+into far-field, off-program, and undesirable-program terms. These cases explain
+the decision mechanism but do not estimate the formal effect because their
+operating family was explored during development.
+\Cref{tab:app_chemical_selector} instead uses observed response profiles to ask
+whether context-specific drug--dose--time choices exhibit the same
+utility--burden structure. LINCS Phase I/II provide the largest action pools;
+Tahoe-100M pseudobulk and Sci-Plex provide single-cell-derived support. These
+audits validate the decision formulation, not end-to-end spatial drug
+prediction, treatment efficacy, or clinical safety.
+\end{minipage}
+\end{table*}
+
+\FloatBarrier
+\subsection{Single-column supporting diagnostics}
+\label{app:single_column_diagnostics}
+The remaining tables are intentionally single-column. They document parameter
+sensitivity, seed and architecture controls, case-study readouts, external
+module support, unseen-guide stress tests, and calibration. This order keeps
+related narrow tables in the two available columns while the surrounding text
+states the split, estimand, and claim boundary for each result.
 
 \subsection{Propagation-blend sensitivity and reference-ST diagnostics}
 \label{app:blend_and_reference_diagnostics}
@@ -2423,33 +2559,6 @@ Matched-control $\rightarrow$ strict pseudo-pre & neighbor $0.0028$; ring $0.000
 
 \subsection{Detailed structural and design-refinement ablations}
 \label{app:structural_design_refinement}
-
-\begin{table*}[t]
-\centering
-\caption{Core structural ablations on the held-out local benchmark. Deltas are relative to the final propagation blend. The main paper reports the compact diagnostic summary; this table preserves the full structural-ablation values.}
-\label{tab:app_core_structural_ablations}
-\small
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xccccc@{}}
-\toprule
-Variant & Neighbor & Ring & MAE & $\Delta$Neighbor & $\Delta$Ring \\
-\midrule
-\rowcolor{cyan!10}
-\methodname{} final propagation blend &
-0.68443 & 0.45722 & 0.40762 & --- & --- \\
-
-No niche-impact residualization &
-0.16451 & 0.15320 & 0.69832 & $-0.51992$ & $-0.30402$ \\
-
-No edge attributes &
-0.60591 & 0.41819 & 0.43651 & $-0.07852$ & $-0.03903$ \\
-
-No direct-effect input &
-0.61405 & 0.44062 & 0.42917 & $-0.07038$ & $-0.01660$ \\
-\bottomrule
-\end{tabularx}
-\end{table*}
 
 \paragraph{Interpretation of structural ablations.}
 The final propagation blend combines a shared niche-impact baseline with directed direct-effect-to-neighbor propagation and ring-aware refinement. Removing niche-impact residualization produces the largest collapse, indicating that directly predicting the response fails to separate background tissue variation from perturbation-conditioned propagation. Removing edge attributes reduces both neighbor and ring performance, showing that spatial geometry, cell-type-pair information, and communication-compatibility features improve propagation structure. Removing the direct-effect input also degrades neighbor prediction, especially beyond niche-module-only correlation, confirming that the propagation module benefits from a meaningful direct-effect signal.
@@ -2638,32 +2747,6 @@ five-candidate operating point under a TQR constraint equal to validation
 target-only. Neither the model family nor the threshold is adjusted after
 opening the test block.
 
-\begin{table*}[t]
-\centering
-\small
-\caption{\textbf{Formal frozen-test drug/perturbation selector audit.}
-Relative spillover reduction is measured against target-only; higher is better.
-Regret is measured against the observed-field oracle; lower is better.
-``Random qualified'' samples from actions qualified by observed utility and is
-therefore not a deployable method.}
-\label{tab:app_selector_formal}
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Method & TQR & Spillover red. & Regret & Safe@1 & Safe@5 \\
-\midrule
-Target-only (MLP-context utility) & 0.6944 & 0.0000 & 0.4668 & 0.1111 & 0.1111 \\
-Random observed-qualified & 1.0000 & $-0.0983$ & 0.3849 & 0.0000 & 0.0000 \\
-Path2 aggregation & 0.6667 & $-0.1638$ & 0.4726 & 0.0278 & 0.3333 \\
-Dual MLP-utility + SPINE-burden & 0.6667 & 0.1291 & 0.3434 & 0.1389 & 0.4167 \\
-\textbf{Validation-selected consensus} & \textbf{0.6944} & \textbf{0.1200} &
-\textbf{0.3424} & \textbf{0.1667} & \textbf{0.4167} \\
-Nonlinear consensus sensitivity & 0.7222 & 0.1265 & 0.3318 & 0.1667 & 0.4167 \\
-Observed utility/burden oracle & 1.0000 & 0.6058 & 0.0000 & 1.0000 & 1.0000 \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
 For the validation-selected selector, mean absolute burden decreases by 0.1244
 with a target-specification bootstrap 95\% interval of [0.0559, 0.1926].
 Relative reduction is 0.1200 with interval [$-0.0018$, 0.2289]; program-level
@@ -2748,26 +2831,6 @@ Myeloid activation & \texttt{Cfap410} & \texttt{stk39} & 89.3\% & 24.4\% \\
 \end{tabular}
 \end{table}
 
-\begin{table*}[t]
-\centering
-\small
-\caption{Exploratory burden decomposition for the three post-hoc cases. Scores
-are observed field summaries. Lower burden is better.}
-\label{tab:app_selector_burden_decomposition}
-\begin{tabular}{llrrrrr}
-\toprule
-Target & Role & Target score & Weighted burden & Far-field & Off-program & Undesired \\
-\midrule
-TGF-$\beta$/stroma near-down & target-only & 5.074 & 1.188 & 1.213 & 1.228 & 1.457 \\
-TGF-$\beta$/stroma near-down & selector & 4.968 & 0.597 & 0.604 & 0.615 & 0.778 \\
-Vascular stress near-down & target-only & 2.734 & 1.278 & 1.213 & 1.347 & 1.655 \\
-Vascular stress near-down & selector & 2.729 & 0.965 & 0.892 & 1.024 & 1.380 \\
-Myeloid activation far-up & target-only & 1.578 & 0.717 & 0.918 & 0.742 & 0.811 \\
-Myeloid activation far-up & selector & 1.409 & 0.542 & 0.651 & 0.550 & 0.657 \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
 \begin{table}[t]
 \centering
 \small
@@ -2823,28 +2886,6 @@ resources (Table~\ref{tab:app_chemical_selector}). These are
 target-retaining drug selector is a meaningful decision problem once response
 profiles are available, rather than whether \methodname{} predicts those
 non-spatial profiles.
-
-\begin{table*}[t]
-\centering
-\small
-\caption{\textbf{Observed chemical-response audits of the drug-selector
-interface.} Actions are compound--dose--time conditions where dose and time
-are available. Context and global TQR are median target-qualified rates for
-context-specific and context-agnostic selection. Tahoe-100M uses a
-prespecified 128/1,026-pseudobulk-shard subset, not the full raw collection.}
-\label{tab:app_chemical_selector}
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{@{}lrrrrrr@{}}
-\toprule
-Assay & Actions & Contexts & Specs & Context TQR & Global TQR & Burden red. \\
-\midrule
-LINCS Phase II (GSE70138) & 11,039 & 30 & 18 & 1.000 & 0.567 & 0.0988 \\
-LINCS Phase I (GSE92742) & 44,696 & 71 & 18 & 1.000 & 0.600 & 0.1230 \\
-Tahoe-100M pseudobulk subset & 1,137 & 50 & 18 & 1.000 & 0.640 & 0.0550 \\
-Sci-Plex (GSE139944) & 151 & 2 & 18 & 1.000 & 1.000 & 0.0119 \\
-\bottomrule
-\end{tabular}
-\end{table*}
 
 LINCS Phase II contains 118,050 module-scored signatures and shows target and
 harmful-burden rank-reversal rates of 0.917 and 0.868 across cell contexts.
