@@ -938,6 +938,21 @@ before test evaluation.
 
 
 
+
+
+
+\textbf{On the frozen spatial test block, the selector preserves target
+qualification while lowering collateral response burden.} The test set
+contains 3,107 spatially separated actions and 36 target specifications. A
+five-candidate consensus fixed on validation matches the target-only
+target-qualified rate (TQR; 0.6944 versus 0.6944) and reduces mean spillover by
+12.0\% (\Cref{fig:drug_selector_application}). Absolute burden decreases by
+0.1244 [0.0559, 0.1926], regret falls from 0.4668 to 0.3424, and Safe@5 rises
+from 0.1111 to 0.4167. Random observed-qualified selection and Path2
+aggregation instead yield mean reductions of $-9.8\%$ and $-16.4\%$, whereas
+the dual utility/burden selector reaches $+12.9\%$
+(\Cref{tab:app_selector_formal}).
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{novo.png}
@@ -953,17 +968,6 @@ Right: local 64-cell neighborhoods, where highlighted target cells show the stro
 
 
 
-\textbf{On the frozen spatial test block, the selector preserves target
-qualification while lowering collateral response burden.} The test set
-contains 3,107 spatially separated actions and 36 target specifications. A
-five-candidate consensus fixed on validation matches the target-only
-target-qualified rate (TQR; 0.6944 versus 0.6944) and reduces mean spillover by
-12.0\% (\Cref{fig:drug_selector_application}). Absolute burden decreases by
-0.1244 [0.0559, 0.1926], regret falls from 0.4668 to 0.3424, and Safe@5 rises
-from 0.1111 to 0.4167. Random observed-qualified selection and Path2
-aggregation instead yield mean reductions of $-9.8\%$ and $-16.4\%$, whereas
-the dual utility/burden selector reaches $+12.9\%$
-(\Cref{tab:app_selector_formal}).
 
 \textbf{Task-specific \methodname{} burden ranking, rather than generic
 aggregation, drives the improvement.} The context spillover head reaches
