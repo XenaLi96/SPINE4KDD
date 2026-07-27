@@ -115,30 +115,30 @@
 
 \begin{abstract}
 Spatial perturbation assays preserve tissue architecture, but observed neighbor
-responses conflate stable tissue context with perturbation-conditioned effects.
+responses mix tissue context and perturbation effects.
 We construct Pre--Post Perturbation Pairing (\ppp), an audited matched-control
-pseudo-target benchmark, and \methodname{}, a predictive decomposition that
-first estimates context-explainable response and then models the residual
-conditioned on a direct-effect profile and sender region. On a fully disjoint
+pseudo-target benchmark, and \methodname{}, a predictive decomposition.
+\methodname{} predicts the context component before modeling residuals from a
+direct-effect profile and sender region. On a fully disjoint
 1,342/837/928-graph train/validation/test split, \methodname{} increases pooled
 Ring Pearson from 0.3626 to 0.4111; the mean graph-paired lift is $+0.0532$
-(95\% CI, 0.0474--0.0586). Context-only and full models attain predictive
+(95\% CI, 0.0474--0.0586). Context-only and full models reach predictive
 $R^2$ values of 0.3712 and 0.4669, corresponding to an incremental partial
 $R^2$ of 0.1521 (0.1476--0.1559). Gene-disjoint and no-expression matching
-retain positive Ring lift, whereas removing spatial matching does not,
-indicating that the signal is not explained solely by expression overlap but
-depends on spatially matched controls. Factorial controls show contributions
-from both direct-effect profile identity and sender location, while randomized
-communication scores have no measurable effect. Across five guide-OOD folds,
+retain positive Ring lift, but removing spatial matching eliminates it.
+The signal therefore depends on spatially matched controls rather than
+expression overlap alone. Factorial controls identify contributions from
+direct-effect profile identity and sender location; randomized communication
+scores have no measurable effect. Across five guide-OOD folds,
 assay-matched spatial seeds improve Ring Pearson from 0.4400 to 0.4619,
 whereas external scRNA-derived seeds underperform the zero-seed baseline,
-identifying cross-assay seed transfer as the current end-to-end bottleneck.
+making cross-assay seed transfer the current bottleneck.
 On a formal three-way selector split, \methodname{} preserves target-qualified
 rate at 0.6944 while reducing mean spillover by 12.0\% and absolute burden by
-0.1244 (0.0559--0.1926). These results support context-dominated global fields,
-perturbation-structured local organization, and a response-field-based
-drug/perturbation selector for target-retaining, lower-burden experimental
-prioritization rather than causal or clinical safety prediction.
+0.1244 (0.0559--0.1926). These results reveal context-dominated global fields
+and perturbation-structured local organization. They also support
+target-retaining, lower-burden experimental prioritization without implying
+causal or clinical safety.
 \end{abstract}
 
 \maketitle
@@ -169,39 +169,34 @@ diagnostics.}
 
 
 \section{Introduction}
-Spatial functional genomics places perturbations within intact tissue and
-measures molecular changes in situ
+Spatial functional genomics measures perturbations within intact tissue and
+preserves molecular changes in situ
 \citep{dhainaut2022spatialcrispr,binan2025perturbfish,shen2026spatialperturbseq}.
-Unlike dissociated Perturb-seq, these assays can reveal whether a local
-intervention remains confined to its intended niche or reorganizes distant and
-off-program responses. Their cost and sparsity, however, make it impractical to
-measure every perturbation in every tissue context. Predictive models could
-help prioritize experiments, but only if the spatial signal they use is
-genuinely perturbation-conditioned.
+Unlike dissociated Perturb-seq, these assays reveal whether an intervention
+remains local or reorganizes distant and off-program responses. Because sparse,
+costly assays cannot cover every perturbation--context pair, predictive models
+must distinguish perturbation signal from tissue context.
 
-This requirement creates an evaluation problem. High correlation between
-predicted and observed neighbor expression can arise from reconstructing stable
-anatomy, cell state, or local composition rather than learning perturbation
-propagation. Spatial variance and multiview models show that intrinsic and
-environmental components explain substantial spatial expression variation
+High neighbor-expression correlation can reflect anatomy, cell state, or local
+composition instead of perturbation propagation. Spatial variance and multiview
+models attribute substantial expression variation to intrinsic and
+environmental components
 \citep{arnol2019svca,tanevski2022misty,fischer2023ncem}. In a perturbation
-assay, the measured neighbor field therefore mixes a context-explainable
-component with a weaker perturbation-conditioned component, and flat
-cell--gene correlation can obscure their distinction.
+assay, measured neighbor fields therefore mix context with a weaker
+perturbation component, which flat cell--gene correlation can obscure.
 
-We ask four linked questions. How much neighbor response is predictable from
-tissue context, and where does perturbation signal remain? Does this residual
-transfer across regions, guides, and assays? Can predicted fields prioritize
-actions that preserve a local response while reducing collateral burden?
+We ask how much neighbor response is predictable from context, where
+perturbation signal remains, whether it transfers across regions, guides, and
+assays, and whether predicted fields can preserve local response while reducing
+collateral burden.
 On the fully separated spatial split, context-only and full models reach pooled
 Ring Pearson 0.3626 and 0.4111, with mean graph-paired lift $+0.0532$.
 Predictive $R^2$ increases from 0.3712 to 0.4669, corresponding to partial
-$R^2=0.1521$ conditional on context. Matching-decoupling experiments preserve
-positive lift after removing expression overlap, but not after removing spatial
-matching. Across five held-out-guide folds, assay-matched spatial seeds provide
-a modest positive lift, whereas external scRNA seeds fail to transfer. A
-validation-frozen selector preserves target qualification and reduces held-out
-burden by 12.0\%.
+$R^2=0.1521$ conditional on context. Matching decoupling retains positive lift
+without expression overlap, but not without spatial matching. Across five
+guide-held-out folds, assay-matched seeds transfer modestly, whereas external
+scRNA seeds do not. A validation-frozen selector preserves target qualification
+while reducing held-out burden by 12.0\%.
 
 These results support a more specific conclusion than ``the full field is
 predictable'': spatial perturbation fields are \emph{globally
@@ -637,26 +632,19 @@ evaluation, ablation and robustness analysis, and two scientific use cases.
 
 \subsection{Experimental Setup Separates Benchmarking from Confirmatory Effects}
 \label{sec:benchmark_metrics}
-Separate splits prevent development performance from being mistaken for
-perturbation-specific evidence. Mouse-brain Spatial Perturb-seq is
-the primary benchmark. The exact-task comparison uses the original development
-split; perturbation estimates use a separate spatial split with 1,342 training,
-837 validation, and 928 test graphs. Five grouped guide-out folds
-assign each guide to test once. The three spatial partitions correspond to
-non-overlapping tissue blocks, so no post anchor, matched-control patch, or
-derived pseudo-target crosses train, validation, and test. Observed spatial
-seeds test conditional propagation transfer; companion scRNA seeds test the
-end-to-end cross-assay interface. Unless noted, runs use 64-cell patches on one
-RTX A6000.
+Mouse-brain Spatial Perturb-seq is the primary benchmark. Exact-task comparisons
+use the development split; perturbation estimates use disjoint
+train/validation/test graph sets (1,342/837/928). Five grouped guide-out folds
+test every guide once. The spatial partitions are non-overlapping tissue blocks;
+no anchor, matched control, or pseudo-target crosses them. Spatial seeds test
+conditional propagation; scRNA seeds test the end-to-end interface. Unless
+noted, runs use 64-cell patches on one RTX A6000.
 
-The metrics distinguish global reconstruction from radial perturbation
-organization. Neighbor Pearson measures the complete signed receiver field,
-centered Pearson discounts graph-level offsets, Ring Pearson tests organization
-by distance from the direct-effect region, and Neighbor MAE measures absolute
-error. Mechanistic claims compare context and perturbation-conditioned
-predictions on the same graph, with uncertainty obtained by resampling spatial
-blocks or guides. Cells within a graph are never treated as independent
-biological replicates.
+Neighbor Pearson measures the signed receiver field, centered Pearson removes
+graph offsets, Ring Pearson tests radial organization, and Neighbor MAE measures
+absolute error. Mechanistic analyses compare context and full predictions per
+graph; uncertainty resamples blocks or guides. Cells within a graph are never
+treated as independent biological replicates.
 
 
 
@@ -748,12 +736,11 @@ No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
 
 
 
-Finally, the datasets form an explicit evidence hierarchy. Spatial Perturb-seq
-alone determines exact cell-resolved claims; a controlled ligand--receptor
-benchmark tests recovery of a known rule, Perturb-map tests spot/lesion program
-transfer, and Perturb-FISH tests native-panel burden ranking. These supporting
-assays probe distinct failure modes and are not pooled to inflate sample size;
-full settings and resampling units are reported in the appendix.
+Spatial Perturb-seq determines cell-resolved claims; controlled
+LR propagation, Perturb-map, and Perturb-FISH test known-rule
+recovery, spot/lesion transfer, and native-panel burden ranking, respectively.
+Supporting assays probe distinct failure modes across assays and are not pooled;
+the appendix reports full settings and resampling units.
 
 
 
@@ -811,7 +798,7 @@ selection retains median TQR 1.0 in all four resources, versus global TQR
 response fields exist, not end-to-end spatial drug prediction; full results
 are in \Cref{app:selector_audit}.
 
-Accurate context reconstruction alone does not guarantee perturbation-response
+Accurate context reconstruction alone cannot ensure reliable response
 prediction. The official CONCERT implementation reconstructs native expression
 strongly, but falls below a guide-mean baseline for perturbation pseudo-deltas
 in all four evaluated contrasts. For example, Perturb-map \textit{Tgfbr2}
