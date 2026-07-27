@@ -108,8 +108,9 @@ identifying cross-assay seed transfer as the current end-to-end bottleneck.
 On a formal three-way selector split, \methodname{} preserves target-qualified
 rate at 0.6944 while reducing mean spillover by 12.0\% and absolute burden by
 0.1244 (0.0559--0.1926). These results support context-dominated global fields,
-perturbation-structured local organization, and modest retrospective
-lower-burden prioritization rather than causal or clinical prediction.
+perturbation-structured local organization, and a response-field-based
+drug/perturbation selector for target-retaining, lower-burden experimental
+prioritization rather than causal or clinical safety prediction.
 \end{abstract}
 
 \maketitle
@@ -201,9 +202,11 @@ context-dominated but locally perturbation-structured}.
     \item \textbf{A parsimonious response-field model and transfer analysis.}
     \methodname{} routes direct-effect profiles to receivers and distinguishes
     conditional guide transfer from failed cross-assay seed transfer.
-    \item \textbf{A formal perturbation-prioritization task.}
-    We evaluate target-retaining lower-burden selection on frozen validation
-    and test partitions, while treating earlier biological cases as exploratory.
+    \item \textbf{A formal drug and perturbation selection task.}
+    We evaluate target-retaining, lower-burden selection on frozen validation
+    and test partitions and audit the same decision interface in external
+    chemical-response assays, while treating earlier biological cases as
+    exploratory.
 \end{itemize}
 \section{Related Work}
 % \textbf{Spatial transcriptomics and spatial functional genomics.}
@@ -458,6 +461,15 @@ Program definitions, weights, threshold $\tau$, and the operating point are
 selected on validation data and then frozen. Observed test fields are used only
 for evaluation. This formal analysis is separate from exploratory post-hoc
 case discovery.
+
+The action variable is generic: it may denote a guide--site pair, a
+drug--dose--time intervention, or another perturbation applied in a specified
+context. Equation~\ref{eq:selector} therefore defines a response-field-based
+drug and perturbation selector whenever the corresponding action-level fields
+are available. When $S_{\mathrm{undes}}$ is constructed from prespecified
+stress, apoptosis, or other undesirable programs, we describe it as a
+toxicity-associated transcriptomic burden. It is an experimental-prioritization
+proxy rather than a measurement of organismal or clinical toxicity.
 
 The confirmatory pipeline separates target qualification from burden ranking.
 Predicted utility first defines the eligible action set; a burden head then
@@ -723,25 +735,42 @@ Partial $R^2=1-\mathrm{SSE}_{\mathrm{full}}/
 \begin{minipage}[t]{0.49\linewidth}
 \centering
 \footnotesize
-\setlength{\tabcolsep}{1.6pt}
+\setlength{\tabcolsep}{1.3pt}
 \renewcommand{\arraystretch}{1.08}
-\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrlr@{}}
+\textbf{A. Independent spatial split}
+\vspace{1pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \toprule
-\multicolumn{3}{c}{\textbf{A. Independent split}} &
-\multicolumn{2}{c}{\textbf{B. Input controls}} \\
-\cmidrule(lr){1-3}\cmidrule(l){4-5}
-Metric & Base & Full/effect & Profile / region & Ring $r$ \\
+Metric & Context & Full & Effect & 95\% CI \\
 \midrule
-Pooled Ring & 0.3626 & 0.4111 & Correct / correct & 0.4574 \\
-Paired lift & -- & $+0.0532$ & Shuffled / correct & 0.4056 \\
-95\% CI & -- & [0.0474, 0.0586] & Correct / relocated & 0.4314 \\
-Predictive $R^2$ & 0.3712 & 0.4669 & Random / random & 0.4135 \\
-Partial $R^2$ & -- & 0.1521 & Correct / random CCC & 0.4575 \\
-95\% CI & -- & [0.1476, 0.1559] & & \\
+Pooled Ring & 0.3626 & 0.4111 & -- & -- \\
+Graph-paired lift & -- & -- & $+0.0532$ & [0.0474, 0.0586] \\
+Predictive $R^2$ & 0.3712 & 0.4669 & 0.1521 & [0.1476, 0.1559] \\
 \bottomrule
 \end{tabular*}
 \end{minipage}
 \hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\renewcommand{\arraystretch}{1.08}
+\textbf{B. Direct-effect profile/location controls}
+\vspace{1pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lr@{}}
+\toprule
+Input control & Ring Pearson \\
+\midrule
+Correct profile + correct region & 0.4574 \\
+Shuffled profile + correct region & 0.4056 \\
+Correct profile + relocated region & 0.4314 \\
+Random profile + random region & 0.4135 \\
+Correct profile + randomized CCC & 0.4575 \\
+\bottomrule
+\end{tabular*}
+\end{minipage}
+
+\vspace{6pt}
 \begin{minipage}[t]{0.49\linewidth}
 \centering
 \footnotesize
@@ -753,14 +782,20 @@ Partial $R^2$ & -- & 0.1521 & Correct / random CCC & 0.4575 \\
 \toprule
 PPP construction & Paired lift & 95\% CI \\
 \midrule
-Gene-disjoint match/output & $+0.0257$ & [0.0215, 0.0302] \\
-No center expression & $+0.0281$ & [0.0244, 0.0319] \\
-No patch expression & $+0.0263$ & [0.0226, 0.0300] \\
-No expression & $+0.0128$ & [0.0088, 0.0166] \\
+Gene-disjoint matching/output & $+0.0257$ & [0.0215, 0.0302] \\
+No center-expression matching & $+0.0281$ & [0.0244, 0.0319] \\
+No patch-expression matching & $+0.0263$ & [0.0226, 0.0300] \\
+Strict no-expression matching & $+0.0128$ & [0.0088, 0.0166] \\
 No spatial matching & $+0.0025$ & [$-0.0022$, 0.0066] \\
 \bottomrule
 \end{tabular*}
-\vspace{5pt}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.0pt}
+\renewcommand{\arraystretch}{1.05}
 \textbf{D. Patch-scale sensitivity}
 \vspace{1pt}
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrr@{}}
@@ -872,6 +907,73 @@ than a definitive method ranking: accurate context reconstruction does not
 necessarily imply perturbation-response prediction. The original exact-task
 input controls remain in \Cref{tab:seed_shortcut_controls}; full per-fold and
 related-method values are reported in the appendix.
+\subsection{Response-Field-Based Drug and Perturbation Selection}
+\label{sec:drug_selector_application}
+Spatial response fields define a drug/perturbation-selection problem: among
+actions predicted to retain a requested local program response, select the
+candidate with lower far-field, off-program, and undesirable-program burden.
+The hard utility constraint prevents the selector from obtaining an apparently
+low burden by choosing an inactive action. Where the undesirable programs
+encode stress or apoptosis, this is a target-retaining,
+toxicity-associated-burden selector. Thresholds, component weights, and the
+operating point are selected on validation data and frozen before test
+evaluation.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{selector.png}
+\caption{\textbf{Response-field-based drug and perturbation selection.}
+(a) Formal field-to-decision interface. (b--c) Exploratory post-hoc cases
+illustrating how matched target utility can coexist with different spatial
+burden. (d) Confirmatory evaluation on the fully separated
+train/validation/test selector split: the selector preserves target-qualified
+rate 0.6944 while reducing mean spillover by 12.0\%; absolute held-out burden
+decreases by 0.1244 [0.0559, 0.1926]. The post-hoc cases are illustrative and
+are not used as confirmatory effect estimates.}
+\label{fig:drug_selector_application}
+\end{figure}
+
+The confirmatory audit contains 3,107 actions in fully spatially disjoint
+train/validation/test blocks and 36 target specifications. Validation selects
+a five-candidate consensus operating point without access to the test block.
+On frozen test data, the constrained selector preserves the target-qualified
+rate (TQR) of target-only exactly (0.6944 versus 0.6944), while reducing mean
+spillover by 12.0\%. Absolute burden decreases by 0.1244
+[0.0559, 0.1926], spillover regret falls from 0.4668 to 0.3424, and Safe@5
+rises from 0.1111 to 0.4167. The observed-field oracle reduces spillover by
+60.6\%, showing both that lower-burden alternatives exist and that substantial
+headroom remains.
+
+A standalone \methodname{} context spillover head reaches pairwise
+lower-burden agreement 0.6250 [0.6108, 0.6393], compared with 0.4909 for a
+context MLP. The selected action has lower observed burden for 24 of 36 target
+specifications, higher burden for seven, and unchanged burden for five. The
+absolute-decrease interval excludes zero, whereas the relative-reduction
+interval ($-0.0018$ to 0.2289) crosses zero because ratios are unstable when
+baseline burden is small. We therefore use absolute burden change as the
+primary confirmatory effect. The stronger pairwise signal than end-to-end
+selection effect identifies target qualification and top-action calibration,
+rather than burden ranking alone, as the main remaining bottlenecks.
+
+The previously reported 35.4\% aggregate reduction and the
+TGF-$\beta$/stroma, vascular-stress, and myeloid-activation examples were
+identified in the discovery analysis. We retain them only as exploratory
+post-hoc illustrations and do not use them as confirmatory effect estimates.
+
+Perturb-FISH tests the same decision rule with context-binned actions and
+native-panel programs. On 39 reliability-filtered specifications, full
+predicted-utility/predicted-burden selection reaches TQR 0.718 and observed
+burden reduction 0.151. Holding qualification to observed utility and ranking
+only by predicted burden raises the reduction to 0.207, while pairwise
+lower-burden agreement reaches 0.851. Separate observed-response audits on
+LINCS Phase I and II, Tahoe-100M pseudobulk, and Sci-Plex further show that the
+same constrained interface can rank drug--dose--time actions across cellular
+contexts. These chemical assays establish the applicability of the decision
+formulation to drug selection once response fields are available; they are not
+end-to-end spatial predictions by \methodname{}. Complete baselines,
+calibration, guide-OOD stress tests, external-assay values, and exploratory
+cases are reported in \Cref{app:selector_audit}.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{novo.png}
@@ -892,60 +994,6 @@ response patterns, but no paired spatial IFN-$\gamma$ ground truth exists for
 this tissue. The panel therefore illustrates the query interface and
 biological plausibility only; it is not evidence for cross-assay predictive
 accuracy. Seed construction and numerical readouts are in the appendix.
-
-\subsection{Spatially Constrained Perturbation Prioritization}
-\label{sec:drug_selector_application}
-Spatial response fields define a retrospective decision problem: among actions
-predicted to retain a requested local program response, select the action with
-lower far-field, off-program, and undesirable-program burden. Thresholds and
-weights are selected on validation data and frozen before evaluation.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{selector.png}
-\caption{\textbf{Response-field-based perturbation prioritization.}
-(a) Formal field-to-decision interface. (b--c) Exploratory post-hoc cases
-illustrating how matched target utility can coexist with different spatial
-burden. (d) Confirmatory evaluation on the fully separated
-train/validation/test selector split: the selector preserves target-qualified
-rate 0.6944 while reducing mean spillover by 12.0\%; absolute held-out burden
-decreases by 0.1244 [0.0559, 0.1926]. The post-hoc cases are illustrative and
-are not used as confirmatory effect estimates.}
-\label{fig:drug_selector_application}
-\end{figure}
-
-On the fully separated selector split, the constrained selector preserves the
-observed target-qualified rate of target-only (0.6944 versus 0.6944) while
-reducing mean spillover by 12.0\%. Absolute burden decreases by 0.1244
-[0.0559, 0.1926]. A standalone \methodname{} spillover head reaches pairwise
-burden-order agreement 0.6250 [0.6108, 0.6393], supporting a learnable ranking
-signal. The effect is positive but moderate.
-
-The selected action has lower observed burden for 24 of 36 target
-specifications and higher burden for seven. The bootstrap interval for the
-absolute decrease excludes zero, whereas the relative-reduction interval
-($-0.0018$ to 0.2289) crosses zero because specifications with small baseline
-burden yield unstable ratios. We therefore use absolute burden change as the
-primary confirmatory effect and report the 12.0\% relative reduction as an
-interpretable secondary summary. Pairwise agreement is stronger than the final
-selection effect, indicating that spillover ordering is learnable but utility
-qualification and top-action calibration still limit end-to-end decisions.
-
-The previously reported 35.4\% aggregate reduction and the
-TGF-$\beta$/stroma, vascular-stress, and myeloid-activation examples were
-identified in the discovery analysis. We retain them only as exploratory
-post-hoc illustrations and do not use them as confirmatory effect estimates.
-Perturb-FISH calibration and module-level support remain in the appendix.
-
-In Perturb-FISH, whose targeted panel and context-binned actions differ from the
-primary benchmark, the same decision question is tested at module level. On 39
-reliability-filtered specifications, full predicted-utility/predicted-burden
-selection reaches TQR 0.718 and observed burden reduction 0.151. Holding target
-qualification to observed utility and ranking only by predicted burden raises
-the reduction to 0.207, while pairwise burden-order agreement is 0.851. Results
-over all 64 specifications remain directionally positive but weaker. We treat
-this as external support for burden ranking, not as evidence that a
-cell-resolved site selector transfers unchanged to a panel-based assay.
 \FloatBarrier
 \section{Discussion and Conclusion}
 \label{sec:discussion_conclusion}
@@ -968,8 +1016,13 @@ bottlenecks.
 
 The validation-frozen selector shows that the remaining signal is
 decision-relevant: it preserves target qualification while modestly reducing
-held-out burden. This is a retrospective perturbation-ranking result, not a
-treatment recommendation. Prospective validation should select actions before
+held-out burden. The same constrained utility--burden interface also supports
+drug--dose--time ranking in observed LINCS, Tahoe-100M pseudobulk, and Sci-Plex
+response profiles. We therefore view \methodname{} as a response-field-based
+drug/perturbation selector for experimental prioritization. The current
+evidence is retrospective and the undesirable-program score is only a
+toxicity-associated transcriptomic proxy, not a treatment recommendation or
+clinical safety estimate. Prospective validation should select actions before
 measurement, use assay-compatible direct-effect profiles, and independently
 measure both target response and collateral spatial fields.
 
@@ -979,7 +1032,9 @@ measure both target response and collateral spatial fields.
 Primary effect estimates come from one mouse-brain assay, and the selected
 spatial scale, program definitions, and calibration may not transfer across
 tissues or platforms. Guide-OOD gains are modest, external scRNA seeds fail,
-and selector results are retrospective. Prospective spatial perturbation
+and selector results are retrospective. The chemical-response audits use
+observed profiles and validate the drug-selection formulation rather than
+end-to-end spatial drug-field prediction. Prospective spatial perturbation
 validation is required; public data remain subject to their original consent
 and use terms.
 
@@ -2552,21 +2607,91 @@ data. These results do not support the adapter as a core component.
 \paragraph{Interpretation of the IFN-$\gamma$ case study.}
 The IFN-$\gamma$ analysis should be read as a hypothesis-generating deployment demonstration rather than a matched experimental validation. It shows that a perturbation-identity-derived direct-effect profile can produce spatially heterogeneous response fields, recover canonical IFN/MHC-I-like genes, suppress selected structural or vascular-like programs, and generate local response gradients. These outputs illustrate the intended deployment interface, but their biological claims require direct experimental validation.
 
-\subsection{Exploratory Retrospective Perturbation-Prioritization Audit}
+\subsection{Extended Drug and Perturbation Selector Evaluation}
 \label{app:selector_audit}
 
-Beyond predicting spatial response fields, we asked whether frozen
-\methodname{} outputs could prioritize perturbations that preserve a specified
-target program in a spatial Ring while reducing collateral burden. The
-operating points and cases below were identified in the earlier discovery
-analysis. They are retained only as exploratory post-hoc illustrations and are
-not confirmatory effect estimates.
+The selector treats target retention and burden ranking as separate prediction
+problems. The formal audit uses 3,107 guide--site actions from spatially
+disjoint train, validation, and frozen-test blocks (1,342/837/928 actions) and
+36 target specifications. Predicted utility is supplied by the strict
+context-only MLP aggregation; validation chooses the burden model and a
+five-candidate operating point under a TQR constraint equal to validation
+target-only. Neither the model family nor the threshold is adjusted after
+opening the test block.
 
-The exploratory analysis scores target utility and collateral burden, including
-far-field, off-program, and undesirable-program components. Across 5,286
-candidate actions and 36 target specifications, the discovery operating points
-reached reductions of 0.354 and 0.418; the observed-field oracle reached 0.672.
-These values must not be interpreted as validation-frozen selector estimates.
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Formal frozen-test drug/perturbation selector audit.}
+Relative spillover reduction is measured against target-only; higher is better.
+Regret is measured against the observed-field oracle; lower is better.
+``Random qualified'' samples from actions qualified by observed utility and is
+therefore not a deployable method.}
+\label{tab:app_selector_formal}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Method & TQR & Spillover red. & Regret & Safe@1 & Safe@5 \\
+\midrule
+Target-only (MLP-context utility) & 0.6944 & 0.0000 & 0.4668 & 0.1111 & 0.1111 \\
+Random observed-qualified & 1.0000 & $-0.0983$ & 0.3849 & 0.0000 & 0.0000 \\
+Path2 aggregation & 0.6667 & $-0.1638$ & 0.4726 & 0.0278 & 0.3333 \\
+Dual MLP-utility + SPINE-burden & 0.6667 & 0.1291 & 0.3434 & 0.1389 & 0.4167 \\
+\textbf{Validation-selected consensus} & \textbf{0.6944} & \textbf{0.1200} &
+\textbf{0.3424} & \textbf{0.1667} & \textbf{0.4167} \\
+Nonlinear consensus sensitivity & 0.7222 & 0.1265 & 0.3318 & 0.1667 & 0.4167 \\
+Observed utility/burden oracle & 1.0000 & 0.6058 & 0.0000 & 1.0000 & 1.0000 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+For the validation-selected selector, mean absolute burden decreases by 0.1244
+with a target-specification bootstrap 95\% interval of [0.0559, 0.1926].
+Relative reduction is 0.1200 with interval [$-0.0018$, 0.2289]; program-level
+and program--Ring intervals are [0.0102, 0.2241] and
+[$-0.0165$, 0.2400], respectively. The action selected by the frozen rule has
+lower burden for 24 specifications, higher burden for seven, and unchanged
+burden for five. These estimates support a moderate target-retaining benefit,
+not the 25--35\% reduction hypothesized during development.
+
+\begin{table}[t]
+\centering
+\scriptsize
+\caption{\textbf{Pairwise lower-burden ranking on the formal test block.}
+Confidence intervals are grouped bootstrap intervals over target
+specifications and action pairs.}
+\label{tab:app_selector_pairwise}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Burden score & Agreement & 95\% CI \\
+\midrule
+MLP context & 0.4909 & [0.4707, 0.5092] \\
+MLP full & 0.5065 & [0.4907, 0.5223] \\
+SPINE context aggregation & 0.5819 & [0.5651, 0.5989] \\
+\textbf{SPINE context head} & \textbf{0.6250} & \textbf{[0.6108, 0.6393]} \\
+SPINE full aggregation & 0.5811 & [0.5672, 0.5947] \\
+SPINE full head & 0.5630 & [0.5495, 0.5763] \\
+Context/full consensus ($w=0.25$) & 0.6183 & [0.6038, 0.6330] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The context head provides the strongest standalone ranking signal, while the
+validation-selected end-to-end consensus uses a more conservative utility and
+burden combination. The gap between pairwise agreement and selected-action
+benefit indicates that the remaining error is concentrated in target
+qualification and extreme-rank calibration.
+
+\paragraph{Exploratory case discovery.}
+A separate development analysis scores target utility and three burden
+components: far-field, off-program, and prespecified undesirable-program
+responses. Across 5,286 candidate actions and 36 target specifications, its
+operating points reached burden reductions of 0.354 and 0.418, while the
+observed-field oracle reached 0.672. Because the legacy cache duplicated
+training graphs in validation and the selector family was explored post hoc,
+these values and the following cases are retained only as discovery evidence
+and are not confirmatory effect estimates.
 
 \begin{figure*}[t]
 \centering
@@ -2644,10 +2769,15 @@ Observed oracle & 5,286 & 36 & 1.000 & 0.672 \\
 
 Perturb-FISH provides module-level external support rather than exact selector
 replication because its action pool and readout panel differ from Spatial
-Perturb-seq. On 39 reliable specifications, predicted-utility/predicted-burden
-selection reached TQR 0.718, burden reduction 0.151,
-observed-utility/predicted-burden reduction 0.207, and pairwise burden-order
-agreement 0.851 (Table~\ref{tab:app_selector_perturb_fish}).
+Perturb-seq. On 39 reliable specifications, selection using predicted utility
+and burden reached TQR 0.718 and burden reduction 0.151. Holding qualification
+to observed utility and ranking by predicted burden increased the reduction to
+0.207; pairwise burden-order agreement was 0.851
+(Table~\ref{tab:app_selector_perturb_fish}). The spillover head also improves
+median burden correlation from 0.539 for aggregation to 0.855 and reaches
+Safe@5 of 1.0 on the reliable subset. Thus, the external assay strongly
+supports burden ranking, while the observed-versus-predicted utility gap again
+isolates target retention as the bottleneck.
 
 \begin{table}[t]
 \centering
@@ -2665,12 +2795,84 @@ All specifications & 64 & 0.641 & 0.137 & 0.218 & 0.851 \\
 \end{tabular}
 \end{table}
 
+\paragraph{Observed chemical-response selector audits.}
+The generic action in Equation~\ref{eq:selector} can represent a
+drug--dose--time intervention. We therefore applied the same frozen
+target-module and harmful-module definitions to four public chemical-response
+resources (Table~\ref{tab:app_chemical_selector}). These are
+\emph{observed-response} audits: they test whether a context-aware,
+target-retaining drug selector is a meaningful decision problem once response
+profiles are available, rather than whether \methodname{} predicts those
+non-spatial profiles.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Observed chemical-response audits of the drug-selector
+interface.} Actions are compound--dose--time conditions where dose and time
+are available. Context and global TQR are median target-qualified rates for
+context-specific and context-agnostic selection. Tahoe-100M uses a
+prespecified 128/1,026-pseudobulk-shard subset, not the full raw collection.}
+\label{tab:app_chemical_selector}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Assay & Actions & Contexts & Specs & Context TQR & Global TQR & Burden red. \\
+\midrule
+LINCS Phase II (GSE70138) & 11,039 & 30 & 18 & 1.000 & 0.567 & 0.0988 \\
+LINCS Phase I (GSE92742) & 44,696 & 71 & 18 & 1.000 & 0.600 & 0.1230 \\
+Tahoe-100M pseudobulk subset & 1,137 & 50 & 18 & 1.000 & 0.640 & 0.0550 \\
+Sci-Plex (GSE139944) & 151 & 2 & 18 & 1.000 & 1.000 & 0.0119 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+LINCS Phase II contains 118,050 module-scored signatures and shows target and
+harmful-burden rank-reversal rates of 0.917 and 0.868 across cell contexts.
+The independent Phase I matrix contains 473,647 signatures and reproduces the
+context-aware advantage over 44,696 actions. Tahoe-100M pseudobulk and
+Sci-Plex provide single-cell-derived support, although their burden reductions
+are smaller. ToxCast (8,597 chemicals, 617 endpoints) and Tox21 (7,831
+chemicals, 12 endpoints) additionally show endpoint-dependent burden rankings,
+with reversal rates of 0.443 and 0.191; because they lack a matched target
+utility field, they support toxicity-endpoint heterogeneity but are not counted
+as target-retaining selector validations.
+
+\paragraph{Strict unseen-guide stress test.}
+The selector is substantially less reliable when all test guides are unseen
+(Table~\ref{tab:app_selector_guide_ood}). The predicted burden score remains
+non-random (pairwise agreement 0.621; median burden Spearman 0.283), and the
+observed oracle shows that a 0.350 reduction is available. However, the best
+constrained predicted selector reaches only TQR 0.333 and reduction 0.068,
+below the target-only TQR of 0.528. Removing the utility constraint recovers
+reduction 0.288 but collapses TQR to 0.056. This decomposition identifies
+unseen-guide target calibration, rather than absence of lower-burden actions,
+as the failure mode.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Strict guide-held-out selector stress test.}
+\label{tab:app_selector_guide_ood}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Setting & TQR & Burden red. \\
+\midrule
+Target-only & 0.528 & 0.000 \\
+Best constrained selector & 0.333 & 0.068 \\
+No utility constraint & 0.056 & 0.288 \\
+Observed utility/burden oracle & 1.000 & 0.350 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 Finally, predicted utility deciles stratify observed target qualification, but
 absolute reliability remains incomplete: the main block split rises from TQR
 0.043 to 0.575 across extreme deciles, while strict guide holdout rises from
 0.053 to 0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report
-this as a retrospective prioritization audit, not a calibrated prospective
-controller.
+this as a retrospective drug/perturbation prioritization audit, not a calibrated
+prospective controller or clinical safety predictor.
 
 \begin{table}[t]
 \centering
@@ -2686,6 +2888,7 @@ Strict guide & 0.053 & 0.461 & 0.408 \\
 \bottomrule
 \end{tabular}
 \end{table}
+\FloatBarrier
 
 \subsection{Whole-block visualization wrapper}
 \label{app:whole_block_wrapper}
