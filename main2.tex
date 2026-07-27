@@ -470,49 +470,7 @@ burden-order agreement, and coverage. This constrained evaluation prevents a
 method from appearing successful merely by selecting weak interventions with
 small responses everywhere.
 
-\section{Experiments}
-\label{sec:experiments}
-\subsection{Evaluation Design}
-\label{sec:benchmark_metrics}
-The primary benchmark is mouse-brain Spatial Perturb-seq. The complete
-exact-task suite uses the original full-development comparison split; all
-perturbation-specific effect estimates are independently re-estimated on the
-strict 1,342/837/928 three-way spatial split. Five grouped guide-out folds
-assign every guide to test once. Observed spatial seeds evaluate conditional
-propagation transfer, whereas companion scRNA seeds test the end-to-end
-cross-assay interface. Supporting analyses use a controlled ligand--receptor
-benchmark, Perturb-map, and Perturb-FISH. We report Neighbor, centered, and
-Ring Pearson together with Neighbor MAE. Unless noted, runs use 64-cell patches
-on one RTX A6000; full settings and resampling units are in the appendix.
 
-\textbf{Estimands and statistical units.}
-The exact-task comparison asks how accurately a model reconstructs the complete
-signed receiver field on a common held-out output. Neighbor correlation is
-sensitive to stable anatomical and cell-state structure; centered correlation
-discounts graph-level offsets; and Ring correlation tests whether response
-magnitude is organized correctly with distance from the direct-effect region.
-For mechanistic claims, we therefore compare perturbation-conditioned and
-context predictions on the same held-out graph rather than subtracting two
-pooled correlations. Uncertainty for graph-paired effects is computed by
-resampling spatial blocks or guides, as appropriate. Cells within a graph are
-not treated as independent biological replicates.
-
-\textbf{Evidence hierarchy.}
-The mouse-brain assay is the only exact, cell-resolved benchmark and determines
-the confirmatory claims. The synthetic ligand--receptor benchmark tests whether
-the architecture can recover a known propagation rule under controlled shifts.
-Perturb-map tests program-level transfer after aggregation to spots and lesions,
-whereas Perturb-FISH tests native-panel burden ranking under a different action
-pool. These supporting assays address complementary failure modes and are not
-used to increase the effective sample size of the primary benchmark.
-
-
-
-
-
-
-% If not already defined:
-% \newcommand{\pmv}[2]{#1\,{\scriptsize$\pm$}\,#2}
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.90\linewidth]{main_exp.png}
@@ -630,6 +588,52 @@ Panel (b) reports receiver- and ring-level correlations for controlled LR-propag
 \vspace{-2pt}
 \end{table*}
 
+
+
+
+\section{Experiments}
+\label{sec:experiments}
+\subsection{Evaluation Design}
+\label{sec:benchmark_metrics}
+The primary benchmark is mouse-brain Spatial Perturb-seq. The complete
+exact-task suite uses the original full-development comparison split; all
+perturbation-specific effect estimates are independently re-estimated on the
+strict 1,342/837/928 three-way spatial split. Five grouped guide-out folds
+assign every guide to test once. Observed spatial seeds evaluate conditional
+propagation transfer, whereas companion scRNA seeds test the end-to-end
+cross-assay interface. Supporting analyses use a controlled ligand--receptor
+benchmark, Perturb-map, and Perturb-FISH. We report Neighbor, centered, and
+Ring Pearson together with Neighbor MAE. Unless noted, runs use 64-cell patches
+on one RTX A6000; full settings and resampling units are in the appendix.
+
+\textbf{Estimands and statistical units.}
+The exact-task comparison asks how accurately a model reconstructs the complete
+signed receiver field on a common held-out output. Neighbor correlation is
+sensitive to stable anatomical and cell-state structure; centered correlation
+discounts graph-level offsets; and Ring correlation tests whether response
+magnitude is organized correctly with distance from the direct-effect region.
+For mechanistic claims, we therefore compare perturbation-conditioned and
+context predictions on the same held-out graph rather than subtracting two
+pooled correlations. Uncertainty for graph-paired effects is computed by
+resampling spatial blocks or guides, as appropriate. Cells within a graph are
+not treated as independent biological replicates.
+
+\textbf{Evidence hierarchy.}
+The mouse-brain assay is the only exact, cell-resolved benchmark and determines
+the confirmatory claims. The synthetic ligand--receptor benchmark tests whether
+the architecture can recover a known propagation rule under controlled shifts.
+Perturb-map tests program-level transfer after aggregation to spots and lesions,
+whereas Perturb-FISH tests native-panel burden ranking under a different action
+pool. These supporting assays address complementary failure modes and are not
+used to increase the effective sample size of the primary benchmark.
+
+
+
+
+
+
+
+
 \begin{table*}[t]
 \centering
 \begin{minipage}[t]{0.49\linewidth}
@@ -711,6 +715,43 @@ No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
 \end{minipage}
 \end{table*}
 
+\subsection{Main Spatial Response-Field Prediction}
+\label{sec:validation_main_benchmark}
+On the original exact-task comparison split, \methodname{} reaches
+Neighbor/Ring Pearson 0.684/0.457 with Neighbor MAE 0.408
+(\Cref{fig:main_exp,tab:main_results,tab:main_baseline_comparison}). It
+outperforms the implemented statistical, retrieval, radial, linear, patch, and
+generic graph alternatives on the common cell-by-gene output. Gene-level
+recovery is strongest for high-change and high-variance receiver genes, whereas
+perturbation-related genes remain heterogeneous. Because this comparison uses
+the full development set, we treat it as model benchmarking rather than an
+estimate of perturbation-specific effect size.
+
+The supporting assays probe different outputs. In controlled synthetic
+ligand--receptor propagation, context-only Neighbor/Ring correlations are
+0.003/0.006 and fine-tuning raises them to 0.619/0.815, showing learnability
+when the response rule is known. Perturb-map provides coarser external support:
+spot-level program Pearson reaches 0.853, 0.757, and 0.714 for
+\textit{Ifngr2}, \textit{Jak2}, and \textit{Tgfbr2}, respectively. These
+supporting results are not pooled with the strict mouse-brain effect estimates.
+
+\subsection{Signal Decomposition and Benchmark Robustness}
+\label{sec:signal_decomposition}
+The strict three-way split separates absolute field prediction from the
+increment attributable to perturbation conditioning. \Cref{tab:confirmatory_analysis}
+collects the corresponding variance, matching, input-control, and
+scale diagnostics.
+
+\textbf{Independent spatial validation and predictive variance.}
+On the fully separated train/validation/test split, adding the
+perturbation-conditioned branch raises pooled Ring Pearson from 0.3626 to
+0.4111. More importantly, graph-paired evaluation gives a mean Ring lift of
+$0.0532$ with a spatial-block bootstrap interval that excludes zero. The same
+comparison increases predictive $R^2$ from 0.3712 to 0.4669, corresponding to
+a partial $R^2$ of 0.1521 relative to the context model. Thus, tissue context
+accounts for most predictable variation, while perturbation conditioning adds
+a smaller but reproducible component concentrated in radial organization.
+
 \begin{table*}[t]
 \centering
 \caption{\textbf{Confirmatory signal decomposition, benchmark decoupling, and
@@ -781,44 +822,7 @@ matching does not. Both direct-effect profile and location contribute, while
 larger patches have higher context predictability but not stronger
 perturbation-conditioned signal.}
 \end{table*}
-\FloatBarrier
 
-\subsection{Main Spatial Response-Field Prediction}
-\label{sec:validation_main_benchmark}
-On the original exact-task comparison split, \methodname{} reaches
-Neighbor/Ring Pearson 0.684/0.457 with Neighbor MAE 0.408
-(\Cref{fig:main_exp,tab:main_results,tab:main_baseline_comparison}). It
-outperforms the implemented statistical, retrieval, radial, linear, patch, and
-generic graph alternatives on the common cell-by-gene output. Gene-level
-recovery is strongest for high-change and high-variance receiver genes, whereas
-perturbation-related genes remain heterogeneous. Because this comparison uses
-the full development set, we treat it as model benchmarking rather than an
-estimate of perturbation-specific effect size.
-
-The supporting assays probe different outputs. In controlled synthetic
-ligand--receptor propagation, context-only Neighbor/Ring correlations are
-0.003/0.006 and fine-tuning raises them to 0.619/0.815, showing learnability
-when the response rule is known. Perturb-map provides coarser external support:
-spot-level program Pearson reaches 0.853, 0.757, and 0.714 for
-\textit{Ifngr2}, \textit{Jak2}, and \textit{Tgfbr2}, respectively. These
-supporting results are not pooled with the strict mouse-brain effect estimates.
-
-\subsection{Signal Decomposition and Benchmark Robustness}
-\label{sec:signal_decomposition}
-The strict three-way split separates absolute field prediction from the
-increment attributable to perturbation conditioning. \Cref{tab:confirmatory_analysis}
-collects the corresponding variance, matching, input-control, and
-scale diagnostics.
-
-\textbf{Independent spatial validation and predictive variance.}
-On the fully separated train/validation/test split, adding the
-perturbation-conditioned branch raises pooled Ring Pearson from 0.3626 to
-0.4111. More importantly, graph-paired evaluation gives a mean Ring lift of
-$0.0532$ with a spatial-block bootstrap interval that excludes zero. The same
-comparison increases predictive $R^2$ from 0.3712 to 0.4669, corresponding to
-a partial $R^2$ of 0.1521 relative to the context model. Thus, tissue context
-accounts for most predictable variation, while perturbation conditioning adds
-a smaller but reproducible component concentrated in radial organization.
 
 \textbf{Benchmark decoupling.}
 Positive graph-paired Ring lift remains when the genes used for matching are
