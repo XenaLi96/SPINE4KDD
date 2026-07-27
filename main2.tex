@@ -658,15 +658,6 @@ predictions on the same graph, with uncertainty obtained by resampling spatial
 blocks or guides. Cells within a graph are never treated as independent
 biological replicates.
 
-Finally, the datasets form an explicit evidence hierarchy. Spatial Perturb-seq
-alone determines exact cell-resolved claims; a controlled ligand--receptor
-benchmark tests recovery of a known rule, Perturb-map tests spot/lesion program
-transfer, and Perturb-FISH tests native-panel burden ranking. These supporting
-assays probe distinct failure modes and are not pooled to inflate sample size;
-full settings and resampling units are reported in the appendix.
-
-
-
 
 
 
@@ -752,6 +743,24 @@ No direct-effect input & 0.614 & 0.441 & $+0.036$ \\
 }
 \end{minipage}
 \end{table*}
+
+
+
+
+
+Finally, the datasets form an explicit evidence hierarchy. Spatial Perturb-seq
+alone determines exact cell-resolved claims; a controlled ligand--receptor
+benchmark tests recovery of a known rule, Perturb-map tests spot/lesion program
+transfer, and Perturb-FISH tests native-panel burden ranking. These supporting
+assays probe distinct failure modes and are not pooled to inflate sample size;
+full settings and resampling units are reported in the appendix.
+
+
+
+
+
+
+
 
 \subsection{\methodname{} Reconstructs Cell-Resolved Spatial Response Fields}
 \label{sec:validation_main_benchmark}
@@ -909,18 +918,8 @@ Together, the input and scale controls support a profile- and
 location-dependent response field at an assay-specific local scale, motivating
 the 64-cell operating point without treating it as a universal biological
 radius.
-\FloatBarrier
 
-\subsection{\methodname{} Enables Target-Retaining, Lower-Burden Drug and Perturbation Selection}
-\label{sec:drug_selector_application}
-Predicted response fields support constrained drug and perturbation selection.
-The selector retains a requested local program response while minimizing far-field,
-off-program, and undesirable-program burden. The hard utility threshold
-prevents an inactive action from appearing favorable merely because all its
-responses are small. When undesirable programs encode stress or apoptosis,
-the objective is a toxicity-associated transcriptomic burden rather than
-organismal toxicity. All thresholds, weights, and operating points are selected
-on validation data before test evaluation.
+
 
 \begin{figure}[t]
 \centering
@@ -935,6 +934,34 @@ decreases by 0.1244 [0.0559, 0.1926]. The post-hoc cases are illustrative and
 are not used as confirmatory effect estimates.}
 \label{fig:drug_selector_application}
 \end{figure}
+
+\subsection{\methodname{} Enables Target-Retaining, Lower-Burden Drug and Perturbation Selection}
+\label{sec:drug_selector_application}
+Predicted response fields support constrained drug and perturbation selection.
+The selector retains a requested local program response while minimizing far-field,
+off-program, and undesirable-program burden. The hard utility threshold
+prevents an inactive action from appearing favorable merely because all its
+responses are small. When undesirable programs encode stress or apoptosis,
+the objective is a toxicity-associated transcriptomic burden rather than
+organismal toxicity. All thresholds, weights, and operating points are selected
+on validation data before test evaluation.
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{novo.png}
+\caption{
+\textbf{De novo IFN-$\gamma$ response-field prediction in mouse brain.}
+Left: whole-tissue maps for representative IFN/MHC-I-associated and structural genes, showing positive \textit{B2m}/\textit{Ifitm3} and negative \textit{Col1a2}/\textit{Vcan} responses rather than a uniform shift.
+Middle: six high-response regions with patch-averaged deltas overlaid on the spatial graph.
+Right: local 64-cell neighborhoods, where highlighted target cells show the strongest response and nearby neighbors show structured propagation.}
+\label{fig:ifng_response_field}
+\end{figure}
+
+
+
+
+
 
 The frozen selector preserves target qualification while reducing collateral
 burden. Across 3,107 spatially separated actions and 36 target specifications,
@@ -970,16 +997,13 @@ cases were explored post hoc, they illustrate the decision mechanism but are
 not confirmatory effect estimates.
 \FloatBarrier
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{novo.png}
-\caption{
-\textbf{De novo IFN-$\gamma$ response-field prediction in mouse brain.}
-Left: whole-tissue maps for representative IFN/MHC-I-associated and structural genes, showing positive \textit{B2m}/\textit{Ifitm3} and negative \textit{Col1a2}/\textit{Vcan} responses rather than a uniform shift.
-Middle: six high-response regions with patch-averaged deltas overlaid on the spatial graph.
-Right: local 64-cell neighborhoods, where highlighted target cells show the strongest response and nearby neighbors show structured propagation.}
-\label{fig:ifng_response_field}
-\end{figure}
+
+
+
+
+
+
+
 \subsection{\methodname{}-Based IFN-\texorpdfstring{$\gamma$}{gamma} Deployment Produces a Spatially Heterogeneous Hypothesis}
 \label{sec:ifng_case_study}
 The IFN-$\gamma$ deployment produces a spatially heterogeneous, biologically
