@@ -59,7 +59,7 @@
 \newcommand{\softpara}{\vspace{0.25em}}
 \newcommand{\pmv}[2]{\ensuremath{#1\,{\scriptstyle\pm\,#2}}}
 
-\title{\methodname{}: Single-Cell Spatial Perturbation-Field Inference in Niche Environments}
+\title{\methodname{}: Disentangling Tissue Context and Perturbation-Conditioned Response Fields in Spatial Genomics}
 
 
 
@@ -207,7 +207,7 @@ context-dominated but locally perturbation-structured}.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\linewidth]{pair_2.png}
+\includegraphics[width=0.85\linewidth]{pair_2.png}
 \caption{\textbf{Pre-Post Perturbation Pairing (PPP) construction and validation.}
 (a) Each post-perturbation 64-cell patch is matched to K=3 control patches, softly aligned, and aggregated into a consensus post--pre response target. (b) Example matched pre/post patches. (c--e) Stability and null audits show that PPP targets are consistent across matched controls and align more strongly with their own guide signatures than with wrong-guide or shuffled nulls. Consensus/ring correlations are $0.944/0.923$, and 512-gene own-guide alignment exceeds wrong-guide and target-shuffled nulls for both center cells and neighbor cells. Expression-decoupled, gene-disjoint, channel-removal, and no-spatial audits are reported in \Cref{tab:confirmatory_analysis}.}
 \label{fig:data_pair}
@@ -936,17 +936,6 @@ toxicity. Validation fixes all thresholds, weights, and operating points.
 
 
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{novo.png}
-\caption{
-\textbf{De novo IFN-$\gamma$ response-field prediction in mouse brain.}
-Left: whole-tissue maps for representative IFN/MHC-I-associated and structural genes, showing positive \textit{B2m}/\textit{Ifitm3} and negative \textit{Col1a2}/\textit{Vcan} responses rather than a uniform shift.
-Middle: six high-response regions with patch-averaged deltas overlaid on the spatial graph.
-Right: local 64-cell neighborhoods, where highlighted target cells show the strongest response and nearby neighbors show structured propagation.}
-\label{fig:ifng_response_field}
-\end{figure}
-
 
 
 
@@ -962,6 +951,21 @@ from 0.1111 to 0.4167. Random observed-qualified selection and Path2
 aggregation instead yield mean reductions of $-9.8\%$ and $-16.4\%$, whereas
 the dual utility/burden selector reaches $+12.9\%$
 (\Cref{tab:app_selector_formal}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{novo.png}
+\caption{
+\textbf{De novo IFN-$\gamma$ response-field prediction in mouse brain.}
+Left: whole-tissue maps for representative IFN/MHC-I-associated and structural genes, showing positive \textit{B2m}/\textit{Ifitm3} and negative \textit{Col1a2}/\textit{Vcan} responses rather than a uniform shift.
+Middle: six high-response regions with patch-averaged deltas overlaid on the spatial graph.
+Right: local 64-cell neighborhoods, where highlighted target cells show the strongest response and nearby neighbors show structured propagation.}
+\label{fig:ifng_response_field}
+\end{figure}
+
+
+
+
 
 \textbf{Task-specific \methodname{} burden ranking, rather than generic
 aggregation, drives the improvement.} The context spillover head reaches
