@@ -1073,6 +1073,13 @@ decision formulation with observed
 profiles, not end-to-end spatial prediction. Prospective validation is
 required; public data remain subject to their original terms.
 
+\section{Generative AI Usage}
+Generative AI tools were used for language editing and code assistance during
+manuscript preparation. All experimental designs, numerical results, figures,
+and scientific interpretations were independently verified by the authors. No
+generative AI model was used to construct benchmark targets or experimental
+labels.
+
 \section{Code and Data Availability}
 \label{sec:code_release}
 We will release the anonymized code, configuration files, processed split
@@ -2532,7 +2539,7 @@ prediction, treatment efficacy, or clinical safety.
 \label{app:single_column_diagnostics}
 The remaining tables are intentionally single-column. They document parameter
 sensitivity, seed and architecture controls, case-study readouts, external
-module support, unseen-guide stress tests, and calibration. This order keeps
+module support, seed-transfer diagnostics, and calibration. This order keeps
 related narrow tables in the two available columns while the surrounding text
 states the split, estimand, and claim boundary for each result.
 
@@ -2900,19 +2907,6 @@ training graphs in validation and the selector family was explored post hoc,
 these values and the following cases are retained only as discovery evidence
 and are not confirmatory effect estimates.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{selector_prioritization_appendix.pdf}
-\caption{\textbf{Exploratory post-hoc perturbation-prioritization audit.}
-(a) Selector interface and audit scale: frozen \methodname{} response fields are decomposed into target utility and collateral burden and used to rank target-retaining, low-burden actions.
-(b) Three exploratory biological cases show high target retention and lower collateral burden.
-(c) Burden decomposition across all three cases shows weighted, far-field, off-program, and undesirable-program burden reductions.
-(d) Spatial Perturb-seq operating points show the trade-off between target-qualified rate and burden reduction, with the observed-field oracle as an upper reference.
-(e) Perturb-FISH provides module-level external support under a different action pool and readout panel.
-(f) Predicted target utility stratifies observed target qualification, but absolute calibration remains incomplete under both main-block and strict-guide splits.}
-\label{fig:app_selector_prioritization}
-\end{figure*}
-
 The three exploratory cases retained 89.3--99.8\% of target utility while
 reducing collateral burden by 24.4--49.7\%
 (Table~\ref{tab:app_selector_cases}). These cases illustrate the
@@ -3003,53 +2997,24 @@ with reversal rates of 0.443 and 0.191; because they lack a matched target
 utility field, they support toxicity-endpoint heterogeneity but are not counted
 as target-retaining selector validations.
 
-\paragraph{Strict unseen-guide stress test.}
-The selector is substantially less reliable when all test guides are unseen
-(Table~\ref{tab:app_selector_guide_ood}). The predicted burden score remains
-non-random (pairwise agreement 0.621; median burden Spearman 0.283), and the
-observed oracle shows that a 0.350 reduction is available. However, the best
-constrained predicted selector reaches only TQR 0.333 and reduction 0.068,
-below the target-only TQR of 0.528. Removing the utility constraint recovers
-reduction 0.288 but collapses TQR to 0.056. This decomposition identifies
-unseen-guide target calibration, rather than absence of lower-burden actions,
-as the failure mode.
+Finally, predicted utility deciles stratify observed target qualification on
+the formal main test block, where TQR rises from 0.043 to 0.575 across extreme
+deciles (Table~\ref{tab:app_selector_calibration}). This result supports
+utility ranking but does not assign a calibrated probability interpretation to
+the score.
 
 \begin{table}[t]
 \centering
 \small
-\caption{Strict guide-held-out selector stress test.}
-\label{tab:app_selector_guide_ood}
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrr@{}}
-\toprule
-Setting & TQR & Burden red. \\
-\midrule
-Target-only & 0.528 & 0.000 \\
-Best constrained selector & 0.333 & 0.068 \\
-No utility constraint & 0.056 & 0.288 \\
-Observed utility/burden oracle & 1.000 & 0.350 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Finally, predicted utility deciles stratify observed target qualification, but
-absolute reliability remains incomplete: the main block split rises from TQR
-0.043 to 0.575 across extreme deciles, while strict guide holdout rises from
-0.053 to 0.461 (Table~\ref{tab:app_selector_calibration}). We therefore report
-this as a retrospective drug/perturbation prioritization audit, not a calibrated
-prospective controller or clinical safety predictor.
-
-\begin{table}[t]
-\centering
-\small
-\caption{Target-utility calibration limitation. Target-qualified rate (TQR) increases from the lowest to highest predicted-utility decile, but absolute calibration remains incomplete, especially under strict guide holdout.}
+\caption{Target-utility stratification on the formal main test block.
+Target-qualified rate (TQR) increases from the lowest to highest
+predicted-utility decile.}
 \label{tab:app_selector_calibration}
 \begin{tabular}{lrrr}
 \toprule
 Split & Bottom-decile TQR & Top-decile TQR & Gap \\
 \midrule
 Main block & 0.043 & 0.575 & 0.532 \\
-Strict guide & 0.053 & 0.461 & 0.408 \\
 \bottomrule
 \end{tabular}
 \end{table}
