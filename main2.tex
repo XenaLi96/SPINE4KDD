@@ -1045,24 +1045,22 @@ spatial perturbation remains necessary for validation.
 \section{Discussion and Conclusion}
 \label{sec:discussion_conclusion}
 Tissue context explains most global response-field structure, whereas
-conditioning on the perturbation contributes a smaller, reproducible radial
+conditioning on perturbation contributes a smaller, reproducible radial
 component. The lift survives gene-disjoint matching, requires local controls,
 depends on direct-effect profile and sender location, and peaks near 64 cells
 (98\,$\mu$m). It transfers to unseen guides only with assay-matched spatial
 seeds; external scRNA seeds underperform zero seed. These controls support
 local response-field prediction, not causal communication inference.
 
-Pooled correlation rewards stable anatomy; graph-paired Ring lift tests whether
-the correct seed reorganizes the local field beyond context. Their disagreement
-identifies direct-effect transfer and top-action calibration as the remaining
-bottlenecks.
+Pooled correlation rewards anatomy; graph-paired Ring lift tests
+perturbation-specific reorganization beyond context. Their disagreement
+identifies direct-effect transfer and top-action calibration as bottlenecks.
 
-The validation-frozen selector shows that the remaining signal is
-decision-relevant: it preserves target qualification while modestly reducing
-held-out burden. The utility--burden interface ranks drug--dose--time
+The validation-frozen selector preserves target qualification while modestly
+reducing held-out burden. The utility--burden interface ranks drug--dose--time
 actions in observed LINCS, Tahoe-100M, and Sci-Plex profiles. We therefore view
-\methodname{} as a response-field-based selector for experimental
-prioritization. Evidence remains retrospective; undesirable-program scores are
+\methodname{} as a response-field selector for prioritization. Evidence
+remains retrospective; undesirable-program scores are
 transcriptomic proxies, not clinical safety estimates. Prospective studies
 require preselected actions, assay-compatible seeds, and independent target
 and collateral measurements.
@@ -1070,19 +1068,18 @@ and collateral measurements.
 \section{Limitations and Ethical Considerations}
 \label{sec:limitations_ethical_considerations}
 \ppp is a matched pseudo-counterfactual, not paired pre/post measurement.
-Primary estimates come from one mouse-brain assay; scale, programs, and
-calibration may not transfer across tissues or platforms. Guide-OOD gains are
+Primary estimates come from one mouse-brain assay; scale and calibration may
+not transfer across platforms. Guide-OOD gains are
 modest; external scRNA seeds fail. Chemical-response audits validate the
 decision formulation with observed
 profiles, not end-to-end spatial prediction. Prospective validation is
-required; public data remain subject to their original terms.
+required; public data remain subject to original terms.
 
 \section{Generative AI Usage}
-Generative AI tools were used for language editing and code assistance during
-manuscript preparation. All experimental designs, numerical results, figures,
-and scientific interpretations were independently verified by the authors. No
-generative AI model was used to construct benchmark targets or experimental
-labels.
+Generative AI was used only for language polishing and limited code
+assistance. All figures were drawn manually by the authors. Generative AI was
+not used for benchmark construction, experimental design, result generation,
+or scientific interpretation.
 
 \section{Code and Data Availability}
 \label{sec:code_release}
