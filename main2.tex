@@ -1071,8 +1071,93 @@ manifests, benchmark construction scripts, and evaluation scripts in an
 \renewcommand{\theHtable}{appendix.table.\arabic{table}}
 \renewcommand{\theHfigure}{appendix.figure.\arabic{figure}}
 
-\section{Additional Experiments and Implementation Details}
+\refstepcounter{section}
+\makeatletter
+\def\@currentlabelname{Additional Experiments and Implementation Details}
+\makeatother
 \label{app:additional_experiments}
+\pdfbookmark[1]{Appendix: Additional Experiments and Implementation Details}{appendix-start}
+
+\twocolumn[{
+\begin{minipage}{\textwidth}
+\centering
+{\LARGE\bfseries Appendix\par}
+\vspace{3pt}
+{\large\bfseries Additional Experiments and Implementation Details\par}
+\vspace{6pt}
+\hrule
+\vspace{6pt}
+
+\raggedright\normalsize
+\textbf{Overview.}
+This appendix documents the complete evidence chain from pseudo-counterfactual
+benchmark construction to response-field prediction and intervention
+prioritization. Sections A.1--A.5 specify \ppp matching and transport,
+communication-rich and mouse-reference microenvironment mining, task
+compatibility with related resources, and the full model and training
+procedure. Sections A.6--A.10 then report gene-level performance, unseen-guide
+and guide-stratified stability, controlled ligand--receptor propagation, and
+Perturb-map transfer. Tables S16--S21 consolidate the wide system-level,
+structural, selector, and chemical-response summaries before the narrower
+diagnostics.
+
+\vspace{2pt}
+Sections A.11--A.20 provide blend and reference-ST sensitivity, direct-effect
+controls, development and structural ablations, the IFN-$\gamma$ deployment,
+extended interpretation, the formal drug/perturbation selector audit,
+whole-block visualization, and compute details. Primary quantitative claims
+come from the mouse-brain Spatial Perturb-seq benchmark; synthetic,
+cross-assay, and deployment analyses test distinct interfaces or failure modes
+and are not pooled as equivalent evidence.
+
+\vspace{5pt}
+{\large\bfseries Appendix Contents\par}
+\vspace{3pt}
+
+\begin{minipage}{0.315\textwidth}
+\raggedright\small
+\textbf{Construction and model}\par
+\vspace{2pt}
+\hyperref[app:detailed_data_construction]{\textbf{\ref*{app:detailed_data_construction}} Detailed data construction}\par
+\hyperref[app:communication_microenvironment_mining]{\textbf{\ref*{app:communication_microenvironment_mining}} Communication-rich mining}\par
+\hyperref[app:mouse_microenvironment_mining]{\textbf{\ref*{app:mouse_microenvironment_mining}} Mouse reference mining}\par
+\hyperref[app:resource_comparison]{\textbf{\ref*{app:resource_comparison}} Resource comparison}\par
+\hyperref[app:method_full_details]{\textbf{\ref*{app:method_full_details}} Full method and training}\par
+\hyperref[app:full_gene_centric_validation]{\textbf{\ref*{app:full_gene_centric_validation}} Gene-centric validation}\par
+\hyperref[app:strict_guide_ood]{\textbf{\ref*{app:strict_guide_ood}} Strict guide-out stability}\par
+\end{minipage}
+\hfill
+\begin{minipage}{0.315\textwidth}
+\raggedright\small
+\textbf{Robustness and transfer}\par
+\vspace{2pt}
+\hyperref[app:guide_stratified_stability]{\textbf{\ref*{app:guide_stratified_stability}} Guide-stratified stability}\par
+\hyperref[app:synthetic_lr_validation]{\textbf{\ref*{app:synthetic_lr_validation}} Synthetic LR validation}\par
+\hyperref[app:perturbmap_validation]{\textbf{\ref*{app:perturbmap_validation}} Perturb-map validation}\par
+\hyperref[tab:app_full_baseline_comparison]{\textbf{Tables \ref*{tab:app_full_baseline_comparison}--\ref*{tab:app_chemical_selector}} Wide summary tables}\par
+\hyperref[app:single_column_diagnostics]{\textbf{\ref*{app:single_column_diagnostics}} Single-column diagnostics}\par
+\hyperref[app:blend_and_reference_diagnostics]{\textbf{\ref*{app:blend_and_reference_diagnostics}} Blend/reference diagnostics}\par
+\hyperref[app:profile_controls]{\textbf{\ref*{app:profile_controls}} Direct-effect controls}\par
+\end{minipage}
+\hfill
+\begin{minipage}{0.315\textwidth}
+\raggedright\small
+\textbf{Ablations, use cases, and reuse}\par
+\vspace{2pt}
+\hyperref[app:development_ablations]{\textbf{\ref*{app:development_ablations}} Development ablations}\par
+\hyperref[app:structural_design_refinement]{\textbf{\ref*{app:structural_design_refinement}} Structural/refinement ablations}\par
+\hyperref[app:ifng_extended_interpretation]{\textbf{\ref*{app:ifng_extended_interpretation}} IFN-$\gamma$ case study}\par
+\hyperref[app:extended_discussion]{\textbf{\ref*{app:extended_discussion}} Extended discussion}\par
+\hyperref[app:selector_audit]{\textbf{\ref*{app:selector_audit}} Selector evaluation}\par
+\hyperref[app:whole_block_wrapper]{\textbf{\ref*{app:whole_block_wrapper}} Whole-block wrapper}\par
+\hyperref[app:compute_resources]{\textbf{\ref*{app:compute_resources}} Compute resources}\par
+\end{minipage}
+
+\vspace{5pt}
+\hrule
+\end{minipage}
+\vspace{4pt}
+}]
 
 \subsection{Detailed data construction}
 \label{app:detailed_data_construction}
@@ -1614,6 +1699,7 @@ $\mathcal L_{\mathrm{neighbor}}$ is a Huber loss on high-confidence neighbor-cel
 
 \subsection{Strict grouped guide-out stability}
 \label{sec:guide_stratified_stability}
+\label{app:strict_guide_ood}
 
 To test perturbation-level generalization, we use a strict grouped guide-out split. The perturbation guides \textit{fasn}, \textit{stk39}, and \textit{trem2} are jointly excluded from training and validation, yielding 992 unseen-guide graphs. With observed sender-side direct-effect seeds, \methodname{} reaches pooled neighbor/ring Pearson $0.596/0.451$, outperforming elastic-net patch-summary regression $(0.334/0.142)$ and a Generic Graph Transformer without CCC priors $(0.497/0.395)$. Per-guide performance remains stable across all three held-out perturbations, indicating that the grouped guide-out result is not driven by a single guide.
 
